@@ -1,4 +1,4 @@
-#' Identify differentially expressed gene over pseudotime.
+#' Identify differentially expressed genes over pseudotime.
 #'
 #' @name scLANE
 #' @description This function uses GLM spline models as implemented in the \code{marge} package to identify non-linear patterns in gene expression across pseudotime.
@@ -63,11 +63,11 @@ scLANE <- function(expr = NULL,
                                              Model_Status = "Original model error",
                                              Plot = NA)
                           } else {
-                            model_plot <- plot_marge(model = marge_mod$final_mod[[1]],
-                                                     gene.counts = gene_data,
-                                                     pt = pt,
-                                                     gene = genes[i])
                             null_mod <- MASS::glm.nb(gene_data ~ 1)
+                            model_plot <- PlotMARGE(model = marge_mod$final_mod[[1]],
+                                                    gene.counts = gene_data,
+                                                    pt = pt,
+                                                    gene = genes[i])
                             marge_ll <- logLik(marge_mod$final_mod[[1]])
                             null_ll <- logLik(null_mod)
                             lrt_stat <- as.numeric(2 * (marge_ll - null_ll))

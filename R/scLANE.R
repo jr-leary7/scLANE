@@ -12,7 +12,7 @@
 #' @param track.time A boolean indicating whether the time it takes to execute \code{scLANE()} should be tracked & printed at the end. Defaults to TRUE.
 #' @return A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, bootstrapped \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values.
 #' @export
-#' @example
+#' @examples
 #' scLANE(expr = raw_counts, pt = pt_df, genes = my_gene_vec)
 
 scLANE <- function(expr = NULL,
@@ -23,7 +23,7 @@ scLANE <- function(expr = NULL,
   # check inputs
   if (any(sapply(c(expr, pt, genes), is.null))) stop("You forgot one of the three main inputs.")
   # set up parallelization
-  start_time <- Sys.time()
+  if (track.time) { start_time <- Sys.time() }
   cl <- makeCluster(detectCores() - 1)
   registerDoParallel(cl)
   set.seed(312)
@@ -67,7 +67,8 @@ scLANE <- function(expr = NULL,
                             model_plot <- PlotMARGE(model = marge_mod$final_mod[[1]],
                                                     gene.counts = gene_data,
                                                     pt = pt,
-                                                    gene = genes[i])
+                                                    gene = genes[i],
+                                                    null.mod = null_mod)
                             marge_ll <- logLik(marge_mod$final_mod[[1]])
                             null_ll <- logLik(null_mod)
                             lrt_stat <- as.numeric(2 * (marge_ll - null_ll))

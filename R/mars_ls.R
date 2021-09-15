@@ -6,11 +6,8 @@
 #' @param Y : the response variable.
 #' @param pen : a set penalty that is used for the GCV. The default is 2.
 #' @param tols : a set tolerance for monitoring the convergence for the RSS between the parent and candidate model (this is the lack-of-fit criterion used for MARS). The default is 0.00001.
-#' @param M : a set threshold for the number of basis functions to be used. Defaults to 21.
+#' @param M : a set threshold for the number of basis functions to be used. Defaults to 7.
 #' @param minspan : a set minimum span value. The default is \code{minspan = NULL}.
-#' @param print.disp : a logical argument, do you want to print the output? The default is \code{FALSE}.
-#' @param family : the specified "exponential" family if a GLM is used (only applied on the final model fit). The default is \code{family = "gaussian"}.
-#' @param nb : a logical argument, is the model a negative binomial model? The default is \code{FALSE}.
 #' @param ... : further arguments passed to or from other methods.
 #' @details Note that no argument is provided for an "additive structure only" model but one could just use \code{mgcv::gam()} instead.
 #' @return \code{mars_ls} returns a list of calculated values consisting of:
@@ -36,7 +33,6 @@ mars_ls <- function(X_pred = NULL,
                     tols = 0.00001,
                     M = 7,
                     minspan = NULL,
-                    print.disp = F,
                     ...) {
   # check inputs
   if (any(sapply(c(X_pred, Y), is.null))) stop("Some inputs to mars_ls() are missing.")
@@ -398,7 +394,7 @@ mars_ls <- function(X_pred = NULL,
               min_knot1 <- utils::tail(which.max(round(RSSq_knot, 6)), n = 1)
             }
             if (utils::tail(max(RSSq_knot_one_add_mat, na.rm = TRUE), n = 1) < utils::tail(max(RSSq_knot_both_int_mat, na.rm = TRUE), n = 1)) {
-              int <- T
+              int <- TRUE
               trunc.type <- 2
               RSSq_knot <- RSSq_knot_both_int_mat
               temp <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)
@@ -408,9 +404,9 @@ mars_ls <- function(X_pred = NULL,
           }
         }
         if (utils::tail(max(RSSq_knot_both_int_mat, na.rm = TRUE), n = 1) <= utils::tail(max(RSSq_knot_one_int_mat, na.rm = TRUE), n = 1)) {
-          if (sum(!is.na(RSSq_knot_both_add_mat)) > 0) {
+          if (any(!is.na(RSSq_knot_both_add_mat))) {
             if (utils::tail(max(RSSq_knot_both_add_mat, na.rm = TRUE), n = 1) >= utils::tail(max(RSSq_knot_one_int_mat, na.rm = TRUE), n = 1)) {
-              int <- F
+              int <- FALSE
               if (utils::tail(max(RSSq_knot_both_add_mat, na.rm = TRUE), n = 1) > utils::tail(max(RSSq_knot_one_add_mat, na.rm = TRUE), n = 1)) {
                 trunc.type <- 2
                 RSSq_knot <- RSSq_knot_both_add_mat
@@ -425,59 +421,65 @@ mars_ls <- function(X_pred = NULL,
             if (utils::tail(max(RSSq_knot_both_add_mat, na.rm = TRUE), n = 1) < utils::tail(max(RSSq_knot_one_int_mat, na.rm = TRUE), n = 1)) {
               trunc.type <- 1
               if (utils::tail(max(RSSq_knot_one_int_mat, na.rm = TRUE), n = 1) > utils::tail(max(RSSq_knot_one_add_mat, na.rm = TRUE), n = 1)) {
-                int <- T
+                int <- TRUE
                 RSSq_knot <- RSSq_knot_one_int_mat
-                min_knot1 <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)[1]
-                best.var <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)[2]
+                temp <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)
+                min_knot1 <- temp[1]
+                best.var <- temp[2]
               }
               if (utils::tail(max(RSSq_knot_one_int_mat, na.rm = TRUE), n = 1) <= utils::tail(max(RSSq_knot_one_add_mat, na.rm = TRUE), n = 1)) {
-                int <- F
+                int <- FALSE
                 RSSq_knot <- RSSq_knot_one_add_mat
                 min_knot1 <- utils::tail(which.max(round(RSSq_knot, 6)), n = 1)
               }
             }
           }
-          if (sum(!is.na(RSSq_knot_both_add_mat)) == 0) {
-            if (sum(!is.na(RSSq_knot_one_add_mat)) == 0) {
-              int <- T
+          if (all(is.na(RSSq_knot_both_add_mat))) {
+            if (all(is.na(RSSq_knot_one_add_mat))) {
+              int <- TRUE
               trunc.type <- 1
               RSSq_knot <- RSSq_knot_one_int_mat
-              min_knot1 <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)[1]
-              best.var <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)[2]
+              temp <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)
+              min_knot1 <- temp[1]
+              best.var <- temp[2]
             }
-            if (sum(!is.na(RSSq_knot_one_add_mat)) > 0) {
+            if (any(!is.na(RSSq_knot_one_add_mat))) {
               trunc.type <- 1
               if (utils::tail(max(RSSq_knot_one_add_mat, na.rm = TRUE), n = 1) >= utils::tail(max(RSSq_knot_one_int_mat, na.rm = TRUE), n = 1)) {
-                int <- F
+                int <- FALSE
                 RSSq_knot <- RSSq_knot_one_add_mat
                 min_knot1 <- utils::tail(which.max(round(RSSq_knot, 6)))
               }
               if (utils::tail(max(RSSq_knot_one_add_mat, na.rm = TRUE), n = 1) < utils::tail(max(RSSq_knot_one_int_mat, na.rm = TRUE), n = 1)) {
-                int <- T
+                int <- TRUE
                 RSSq_knot <- RSSq_knot_one_int_mat
-                min_knot1 <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)[1]
-                best.var <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)[2]
+                temp <- utils::tail(which(utils::tail(max(round(RSSq_knot, 6), na.rm = TRUE), n = 1) == round(RSSq_knot, 6), arr.ind = TRUE), n = 1)
+                min_knot1 <- temp[1]
+                best.var <- temp[2]
               }
             }
           }
         }
       }
 
-      b1_new <- matrix(tp1(X, X_red[min_knot1]), ncol = 1)
-      b2_new <- matrix(tp2(X, X_red[min_knot1]), ncol = 1)
+      b1_new <- matrix(tp1(x = X, t = X_red[min_knot1]), ncol = 1)
+      b2_new <- matrix(tp2(x = X, t = X_red[min_knot1]), ncol = 1)
       colnames(b1_new) <- var_name
       colnames(b2_new) <- var_name
 
-      B_name1 <- paste("(", var_name, "-", signif (X_red[min_knot1], 4), ")", sep = "")
-      B_name2 <- paste("(", signif (X_red[min_knot1], 4), "-", var_name, ")", sep = "")
+      B_name1 <- paste("(", var_name, "-", signif(X_red[min_knot1], 4), ")", sep = "")
+      B_name2 <- paste("(", signif(X_red[min_knot1], 4), "-", var_name, ")", sep = "")
 
-      if (int == TRUE) {
+      if (int) {
         mod_struct1 <- which(mod_struct == 1)
         colnames(B)[1] <- c("")
         var_name1 <- which(var_name_vec != var_name)
-        if (int.count == 0) var_name2 <- var_name_vec[var_name1]
-        if (int.count > 0) var_name2 <- var_name_vec[var_name_struct]
-        var_name_struct <- mod_struct1[mod_struct1%in%var_name1]
+        if (int.count == 0) {
+          var_name2 <- var_name_vec[var_name1]
+        } else if (int.count > 0) {
+          var_name2 <- var_name_vec[var_name_struct]
+        }
+        var_name_struct <- mod_struct1[mod_struct1 %in% var_name1]
         B2 <- as.matrix(B[, var_name_struct])
         B3_names <- B_names_vec[var_name_struct]
         B3_names <- B3_names[-1]
@@ -486,60 +488,61 @@ mars_ls <- function(X_pred = NULL,
 
         if (trunc.type == 2) {
           B2a <- matrix(rep(B2[, best.var], 2), ncol = 2)
-          B_temp <- cbind(B, B2a*cbind(b1_new, b2_new))
-          B_new <- B2a*cbind(b1_new, b2_new)
+          B_temp <- cbind(B, B2a * cbind(b1_new, b2_new))
+          B_new <- B2a * cbind(b1_new, b2_new)
           var_name3 <- var_name2[best.var]
           colnames(B_new) <- rep(var_name3, 2)
-        }
-
-        if (trunc.type == 1) {
+        } else if (trunc.type == 1) {
           B2b <- matrix(B2[, best.var], ncol = 1)
-          B_temp <- cbind(B, B2b*b1_new)     # Interaction model with one truncated function (i.e., the positive part).
-          B_new <- B2b*b1_new
+          B_temp <- cbind(B, B2b * b1_new)  # Interaction model with one truncated function (i.e., the positive part).
+          B_new <- B2b * b1_new
           colnames(B_new) <- rep(var_name2[1], 1)
           var_name3 <- var_name2[best.var]
           colnames(B_new) <- rep(var_name3, 1)
         }
 
         B_names <- paste(B3_names[best.var], B_name1, sep = "*")
-        if (trunc.type == 2) B_names <- c(B_names, paste(B3_names[best.var], B_name2, sep = "*"))
-        if (trunc.type == 1) B_names <- B_names
+        if (trunc.type == 2) {
+          B_names <- c(B_names, paste(B3_names[best.var], B_name2, sep = "*"))
+        } else if (trunc.type == 1) {
+          B_names <- B_names
+        }
 
         var_name_list1 <- list()
-        for (ll in 1:ncol(B_new)) {
+        for (ll in seq(ncol(B_new))) {
           colnames(B_new)[ll] <- paste(var_name, colnames(B_new)[ll], sep = ":")
           var_name_list1 <- c(var_name_list1, list(colnames(B_new)[ll]))
           int.count1 <- int.count1 + 1
         }
 
         pp <- ncol(B_temp)
-        if (trunc.type == 2) colnames(B_temp)[((pp - 1):pp)] <- var_name_list1[[1]]
-        if (trunc.type == 1) colnames(B_temp)[pp] <- var_name_list1[[1]]
-      }
-
-      if (int == F) {
+        if (trunc.type == 2) {
+          colnames(B_temp)[((pp - 1):pp)] <- var_name_list1[[1]]
+        } else if (trunc.type == 1) {
+          colnames(B_temp)[pp] <- var_name_list1[[1]]
+        }
+      } else {
         var_name_list1 <- list()
         if (trunc.type == 2) {
-          B_temp <- cbind(B, b1_new, b2_new) # Additive model with both truncated functions.
+          B_temp <- cbind(B, b1_new, b2_new)  # Additive model with both truncated functions.
           B_new <- cbind(b1_new, b2_new)
           B_names <- c(B_name1, B_name2)
           var_name_list1 <- c(var_name_list1, list(var_name))
           var_name_list1 <- c(var_name_list1, list(var_name))  # Repeat it because there are new basis function selected.
-        }
-        if (trunc.type == 1) {
-          B_temp <- cbind(B, b1_new) # Additive model with one truncated function (positive part).
+        } else if (trunc.type == 1) {
+          B_temp <- cbind(B, b1_new)  # Additive model with one truncated function (positive part).
           B_new <- b1_new
           B_names <- B_name1
           var_name_list1 <- c(var_name_list1, list(var_name))
         }
       }
 
-      meas_model <- stat_out(Y, B_temp, TSS, GCV.null, pen, ...)
+      meas_model <- stat_out(Y = Y, B1 = B_temp, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
       GCVq2 <- meas_model$GCVq1
       RSSq2 <- meas_model$RSSq1
 
       if (GCVq2 < (-10) | (round(RSSq2, 4) > (1 - tols))) {
-        writeLines("MARS Tolerance criteria met 1. \n")
+        # writeLines("MARS Tolerance criteria met 1. \n")
         var.mod_temp <- c(var.mod_temp, NA)
         min_knot_vec_temp <- c(min_knot_vec_temp, NA)
         int.count1_temp <- c(int.count1_temp, NA)
@@ -558,11 +561,10 @@ mars_ls <- function(X_pred = NULL,
         if (length(var.mod_temp) == q) {
           breakFlag <- TRUE
           break
+        } else {
+          next
         }
-        if (length(var.mod_temp) != q) next
-      }
-
-      if (GCVq2 >= (-10) | (round(RSSq2, 4) <= (1 - tols))) {
+      } else if (GCVq2 >= (-10) | (round(RSSq2, 4) <= (1 - tols))) {
         RSSq_term_temp <- c(RSSq_term_temp, RSSq2)
         GCVq_term_temp <- c(GCVq_term_temp, GCVq2)
       }
@@ -581,7 +583,7 @@ mars_ls <- function(X_pred = NULL,
 
     } # End the for () loop here.
 
-    if (breakFlag == TRUE) break
+    if (breakFlag) break
 
     best.mod <- which.max(RSSq_term_temp)  # Finds the best model (max LOF) from your candidate model/basis set. This will become the new parent.
 
@@ -607,17 +609,17 @@ mars_ls <- function(X_pred = NULL,
     is.int_vec <- c(is.int_vec, int)
 
     if (abs(RSSq_term[k] - RSSq_term[k + 1]) < tols) {
-      if (print.disp == TRUE) writeLines("\n ** MARS tolerance criteria met 2** \n")
       breakFlag <- TRUE
       break
     }
 
     if (abs(RSSq_term[k] - RSSq_term[k + 1]) >= tols) {
-      if (int == TRUE) {
-        mod_struct <- c(mod_struct, rep(c(rep(2, int.count1/trunc.type)), trunc.type))
+      if (int) {
+        mod_struct <- c(mod_struct, rep(c(rep(2, int.count1 / trunc.type)), trunc.type))
         int.count <- int.count + 1
+      } else {
+        mod_struct <- c(mod_struct, rep(1, trunc.type))
       }
-      if (int == F) mod_struct <- c(mod_struct, rep(1, trunc.type))
       B <- B_temp
       var_name_vec <- c(var_name_vec, colnames(B_new))
       var_name_list <- c(var_name_list, var_name_list1)
@@ -627,116 +629,93 @@ mars_ls <- function(X_pred = NULL,
     }
 
     if (nrow(B) <= (ncol(B) + 2)) { # To avoid p>N issues!
-      if (print.disp == TRUE) writeLines("\n ** MARS parameter dimension exceeds N ** \n")
-      ok <- F
+      ok <- FALSE
     }
 
     if (m >= M) {   # If model exceeds no. of set terms, terminate it.
-      if (print.disp == TRUE) writeLines("\n ** MARS exceeded max no. of set terms ** \n")
-      ok <- F
+      ok <- FALSE
     }
 
-    stat_out(Y, B, TSS, GCV.null, pen, ...)
-  }              # The term (m) for () loop ends here.
+    stat_out(Y = Y, B1 = B, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
+  }  # The term (m) for () loop ends here.
 
   colnames(B) <- B_names_vec
+  ncol_B <- ncol(B)
 
   B2 <- B # Set this for final model to be the same as model selected from the forward pass.
 
   # Algorithm 3 (backward pass), as in Friedman (1991). This uses GCV as the selection criterion.
 
-  p <- ncol(B) + pen*(ncol(B) - 1)/2  # This matches the earth() package, SAS and Friedman (1991) penalty.
+  p <- ncol_B + pen * (ncol_B - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
 
   full_RSS <- sum((Y - stats::fitted(stats::lm.fit(B - 1, Y, ...)))^2)
-  full_GCV <- full_RSS/(N*(1 - p/N)^2)
-  full_GCV <- 1 - (full_GCV/GCV.null)
+  full_GCV <- full_RSS / (N * (1 - p / N)^2)
+  full_GCV <- 1 - (full_GCV / GCV.null)
 
   B_new <- B
-  GCV_mat <- matrix(NA, ncol = ncol(B), nrow = ncol(B))
+  GCV_mat <- matrix(NA, ncol = ncol_B, nrow = ncol_B)
   colnames(GCV_mat) <- colnames(B)
-  GCV_mat <- cbind(GCV_mat, rep(NA, ncol(B)))
-  colnames(GCV_mat)[(ncol(B) + 1)] <- "Forward pass model"
+  GCV_mat <- cbind(GCV_mat, rep(NA, ncol_B))
+  colnames(GCV_mat)[(ncol_B + 1)] <- "Forward pass model"
 
-  GCV_mat[1, (ncol(B) + 1)] <- full_GCV
-  GCV1 <- backward_sel(Y, B_new, pen, GCV.null, ...)
+  GCV_mat[1, (ncol_B + 1)] <- full_GCV
+  GCV1 <- backward_sel(Y = Y, B_new = B_new, pen = pen, GCV.null = GCV.null, ...)
   GCV_mat[2, 2:(length(GCV1) + 1)] <- GCV1
   variable.lowest <- utils::tail(which(GCV1 == max(GCV1, na.rm = TRUE)), n = 1)
   var.low.vec <- c(colnames(B_new)[variable.lowest + 1])
   B_new <- as.matrix(B_new[, -(variable.lowest + 1)])
 
-  for (i in 2:(ncol(B) - 1)) {
-    GCV1 <- backward_sel(Y, B_new, pen, GCV.null, ...)
-
+  for (i in 2:(ncol_B - 1)) {
+    GCV1 <- backward_sel(Y = Y, B_new = B_new, pen = pen, GCV.null = GCV.null, ...)
     variable.lowest <- utils::tail(which(GCV1 == max(GCV1, na.rm = TRUE)), n = 1)
     var.low.vec <- c(var.low.vec, colnames(B_new)[variable.lowest + 1])
-
-    if (i != (ncol(B) - 1)) GCV_mat[(i + 1), colnames(B_new)[-1]] <- GCV1
-    if (i == (ncol(B) - 1)) GCV_mat[(i + 1), 1] <- GCV1
-
+    if (i != (ncol_B - 1)) {
+      GCV_mat[(i + 1), colnames(B_new)[-1]] <- GCV1
+    } else {
+      GCV_mat[(i + 1), 1] <- GCV1
+    }
     B_new <- as.matrix(B_new[, -(variable.lowest + 1)])
   }
 
   number.rm1 <- which(max(GCV_mat, na.rm = TRUE) == GCV_mat, arr.ind = TRUE)[1] - 1
 
   if (number.rm1 == 0) {
-    if (print.disp == TRUE) writeLines("\n ** Forward pass model was chosen after pruning/backward selection for MARS** \n")
+    # if (print.disp == TRUE) writeLines("\n ** Forward pass model was chosen after pruning/backward selection for MARS** \n")
     B_final <- B
-  }
-
-  if (number.rm1 == (nrow(GCV_mat) - 1)) {
-    if (print.disp == TRUE) writeLines("\n ** Intercept model was chosen after pruning/backward selection for MARS** \n")
+  } else if (number.rm1 == (nrow(GCV_mat) - 1)) {
     B_final <- as.matrix(B[, 1])
   }
 
   if (!(number.rm1 == 0) & !(number.rm1 == (nrow(GCV_mat) - 1))) {
-    number.rm2 <- c()
+    number.rm2 <- rep(NA, length(var.low.vec_red))
     var.low.vec_red <- var.low.vec[1:number.rm1]
-    for (k in 1:length(var.low.vec_red)) {
-      number.rm2 <- c(number.rm2, which(var.low.vec_red[k] == colnames(B)))
+    for (k in seq(length(var.low.vec_red))) {
+      number.rm2[k] <- which(var.low.vec_red[k] == colnames(B))
     }
     B_final <- B[, -c(number.rm2)]
   }
 
   if (ncol(B_final) == 1) colnames(B_final) <- "Intercept"
 
-  if (print.disp == TRUE) {
-    writeLines("\n Forward pass (MARS) output: \n")
-    forw.info <- cbind(round(GCVq_term, 4), round(RSSq_term, 4), pred.name_vec, cut_vec, trunc.type_vec, is.int_vec)
-    colnames(forw.info) <- c("GCVq", "RSSq", "Predictor name", "Cut term (knot)", "No. of new parent terms", "Interaction?")
-    print(forw.info)
-  }
-
   # Some measures to be reported, GCV, RSq, etc. for the final model fit.
+  est.many <- mvabund::manyglm(Y ~ B_final - 1,
+                               family = "negative.binomial",
+                               maxiter = 1000,
+                               maxiter2 = 100,
+                               ...)
+  final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1,
+                            method = "glm.fit2",
+                            init.theta = est.many$theta,
+                            ...)
 
-  if (nb == F) final_mod <- stats::glm(Y ~ B_final - 1, family = family, ...)
+  final_stats <- stat_out(Y = Y, B1 = B_final, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
 
-  if (nb == TRUE) {
-    est.many <- mvabund::manyglm(Y ~ B_final - 1, family = "negative.binomial", maxiter = 1000, maxiter2 = 100, ...)
-    final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1, method = "glm.fit2", init.theta = est.many$theta, ...)
-  }
-
-  final_stats <- stat_out(Y, B_final, TSS, GCV.null, pen, ...)
-
-  if (print.disp == TRUE) {
-    writeLines("\n -- Final model was chosen (after pruning/backward selection) for MARS -- \n")
-    final_mat <- t(t(colnames(as.matrix(B_final))))
-    colnames(final_mat) <- "Selected variables in the final model:"
-    print(final_mat)
-    writeLines("\n Final model GCV: \n")
-
-    print(final_stats$GCV1)
-    writeLines("\n Final model Rsq: \n")
-    print(final_stats$RSSq1)
-    writeLines("\n Final model coefs: \n")
-    print(matrix(stats::coef(final_mod), dimnames = list(final_mat)))
-  }
-
-  z <- NULL
-  z$bx <- B_final
-  z$GCV_mat <- GCV_mat
-  z$min_GCV_own <- final_stats$GCV1
-  z$y_pred <- stats::predict(final_mod)
-  z$final_mod <- final_mod
+  res <- NULL
+  res$bx <- B_final
+  res$GCV_mat <- GCV_mat
+  res$min_GCV_own <- final_stats$GCV1
+  res$y_pred <- stats::predict(final_mod)
+  res$final_mod <- final_mod
 
   class(z) <- "marge"
   return(z)

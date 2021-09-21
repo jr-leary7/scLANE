@@ -2,9 +2,9 @@
 #'
 #' @name scLANE
 #' @description This function uses GLM spline models as implemented in the \code{marge} package to identify non-linear patterns in gene expression across pseudotime.
-#' @import marge
-#' @import foreach
-#' @import doParallel
+#' @importFrom foreach foreach
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster detectCores stopCluster
 #' @param expr A data.frame of integer-valued counts. Defaults to NULL.
 #' @param pt A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param genes A character vector of genes to model. Defaults to NULL.
@@ -31,7 +31,7 @@ scLANE <- function(expr = NULL,
                         .combine = "list",
                         .multicombine = TRUE,
                         .maxcombine = length(genes),
-                        .packages = c("glm2", "marge", "ggplot2"),
+                        .packages = c("glm2", "scLANE", "ggplot2"),
                         .export = c("expr", "genes", "pt", "n.boot", "fit_marge", "plot_marge")) %dopar% {
                           # run original MARGE model
                           gene_data <- expr[, genes[i]]

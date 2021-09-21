@@ -1,14 +1,13 @@
-#' MARS model for Gaussian data.
+#' MARS model for I.I.D. Gaussian data.
 #'
-#' @description MARS estimation function for independent Gaussian response data. If non-Gaussian response data is used and a family function is specified (i.e., a GLM is used) then \code{mars_ls} applies a \code{glm} on the final selected basis function.
 #' @name mars_ls
+#' @description MARS estimation function for independent Gaussian response data. If non-Gaussian response data is used and a family function is specified (i.e., a GLM is used) then \code{mars_ls} applies a \code{glm} on the final selected basis function.
 #' @param X_pred : a matrix of the predictor variables (note that this matrix excludes the intercept term).
 #' @param Y : the response variable.
 #' @param pen : a set penalty that is used for the GCV. The default is 2.
 #' @param tols : a set tolerance for monitoring the convergence for the RSS between the parent and candidate model (this is the lack-of-fit criterion used for MARS). The default is 0.00001.
 #' @param M : a set threshold for the number of basis functions to be used. Defaults to 7.
 #' @param minspan : a set minimum span value. The default is \code{minspan = NULL}.
-#' @param ... : further arguments passed to or from other methods.
 #' @details Note that no argument is provided for an "additive structure only" model but one could just use \code{mgcv::gam()} instead.
 #' @return \code{mars_ls} returns a list of calculated values consisting of:
 #' @return \code{B_final} : the final selected basis model matrix.
@@ -25,15 +24,14 @@
 #' @export
 #' @seealso \code{\link{marge}}
 #' @examples
-#'
+#' mars_ls(X_pred = pseudotime_df, Y = expr_vec)
 
 mars_ls <- function(X_pred = NULL,
                     Y = NULL,
                     pen = 2,
                     tols = 0.00001,
                     M = 7,
-                    minspan = NULL,
-                    ...) {
+                    minspan = NULL) {
   # check inputs
   if (any(sapply(c(X_pred, Y), is.null))) stop("Some inputs to mars_ls() are missing.")
   N <- length(Y)    # Sample size.
@@ -57,7 +55,7 @@ mars_ls <- function(X_pred = NULL,
   # Null model setup - find the RSS, GCV and df. So initialize everything!
 
   B_null <- as.matrix(rep(1, N))
-  RSS_term <- c(sum((Y - stats::fitted(stats::lm.fit(B_null, Y, ...)))^2))
+  RSS_term <- c(sum((Y - stats::fitted(stats::lm.fit(B_null, Y)))^2))
   TSS <- sum((Y - mean(Y))^2)
   RSSq_term <- c(1 - RSS_term[1] / TSS)
   df1 <- 1  # Set degrees freedom to 1.
@@ -144,8 +142,8 @@ mars_ls <- function(X_pred = NULL,
           B_new_both_add <- cbind(B, b1_new, b2_new)  # Additive model with both truncated functions.
           B_new_one_add <- cbind(B, b1_new)  # Additive model with one truncated function (positive part).
           # calculate stats
-          meas_model_both_add <- stat_out(Y = Y, B1 = B_new_both_add, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
-          meas_model_one_add <- stat_out(Y = Y, B1 = B_new_one_add, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
+          meas_model_both_add <- stat_out(Y = Y, B1 = B_new_both_add, TSS = TSS, GCV.null = GCV.null, pen = pen)
+          meas_model_one_add <- stat_out(Y = Y, B1 = B_new_one_add, TSS = TSS, GCV.null = GCV.null, pen = pen)
           # save stats
           RSSq_knot_both_add <- c(RSSq_knot_both_add, meas_model_both_add$RSSq1)
           RSSq_knot_one_add <- c(RSSq_knot_one_add, meas_model_one_add$RSSq1)
@@ -167,8 +165,8 @@ mars_ls <- function(X_pred = NULL,
             B_new_both_int <- cbind(B, B2a * cbind(b1_new, b2_new))
             B_new_one_int <- cbind(B, B2b * b1_new)  # Interaction model with one truncated function (the positive part).
             # calculate stats
-            meas_model_both_int <- stat_out(Y = Y, B1 = B_new_both_int, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
-            meas_model_one_int <- stat_out(Y = Y, B1 = B_new_one_int, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
+            meas_model_both_int <- stat_out(Y = Y, B1 = B_new_both_int, TSS = TSS, GCV.null = GCV.null, pen = pen)
+            meas_model_one_int <- stat_out(Y = Y, B1 = B_new_one_int, TSS = TSS, GCV.null = GCV.null, pen = pen)
             # save stats
             RSSq_knot_both_int <- c(RSSq_knot_both_int, meas_model_both_int$RSSq1)
             RSSq_knot_one_int <- c(RSSq_knot_one_int, meas_model_one_int$RSSq1)
@@ -179,8 +177,8 @@ mars_ls <- function(X_pred = NULL,
           B_new_both_add <- cbind(B, b1_new, b2_new)
           B_new_one_add <- cbind(B, b1_new)
           # calculate stats
-          meas_model_both_add <- stat_out(Y = Y, B1 = B_new_both_add, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
-          meas_model_one_add <- stat_out(Y = Y, B1 = B_new_one_add, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
+          meas_model_both_add <- stat_out(Y = Y, B1 = B_new_both_add, TSS = TSS, GCV.null = GCV.null, pen = pen)
+          meas_model_one_add <- stat_out(Y = Y, B1 = B_new_one_add, TSS = TSS, GCV.null = GCV.null, pen = pen)
           # save stats
           RSSq_knot_both_add <- c(RSSq_knot_both_add, meas_model_both_add$RSSq1)
           RSSq_knot_one_add <- c(RSSq_knot_one_add, meas_model_one_add$RSSq1)
@@ -537,7 +535,7 @@ mars_ls <- function(X_pred = NULL,
         }
       }
 
-      meas_model <- stat_out(Y = Y, B1 = B_temp, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
+      meas_model <- stat_out(Y = Y, B1 = B_temp, TSS = TSS, GCV.null = GCV.null, pen = pen)
       GCVq2 <- meas_model$GCVq1
       RSSq2 <- meas_model$RSSq1
 
@@ -636,7 +634,7 @@ mars_ls <- function(X_pred = NULL,
       ok <- FALSE
     }
 
-    stat_out(Y = Y, B1 = B, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
+    stat_out(Y = Y, B1 = B, TSS = TSS, GCV.null = GCV.null, pen = pen)
   }  # The term (m) for () loop ends here.
 
   colnames(B) <- B_names_vec
@@ -648,7 +646,7 @@ mars_ls <- function(X_pred = NULL,
 
   p <- ncol_B + pen * (ncol_B - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
 
-  full_RSS <- sum((Y - stats::fitted(stats::lm.fit(B - 1, Y, ...)))^2)
+  full_RSS <- sum((Y - stats::fitted(stats::lm.fit(B - 1, Y)))^2)
   full_GCV <- full_RSS / (N * (1 - p / N)^2)
   full_GCV <- 1 - (full_GCV / GCV.null)
 
@@ -659,14 +657,14 @@ mars_ls <- function(X_pred = NULL,
   colnames(GCV_mat)[(ncol_B + 1)] <- "Forward pass model"
 
   GCV_mat[1, (ncol_B + 1)] <- full_GCV
-  GCV1 <- backward_sel(Y = Y, B_new = B_new, pen = pen, GCV.null = GCV.null, ...)
+  GCV1 <- backward_sel(Y = Y, B_new = B_new, pen = pen, GCV.null = GCV.null)
   GCV_mat[2, 2:(length(GCV1) + 1)] <- GCV1
   variable.lowest <- utils::tail(which(GCV1 == max(GCV1, na.rm = TRUE)), n = 1)
   var.low.vec <- c(colnames(B_new)[variable.lowest + 1])
   B_new <- as.matrix(B_new[, -(variable.lowest + 1)])
 
   for (i in 2:(ncol_B - 1)) {
-    GCV1 <- backward_sel(Y = Y, B_new = B_new, pen = pen, GCV.null = GCV.null, ...)
+    GCV1 <- backward_sel(Y = Y, B_new = B_new, pen = pen, GCV.null = GCV.null)
     variable.lowest <- utils::tail(which(GCV1 == max(GCV1, na.rm = TRUE)), n = 1)
     var.low.vec <- c(var.low.vec, colnames(B_new)[variable.lowest + 1])
     if (i != (ncol_B - 1)) {
@@ -701,14 +699,12 @@ mars_ls <- function(X_pred = NULL,
   est.many <- mvabund::manyglm(Y ~ B_final - 1,
                                family = "negative.binomial",
                                maxiter = 1000,
-                               maxiter2 = 100,
-                               ...)
+                               maxiter2 = 100)
   final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1,
                             method = "glm.fit2",
-                            init.theta = est.many$theta,
-                            ...)
+                            init.theta = est.many$theta)
 
-  final_stats <- stat_out(Y = Y, B1 = B_final, TSS = TSS, GCV.null = GCV.null, pen = pen, ...)
+  final_stats <- stat_out(Y = Y, B1 = B_final, TSS = TSS, GCV.null = GCV.null, pen = pen)
 
   res <- NULL
   res$bx <- B_final

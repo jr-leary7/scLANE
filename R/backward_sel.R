@@ -5,7 +5,6 @@
 #' @param B_new : the model matrix.
 #' @param pen : the set/fixed penalty used for the GCV. The default is 2.
 #' @param GCV.null : GCV value for the intercept model. The default is 0.001.
-#' @param ... : further arguments passed to or from other methods.
 #' @return \code{backward_sel} returns the GCV from the fitted model.
 #' @author Jakub Stoklosa and David I. Warton
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
@@ -16,7 +15,7 @@
 #' @export
 #' @seealso \code{\link{backward_sel_WIC}}
 
-backward_sel <- function(Y, B_new, pen = 2, GCV.null = 0.001, ...) {
+backward_sel <- function(Y, B_new, pen = 2, GCV.null = 0.001) {
   # check inputs
   if (any(sapply(c(Y, B_new), is.null))) stop("Some inputs are missing from backward_sel().")
   if (GCV.null == 0) stop("GCV.null in backward_sel() cannot be set to 0.")
@@ -26,7 +25,7 @@ backward_sel <- function(Y, B_new, pen = 2, GCV.null = 0.001, ...) {
   for (j in seq(n_pred)) {
     B_new1 <- as.matrix(B_new[, -(j + 1)])
     n_pred1 <- ncol(B_new1)
-    mod1 <- stats::lm.fit(B_new1, Y, ...)
+    mod1 <- stats::lm.fit(B_new1, Y)
     RSS_back <- sum((Y - stats::fitted(mod1))^2)
     p <- n_pred1 + pen * (n_pred1 - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
     GCV1[j] <- 1 - (RSS_back / (N * (1 - p / N)^2)) / GCV.null

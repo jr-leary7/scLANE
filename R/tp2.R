@@ -18,6 +18,6 @@
 #' tp2(X_pred, 1)  # Knot value set at x = 1.
 
 tp2 <- function(x, t, p = 1) {
-  res <- ((t - x)^p)*(x < t)
+  res <- ((t - x)^p) * (x < t)
   return(res)
 }

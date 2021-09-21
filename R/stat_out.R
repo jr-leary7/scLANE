@@ -6,7 +6,6 @@
 #' @param TSS : total sum of squares.
 #' @param GCV.null : GCV value for the intercept model.
 #' @param pen : the set/fixed penalty used for the GCV (the default is 2).
-#' @param ... : further arguments passed to or from other methods.
 #' @details See the \code{earth} package for more details on the output measures calculated here.
 #' @return \code{stat_out} returns a list of values, consisting of: RSS, RSSq1, GCV1 and GCVq1 values for the fitted model.
 #' @author Jakub Stoklosa and David I. Warton
@@ -16,19 +15,18 @@
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats binomial poisson
 #' @export
-#' @seealso \code{\link{stat_out_score_null}} and \code{\link{stat_out_score_glm_null}}
+#' @seealso \code{\link{stat_out_score_glm_null}}
 
 stat_out <- function(Y = NULL,
                      B1 = NULL,
                      TSS = NULL,
                      GCV.null = NULL,
-                     pen = 2,
-                     ...) {
+                     pen = 2) {
   # check inputs
   if (any(sapply(c(Y, B1, TSS, GCV.null), is.null))) stop("Some of the arguments to stat_out() are missing.")
-  if (GCV.null = 0) stop("GCV.null argument to stat_out() cannot be 0.")
+  if (GCV.null == 0) stop("GCV.null argument to stat_out() cannot be 0.")
   N <- length(Y)
-  reg <- stats::lm.fit(B1, Y, ...)
+  reg <- stats::lm.fit(B1, Y)
   if (any(is.na(reg$coef))) {
     RSS1 <- RSSq1 <- GCV1 <- GCVq1 <- NA  # return list of NAs if any \hat{beta} are NA
   } else {

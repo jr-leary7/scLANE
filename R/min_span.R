@@ -18,11 +18,7 @@ min_span <- function(X_red = NULL, q = NULL, minspan = NULL, alpha = 0.05) {
   # run function
   N <- length((X_red))
   x <- sort((X_red))
-  if (is.null(minspan)) {
-    minspan <- round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))
-  } else {
-    minspan <- minspan
-  }
+  minspan <- ifelse(is.null(minspan), round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5)), minspan)
   okA <- TRUE
   x_new <- min(x, na.rm = TRUE)
   cc <- 1

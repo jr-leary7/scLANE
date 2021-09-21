@@ -3,7 +3,6 @@
 #' @name backward_sel_WIC
 #' @param Y : the response variable.
 #' @param B_new : the model matrix.
-#' @param ... : further arguments passed to \code{gamlss::gamlss()}.
 #' @return \code{backward_sel_WIC} returns the Wald statistic from the fitted model (the penalty is applied later on).
 #' @author Jakub Stoklosa and David I. Warton
 #' @references Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for Generalized Estimating Equations With a Large Number of Predictor Variables. \emph{Biometrics}, \strong{70}, 110--120.
@@ -14,9 +13,11 @@
 
 backward_sel_WIC <- function(Y, B_new, ...) {
   # check inputs
-  if any(sapply(c(Y, B_new), is.null)) stop("Some inputs are missing from backward_sel_WIC().")
-  fit <- gamlss::gamlss(Y ~ B_new - 1, family = "NBI", trace = FALSE, ...)
+  if (any(sapply(c(Y, B_new), is.null))) stop("Some inputs are missing from backward_sel_WIC().")
+  sink(tempfile())
+  fit <- gamlss::gamlss(Y ~ B_new - 1, family = "NBI", trace = FALSE)
   fit_sum <- summary(fit)
+  sink()
   fit_sum_mat <- as.matrix(fit_sum)
   wald_stat <- ((fit_sum_mat[, 3])[-c(1, nrow(fit_sum_mat))])^2
   return(wald_stat)

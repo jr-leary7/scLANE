@@ -9,14 +9,12 @@
 #' @param V.est : estimates of the fitted variance under the null model.
 #' @param B1 : model matrix under the null model.
 #' @param XA : model matrix under the alternative model.
-#' @param ... : further arguments passed to or from other methods.
 #' @return \code{score_fun_glm} returns a calculated score statistic for the null and alternative model when fitting a GLM.
 #' @author Jakub Stoklosa and David I. Warton.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats binomial poisson
 #' @export
-#' @seealso \code{\link{score_fun_gee}}
 
 score_fun_glm <- function(Y = NULL,
                           VS.est_list = NULL,
@@ -25,12 +23,11 @@ score_fun_glm <- function(Y = NULL,
                           mu.est = NULL,
                           V.est = NULL,
                           B1 = NULL,
-                          XA = NULL,
-                          ...) {
+                          XA = NULL) {
   # check inputs
   if (any(sapply(c(Y, VS.est_list, A_list, B1_list, mu.est, V.est, B1, XA), is.null))) stop("Some inputs are missing from score_fun_glm().")
   # generate score statistic
-  reg <- try(stats::lm.fit(B1, Y, ...), silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
+  reg <- try(stats::lm.fit(B1, Y), silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
   if (class(reg)[1] == "try-error") {
     score <- NA
   } else if (any(is.na(reg$coef))) {

@@ -5,8 +5,9 @@
 #' @param scLANE.results The nested list returned by \code{scLANE()}. Defaults to NULL
 #' @return A data.frame containing differential expression results & modeling statistics for each gene.
 #' @export
+#' @seealso \code{\link{scLANE}}
 #' @examples
-#' GetResultsDE(scLANE_res_list)
+#' GetResultsDE(scLANE.results = scLANE_res_list)
 
 GetResultsDE <- function(scLANE.results = NULL) {
   # check inputs

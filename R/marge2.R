@@ -650,7 +650,6 @@ marge2 <- function(X_pred = NULL,
       B_new_2 <- as.matrix(B_new_2[, -(variable.lowest_2 + 1)])
     } else {
       full.fit_2 <- gamlss::gamlss(Y ~ B_new_2 - 1, family = "NBI", trace = FALSE)
-
       sink(tempfile())
       full.wald_2 <- ((as.matrix(summary(full.fit_2))[, 3])[-c(1, nrow(as.matrix(summary(full.fit_2))))])^2
       sink()

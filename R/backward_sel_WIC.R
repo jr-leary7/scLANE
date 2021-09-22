@@ -14,8 +14,8 @@
 backward_sel_WIC <- function(Y, B_new, ...) {
   # check inputs
   if (any(sapply(c(Y, B_new), is.null))) stop("Some inputs are missing from backward_sel_WIC().")
-  sink(tempfile())
   fit <- gamlss::gamlss(Y ~ B_new - 1, family = "NBI", trace = FALSE)
+  sink(tempfile())
   fit_sum <- summary(fit)
   sink()
   fit_sum_mat <- as.matrix(fit_sum)

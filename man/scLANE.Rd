@@ -4,7 +4,14 @@
 \alias{scLANE}
 \title{Identify differentially expressed genes over pseudotime.}
 \usage{
-scLANE(expr = NULL, pt = NULL, genes = NULL, n.boot = 200, track.time = TRUE)
+scLANE(
+  expr = NULL,
+  pt = NULL,
+  genes = NULL,
+  n.cores = NULL,
+  n.boot = 200,
+  track.time = TRUE
+)
 }
 \arguments{
 \item{expr}{A data.frame of integer-valued counts. Defaults to NULL.}
@@ -12,6 +19,8 @@ scLANE(expr = NULL, pt = NULL, genes = NULL, n.boot = 200, track.time = TRUE)
 \item{pt}{A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
 \item{genes}{A character vector of genes to model. Defaults to NULL.}
+
+\item{n.cores}{The number of CPUs to use when fitting models in parallel. Defaults to \code{parallel::detectCores() - 1}.}
 
 \item{n.boot}{The number of bootstrap samples to use in calculating the \code{marge} model's \emph{p}-value. Defaults to 200.}
 

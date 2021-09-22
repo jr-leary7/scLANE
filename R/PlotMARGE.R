@@ -34,7 +34,7 @@ PlotMARGE <- function(model = NULL,
   # optionally add line of null model fitted values
   if (!is.null(null.mod)) {
     p <- p +
-        ggplot2::geom_line(aes(x = PT, y = predict(null.mod, type = "response"), color = "Null"), size = 2) +
+        ggplot2::geom_line(aes(x = PT, y = fitted.values(null.mod), color = "Null"), size = 2) +
         ggplot2::scale_color_manual(values = c("dodgerblue", "forestgreen"))
   } else {
     p <- p + ggplot2::scale_color_manual(values = "dodgerblue")

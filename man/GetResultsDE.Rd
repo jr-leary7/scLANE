@@ -4,10 +4,12 @@
 \alias{GetResultsDE}
 \title{A function to tidy the results of \code{scLANE()}.}
 \usage{
-GetResultsDE(scLANE.results = NULL)
+GetResultsDE(scLANE.results = NULL, p.adj.method = "BH")
 }
 \arguments{
-\item{scLANE.results}{The nested list returned by \code{scLANE()}. Defaults to NULL}
+\item{scLANE.results}{The nested list returned by \code{scLANE()}. Defaults to NULL.}
+
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "BH", for Benjamini-Hochberg.}
 }
 \value{
 A data.frame containing differential expression results & modeling statistics for each gene.

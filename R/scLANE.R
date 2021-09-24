@@ -74,7 +74,7 @@ scLANE <- function(expr = NULL,
       # compute LRT stat using asymptotic \Chi^2 approximation (likely incorrect)
       marge_ll <- logLik(marge_mod$final_mod)
       null_ll <- logLik(null_mod)
-      lrt_stat <- as.numeric(2 * (marge_ll - null_ll))
+      lrt_stat <- as.numeric(-2 * (marge_ll - null_ll))
       dgr_free <- length(coef(marge_mod$final_mod)) - 1
       if (dgr_free == 0) { dgr_free <- 1 }
       p_val <- pchisq(lrt_stat, dgr_free, lower = FALSE)

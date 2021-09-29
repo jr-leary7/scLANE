@@ -61,7 +61,8 @@ scLANE <- function(expr = NULL,
                        Dev_MARGE = NA,
                        Dev_Null = NA,
                        Model_Status = "Original MARGE model error",
-                       MARGE_model = NA,
+                       MARGE_Model = NA,
+                       Null_Model = null_mod,
                        Plot = NA)
     } else {
       # compare MARGE to null model (must use NB GLM b/c later we simulate from it's distribution, lm doesn't work correctly)
@@ -71,13 +72,12 @@ scLANE <- function(expr = NULL,
                                       pt = pt,
                                       gene = genes[i],
                                       null.mod = null_mod)
-      # compute LRT stat using asymptotic \Chi^2 approximation (likely incorrect)
-      marge_ll <- logLik(marge_mod$final_mod)
-      null_ll <- logLik(null_mod)
-      lrt_stat <- as.numeric(2 * (marge_ll - null_ll))
-      dgr_free <- length(coef(marge_mod$final_mod)) - 1
-      if (dgr_free == 0) { dgr_free <- 1 }
-      p_val <- pchisq(lrt_stat, dgr_free, lower = FALSE)
+      # compute LRT stat using asymptotic Chi^2 approximation (likely incorrect)
+      lrt_res <- scLANE::ModelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
+      marge_ll <- lrt_res$Alt_Mod_LL
+      null_ll <- lrt_res$Null_Mod_LL
+      lrt_stat <- lrt_res$LRT_Stat
+      p_val <- lrt_res$P_Val
       # estimate p-value w/ parametric bootstrap
       boot_stats <- rep(NA, n.boot)
       for(j in seq(n.boot)){
@@ -94,11 +94,11 @@ scLANE <- function(expr = NULL,
           next
         }
         # simulated LRT statistic
-        sim_marge_ll <- logLik(sim_marge$final_mod)
-        sim_null_ll <- logLik(sim_null)
-        boot_stats[j] <- as.numeric(2 * (sim_marge_ll - sim_null_ll))
+        boot_stats[j] <- scLANE::ModelLRT(mod.1 = sim_marge$final_mod, mod.0 = sim_null)$LRT_Stat
       }
       # prepare results
+      marge_dev <- deviance(marge_mod$final_mod)
+      null_dev <- deviance(null_mod)
       boot_stats <- na.omit(boot_stats)
       if (length(boot_stats) < .9 * n.boot) {
         res_list <- list(Gene = genes[i],
@@ -106,12 +106,13 @@ scLANE <- function(expr = NULL,
                          P_Val = p_val,
                          Boot_P_Val = "Bootstrap MARGE model error",
                          Boot_P_Val_SE = "Bootstrap MARGE model error",
-                         LogLik_MARGE = as.numeric(logLik(marge_mod$final_mod)),
-                         LogLik_Null = as.numeric(logLik(null_mod)),
-                         Dev_MARGE = deviance(marge_mod$final_mod),
-                         Dev_Null = deviance(null_mod),
+                         LogLik_MARGE = marge_ll,
+                         LogLik_Null = null_ll,
+                         Dev_MARGE = marge_dev,
+                         Dev_Null = null_dev,
                          Model_Status = "Original MARGE model OK, errors during bootstrap",
-                         MARGE_model = marge_mod,
+                         MARGE_Model = marge_mod,
+                         Null_Model = null_mod,
                          Plot = model_plot)
       } else {
         boot_p_val <- mean(boot_stats > lrt_stat)
@@ -121,12 +122,13 @@ scLANE <- function(expr = NULL,
                          P_Val = p_val,
                          Boot_P_Val = boot_p_val,
                          Boot_P_Val_SE = boot_se,
-                         LogLik_MARGE = as.numeric(logLik(marge_mod$final_mod)),
-                         LogLik_Null = as.numeric(logLik(null_mod)),
-                         Dev_MARGE = deviance(marge_mod$final_mod),
-                         Dev_Null = deviance(null_mod),
+                         LogLik_MARGE = marge_ll,
+                         LogLik_Null = null_ll,
+                         Dev_MARGE = marge_dev,
+                         Dev_Null = null_dev,
                          Model_Status = "All clear",
-                         MARGE_model = marge_mod,
+                         MARGE_Model = marge_mod,
+                         Null_Model = null_mod,
                          Plot = model_plot)
       }
     }
@@ -135,8 +137,8 @@ scLANE <- function(expr = NULL,
   # end parallelization
   stopCluster(cl)
   names(test_stats) <- genes
-  end_time <- Sys.time()
   if (track.time) {
+    end_time <- Sys.time()
     total_time <- end_time - start_time
     total_time_units <- attributes(total_time)$units
     total_time_numeric <- as.numeric(total_time)

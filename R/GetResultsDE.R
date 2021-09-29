@@ -7,13 +7,13 @@
 #' @importFrom dplyr arrange mutate `%>%`
 #' @return A data.frame containing differential expression results & modeling statistics for each gene.
 #' @export
-#' @seealso \code{\link{scLANE}} \code{\link(p.adjust)}
+#' @seealso \code{\link{scLANE}} \code{\link{p.adjust}}
 #' @examples
 #' GetResultsDE(scLANE.results = scLANE_res_list)
 
 GetResultsDE <- function(scLANE.results = NULL, p.adj.method = "BH") {
   if (is.null(scLANE.results)) stop("Please provide a result list.")
-  result_df <- do.call(rbind, lapply(scLANE.results, function(x) data.frame(x[-c(11, 12)])))
+  result_df <- do.call(rbind, lapply(scLANE.results, function(x) data.frame(x[-c(11:13)])))
   result_df <- result_df %>%
                dplyr::arrange(Boot_P_Val) %>%
                dplyr::mutate(Boot_P_Val_Adj = p.adjust(Boot_P_Val, method = p.adj.method)) %>%

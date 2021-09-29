@@ -14,7 +14,7 @@ scLANE(
 )
 }
 \arguments{
-\item{expr}{A data.frame of integer-valued counts. Defaults to NULL.}
+\item{expr}{A matrix of integer-valued counts. Defaults to NULL.}
 
 \item{pt}{A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
@@ -30,8 +30,8 @@ scLANE(
 A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, bootstrapped \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values.
 }
 \description{
-This function uses GLM spline models as implemented in the \code{marge} package to identify non-linear patterns in gene expression across pseudotime.
+This function uses adaptive NB GLM spline models as implemented in the \code{marge} package to identify non-linear patterns in gene expression across pseudotime.
 }
 \examples{
-scLANE(expr = raw_counts, pt = pt_df, genes = my_gene_vec)
+scLANE(expr = raw_counts, pt = psuedotime_df, genes = my_gene_vec)
 }

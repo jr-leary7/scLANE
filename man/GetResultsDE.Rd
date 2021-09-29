@@ -21,5 +21,5 @@ This function turns the nested list differential expression results of \code{scL
 GetResultsDE(scLANE.results = scLANE_res_list)
 }
 \seealso{
-\code{\link{scLANE}}
+\code{\link{scLANE}} \code{\link{p.adjust}}
 }

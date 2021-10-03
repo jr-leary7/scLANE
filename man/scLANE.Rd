@@ -27,7 +27,7 @@ scLANE(
 \item{track.time}{A boolean indicating whether the time it takes to execute \code{scLANE()} should be tracked & printed at the end. Defaults to TRUE.}
 }
 \value{
-A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, bootstrapped \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values.
+A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, bootstrapped \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 }
 \description{
 This function uses adaptive NB GLM spline models as implemented in the \code{marge} package to identify non-linear patterns in gene expression across pseudotime.

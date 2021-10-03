@@ -11,7 +11,7 @@
 #' @param n.cores The number of CPUs to use when fitting models in parallel. Defaults to \code{parallel::detectCores() - 1}.
 #' @param n.boot The number of bootstrap samples to use in calculating the \code{marge} model's \emph{p}-value. Defaults to 200.
 #' @param track.time A boolean indicating whether the time it takes to execute \code{scLANE()} should be tracked & printed at the end. Defaults to TRUE.
-#' @return A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, bootstrapped \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values.
+#' @return A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, bootstrapped \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @export
 #' @examples
 #' scLANE(expr = raw_counts, pt = psuedotime_df, genes = my_gene_vec)

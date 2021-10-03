@@ -5,15 +5,24 @@
 \title{Plot results of \code{marge} models using \code{ggplot2}.}
 \usage{
 PlotMARGE(
-  model = NULL,
+  marge.mod = NULL,
   gene.counts = NULL,
   pt = NULL,
   gene = NULL,
-  null.mod = NULL
+  marge.ci = TRUE,
+  null.mod = NULL,
+  null.ci = FALSE,
+  gam.mod = NULL,
+  gam.ci = FALSE,
+  tradeseq.mod = NULL,
+  ci.alpha = 0.05,
+  plot.alpha = 0.25,
+  line.size = 1.25,
+  plot.theme = NULL
 )
 }
 \arguments{
-\item{model}{The \code{marge} model to extract fitted values from. Defaults to NULL.}
+\item{marge.mod}{The \code{marge} model to extract fitted values from. Defaults to NULL.}
 
 \item{gene.counts}{A vector of integer expression values for each cell. Defaults to NULL.}
 
@@ -21,7 +30,23 @@ PlotMARGE(
 
 \item{gene}{The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.}
 
+\item{marge.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE}
+
 \item{null.mod}{(Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.}
+
+\item{gam.mod}{(Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.}
+
+\item{gam.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
+
+\item{tradeseq.mod}{(Optional) An \code{tradeseq} object specifying a GAM fit using the \code{\tradeSeq} package. Defaults to NULL.}
+
+\item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating \eqn{(1 - \alpha)}% CIs. Defaults to good old 0.05.}
+
+\item{plot.alpha}{(Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.}
+
+\item{line.size}{(Optional) The size of the lines showing the fitted values for each model. Defaults to 1.25.}
+
+\item{plot.theme}{(Optional) A `ggplot2` theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.}
 }
 \value{
 A \code{ggplot} object.
@@ -30,5 +55,6 @@ A \code{ggplot} object.
 This function visualizes the fitted values of a \code{marge} model over the expression and pseudotime values of each cell.
 }
 \examples{
-PlotMARGE(model = marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", null.mod = lm(exp_vec ~ 1))
+PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2")
+PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)
 }

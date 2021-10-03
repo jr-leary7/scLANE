@@ -25,7 +25,7 @@
 #' PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2")
 #' PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)
 
-PlotMARGE <- function(marge.mod = NULL,
+plotModels <- function(marge.mod = NULL,
                       gene.counts = NULL,
                       pt = NULL,
                       gene = NULL,

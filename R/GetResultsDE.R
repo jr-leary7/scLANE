@@ -11,7 +11,7 @@
 #' @examples
 #' GetResultsDE(scLANE.results = scLANE_res_list)
 
-GetResultsDE <- function(scLANE.results = NULL, p.adj.method = "BH") {
+getResultsDE <- function(scLANE.results = NULL, p.adj.method = "BH") {
   if (is.null(scLANE.results)) stop("Please provide a result list.")
   result_df <- do.call(rbind, lapply(scLANE.results, function(x) data.frame(x[-c(11:13)])))
   result_df <- result_df %>%

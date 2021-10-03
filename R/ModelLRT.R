@@ -10,7 +10,7 @@
 #' @examples
 #' ModelLRT(mod1 = saturated_glm, mod0 = null_glm)
 
-ModelLRT <- function(mod.1 = NULL, mod.0 = NULL) {
+modelLRT <- function(mod.1 = NULL, mod.0 = NULL) {
   # check inputs
   if (is.null(mod.1) | is.null(mod.0)) stop("You must provide two models to compare.")
   if (!(any(class(mod.1) == "glm") | any(class(mod.1) == "lm"))) stop("Models must be of class lm or glm.")

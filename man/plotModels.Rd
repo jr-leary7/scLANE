@@ -2,10 +2,9 @@
 % Please edit documentation in R/plotModels.R
 \name{plotModels}
 \alias{plotModels}
-\alias{PlotMARGE}
 \title{Plot results of \code{marge} models using \code{ggplot2}.}
 \usage{
-PlotMARGE(
+plotModels(
   marge.mod = NULL,
   gene.counts = NULL,
   pt = NULL,

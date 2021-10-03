@@ -1,6 +1,6 @@
 #' A function to tidy the results of \code{scLANE()}.
 #'
-#' @name GetResultsDE
+#' @name getResultsDE
 #' @description This function turns the nested list differential expression results of \code{scLANE()} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
 #' @param scLANE.results The nested list returned by \code{scLANE()}. Defaults to NULL.
 #' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "BH", for Benjamini-Hochberg.

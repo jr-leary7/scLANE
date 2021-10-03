@@ -1,6 +1,6 @@
 #' Plot results of \code{marge} models using \code{ggplot2}.
 #'
-#' @name PlotMARGE
+#' @name plotModels
 #' @importFrom dplyr mutate rename
 #' @importFrom ggplot2 ggplot aes geom_point geom_line scale_y_continuous labs theme_classic theme element_text geom_ribbon scale_color_manual
 #' @importFrom scales comma_format

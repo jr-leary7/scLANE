@@ -40,7 +40,7 @@ scLANE <- function(expr = NULL,
                                  .combine = "list",
                                  .multicombine = TRUE,
                                  .maxcombine = length(genes),
-                                 .packages = c("glm2", "scLANE", "ggplot2"),
+                                 .packages = c("glm2", "scLANE", "ggplot2", "MASS"),
                                  .export = c("expr", "genes", "pt", "n.boot")) %dopar% {
     # run original MARGE model
     gene_data <- expr[, genes[i]]

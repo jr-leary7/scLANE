@@ -1,21 +1,21 @@
 #' \code{marge2} models for negative binomial data.
 #'
 #' @name marge2
-#' @description MARS fitting function for generalized linear models (GLM).
-#' @param X_pred : a matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
-#' @param Y : the response variable. A vector of length n by N.
-#' @param pen : a set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
-#' @param tols_score : the set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
-#' @param M : a set threshold for the number of basis functions to be used. The default is 7.
-#' @param minspan : a set minimum span value. The default is \code{minspan = NULL}.
+#' @description MARS fitting function for generalized linear models (GLMs).
+#' @param X_pred A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
+#' @param Y The response variable. A vector of length n by N.
+#' @param pen A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
+#' @param tols_score The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
+#' @param M A set threshold for the number of basis functions to be used. The default is 7.
+#' @param minspan A set minimum span value. The default is \code{minspan = NULL}.
 #' @details For further details please look at the \code{mars_ls} function - there are more details on the general MARS algorithm. MARGE will produce output for two penalties: 2 and log(N). A figure is automatically generated plotting WIC against the no. of parameters.
 #' @return \code{marge} returns a list of calculated values consisting of:
-#' @return \code{B_final} : the basis model matrix for the final model fit.
-#' @return \code{wic_mat} : a matrix of WIC values (with both penalties) for MARGE models given by the forward pass.
-#' @return \code{min_wic} : the WIC (with both penalties) for the final MARGE model.
-#' @return \code{GCV} : the GCV for the final selected model.
-#' @return \code{y_pred} : the fitted values from the final selected model (with both penalties).
-#' @return \code{final_mod} : the final selected (with both penalties) model matrix.
+#' @return \code{B_final}Tthe basis model matrix for the final model fit.
+#' @return \code{wic_mat} A matrix of WIC values (with both penalties) for MARGE models given by the forward pass.
+#' @return \code{min_wic} The WIC (with both penalties) for the final MARGE model.
+#' @return \code{GCV} The GCV for the final selected model.
+#' @return \code{y_pred} The fitted values from the final selected model (with both penalties).
+#' @return \code{final_mod} The final selected (with both penalties) model matrix.
 #' @author Jakub Stoklosa and David I. Warton.
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
@@ -37,7 +37,6 @@ marge2 <- function(X_pred = NULL,
                   minspan = NULL) {
   # check inputs
   if (any(sapply(c(X_pred, Y), is.null))) stop("Some inputs to marge() are missing.")
-  N <- length(Y)
   NN <- length(Y)  # Total sample size
   q <- ncol(X_pred)  # Number of predictor variables
 

@@ -25,8 +25,8 @@ scLANE <- function(expr = NULL,
                    track.time = TRUE) {
   # check inputs
   if (any(sapply(c(expr, pt, genes), is.null))) stop("You forgot one of the three main inputs.")
-  if (any(class(expr) != c("matrix", "array"))) stop("`expr` must be a matrix of integer counts.")
-  if (class(pt) != "data.frame") stop("`pt` must be a data.frame.")
+  if (any(class(expr) != c("matrix", "array"))) stop("Input expr must be a matrix of integer counts.")
+  if (class(pt) != "data.frame") stop("Input pt must be a data.frame.")
   # set up parallelization
   if (track.time) { start_time <- Sys.time() }
   cl <- parallel::makeCluster(ifelse(is.null(n.cores), parallel::detectCores() - 1, n.cores))

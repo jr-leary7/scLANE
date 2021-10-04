@@ -14,35 +14,35 @@ marge2(
 )
 }
 \arguments{
-\item{X_pred}{: a matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.}
+\item{X_pred}{A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.}
 
-\item{Y}{: the response variable. A vector of length n by N.}
+\item{Y}{The response variable. A vector of length n by N.}
 
-\item{pen}{: a set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
+\item{pen}{A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
 
-\item{tols_score}{: the set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001}
+\item{tols_score}{The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001}
 
-\item{M}{: a set threshold for the number of basis functions to be used. The default is 7.}
+\item{M}{A set threshold for the number of basis functions to be used. The default is 7.}
 
-\item{minspan}{: a set minimum span value. The default is \code{minspan = NULL}.}
+\item{minspan}{A set minimum span value. The default is \code{minspan = NULL}.}
 }
 \value{
 \code{marge} returns a list of calculated values consisting of:
 
-\code{B_final} : the basis model matrix for the final model fit.
+\code{B_final}Tthe basis model matrix for the final model fit.
 
-\code{wic_mat} : a matrix of WIC values (with both penalties) for MARGE models given by the forward pass.
+\code{wic_mat} A matrix of WIC values (with both penalties) for MARGE models given by the forward pass.
 
-\code{min_wic} : the WIC (with both penalties) for the final MARGE model.
+\code{min_wic} The WIC (with both penalties) for the final MARGE model.
 
-\code{GCV} : the GCV for the final selected model.
+\code{GCV} The GCV for the final selected model.
 
-\code{y_pred} : the fitted values from the final selected model (with both penalties).
+\code{y_pred} The fitted values from the final selected model (with both penalties).
 
-\code{final_mod} : the final selected (with both penalties) model matrix.
+\code{final_mod} The final selected (with both penalties) model matrix.
 }
 \description{
-MARS fitting function for generalized linear models (GLM).
+MARS fitting function for generalized linear models (GLMs).
 }
 \details{
 For further details please look at the \code{mars_ls} function - there are more details on the general MARS algorithm. MARGE will produce output for two penalties: 2 and log(N). A figure is automatically generated plotting WIC against the no. of parameters.

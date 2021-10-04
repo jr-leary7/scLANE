@@ -31,7 +31,7 @@ plotModels(
 
 \item{gene}{The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.}
 
-\item{marge.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE}
+\item{marge.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE}
 
 \item{plot.breakpoints}{A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.}
 
@@ -39,17 +39,17 @@ plotModels(
 
 \item{gam.mod}{(Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.}
 
-\item{gam.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
+\item{gam.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
 
-\item{tradeseq.mod}{(Optional) An \code{tradeseq} object specifying a GAM fit using the \code{\tradeSeq} package. Defaults to NULL.}
+\item{tradeseq.mod}{(Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. Defaults to NULL.}
 
-\item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating \eqn{(1 - \alpha)}% CIs. Defaults to good old 0.05.}
+\item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating \eqn{(1 - \alpha)}\% CIs. Defaults to good old 0.05.}
 
 \item{plot.alpha}{(Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.}
 
 \item{line.size}{(Optional) The size of the lines showing the fitted values for each model. Defaults to 1.25.}
 
-\item{plot.theme}{(Optional) A `ggplot2` theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.}
+\item{plot.theme}{(Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.}
 }
 \value{
 A \code{ggplot} object.

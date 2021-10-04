@@ -15,7 +15,7 @@ modelLRT(mod.1 = NULL, mod.0 = NULL)
 A list containing the LRT test statistic, degrees freedom, and the \emph{p}-value computed using the Chi-squared assumption.
 }
 \description{
-This function compares two models using a likelihood ratio test(LRT) under the assumption that the test statistic is asymptotically Chi-squared with degrees freedom equal to the difference in the number of parameters between the larger and smaller model.
+This function compares two models using a likelihood ratio test (LRT) under the assumption that the test statistic is asymptotically Chi-squared with degrees freedom equal to the difference in the number of parameters between the larger and smaller model.
 }
 \examples{
 ModelLRT(mod1 = saturated_glm, mod0 = null_glm)

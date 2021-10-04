@@ -9,17 +9,17 @@
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.
 #' @param marge.mod The \code{marge} model to extract fitted values from. Defaults to NULL.
-#' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the \code{marge} model. Defaults to TRUE.
+#' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the \code{marge} model. Defaults to TRUE.
 #' @param plot.breakpoints A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.
 #' @param null.mod (Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.
-#' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
+#' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
 #' @param gam.mod (Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.
-#' @param gam.ci A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.
-#' @param tradeseq.mod (Optional) An \code{tradeseq} object specifying a GAM fit using the \code{\tradeSeq} package. Defaults to NULL.
-#' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating \eqn{(1 - \alpha)}% CIs. Defaults to good old 0.05.
+#' @param gam.ci A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.
+#' @param tradeseq.mod (Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. Defaults to NULL.
+#' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating \eqn{(1 - \alpha)}\% CIs. Defaults to good old 0.05.
 #' @param plot.alpha (Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.
 #' @param line.size (Optional) The size of the lines showing the fitted values for each model. Defaults to 1.25.
-#' @param plot.theme (Optional) A `ggplot2` theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.
+#' @param plot.theme (Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.
 #' @return A \code{ggplot} object.
 #' @export
 #' @examples

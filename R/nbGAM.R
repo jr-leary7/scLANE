@@ -20,7 +20,7 @@ nbGAM <- function(expr = NULL, pt = NULL, theta.init = NULL) {
   } else if (class(pt) == "numeric") {
     pt_vec <- pt
   } else {
-    stop("Unsupported class for argument `pt` to nbGAM().")
+    stop("Unsupported class for argument pt to nbGAM().")
   }
   # fit model
   if (is.null(theta.init)) {

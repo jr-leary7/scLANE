@@ -33,5 +33,5 @@ A list of lists; each sublist contains a gene name, default \code{marge} vs. nul
 This function uses adaptive NB GLM spline models as implemented in the \code{marge} package to identify non-linear patterns in gene expression across pseudotime.
 }
 \examples{
-scLANE(expr = raw_counts, pt = psuedotime_df, genes = my_gene_vec)
+scLANE(expr = raw_counts, pt = pseudotime_df, genes = my_gene_vec)
 }

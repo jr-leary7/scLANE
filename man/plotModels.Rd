@@ -10,6 +10,7 @@ plotModels(
   pt = NULL,
   gene = NULL,
   marge.ci = TRUE,
+  plot.breakpoints = FALSE,
   null.mod = NULL,
   null.ci = FALSE,
   gam.mod = NULL,
@@ -31,6 +32,8 @@ plotModels(
 \item{gene}{The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.}
 
 \item{marge.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE}
+
+\item{plot.breakpoints}{A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.}
 
 \item{null.mod}{(Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.}
 

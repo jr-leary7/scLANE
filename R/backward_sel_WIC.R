@@ -8,7 +8,6 @@
 #' @references Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for Generalized Estimating Equations With a Large Number of Predictor Variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats binomial poisson
-#' @export
 #' @seealso \code{\link{backward_sel}}
 
 backward_sel_WIC <- function(Y, B_new, ...) {

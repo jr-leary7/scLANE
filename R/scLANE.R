@@ -5,6 +5,7 @@
 #' @importFrom foreach foreach
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel makeCluster detectCores stopCluster clusterEvalQ
+#' @importFrom MASS glm.nb
 #' @param expr A matrix of integer-valued counts. Defaults to NULL.
 #' @param pt A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param genes A character vector of genes to model. Defaults to NULL.
@@ -14,7 +15,7 @@
 #' @return A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, bootstrapped \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @export
 #' @examples
-#' scLANE(expr = raw_counts, pt = psuedotime_df, genes = my_gene_vec)
+#' scLANE(expr = raw_counts, pt = pseudotime_df, genes = my_gene_vec)
 
 scLANE <- function(expr = NULL,
                    pt = NULL,
@@ -67,13 +68,13 @@ scLANE <- function(expr = NULL,
     } else {
       # compare MARGE to null model (must use NB GLM b/c later we simulate from it's distribution, lm doesn't work correctly)
       null_mod <- MASS::glm.nb(gene_data ~ 1)
-      model_plot <- scLANE::PlotMARGE(model = marge_mod$final_mod,
-                                      gene.counts = gene_data,
-                                      pt = pt,
-                                      gene = genes[i],
-                                      null.mod = null_mod)
+      model_plot <- scLANE::plotModels(model = marge_mod$final_mod,
+                                       gene.counts = gene_data,
+                                       pt = pt,
+                                       gene = genes[i],
+                                       null.mod = null_mod)
       # compute LRT stat using asymptotic Chi^2 approximation (likely incorrect)
-      lrt_res <- scLANE::ModelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
+      lrt_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
       marge_ll <- lrt_res$Alt_Mod_LL
       null_ll <- lrt_res$Null_Mod_LL
       lrt_stat <- lrt_res$LRT_Stat
@@ -94,7 +95,7 @@ scLANE <- function(expr = NULL,
           next
         }
         # simulated LRT statistic
-        boot_stats[j] <- scLANE::ModelLRT(mod.1 = sim_marge$final_mod, mod.0 = sim_null)$LRT_Stat
+        boot_stats[j] <- scLANE::modelLRT(mod.1 = sim_marge$final_mod, mod.0 = sim_null)$LRT_Stat
       }
       # prepare results
       marge_dev <- deviance(marge_mod$final_mod)

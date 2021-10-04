@@ -11,7 +11,7 @@
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats binomial poisson
-#' @export
+
 min_span <- function(X_red = NULL, q = NULL, minspan = NULL, alpha = 0.05) {
   # check inputs
   if (any(sapply(c(X_red, q), is.null))) stop("Some inputs to min_span() are missing.")

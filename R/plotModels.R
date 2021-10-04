@@ -10,6 +10,7 @@
 #' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.
 #' @param marge.mod The \code{marge} model to extract fitted values from. Defaults to NULL.
 #' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the \code{marge} model. Defaults to TRUE.
+#' @param plot.breakpoints A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.
 #' @param null.mod (Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.
 #' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
 #' @param gam.mod (Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.
@@ -26,19 +27,20 @@
 #' PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)
 
 plotModels <- function(marge.mod = NULL,
-                      gene.counts = NULL,
-                      pt = NULL,
-                      gene = NULL,
-                      marge.ci = TRUE,
-                      null.mod = NULL,
-                      null.ci = FALSE,
-                      gam.mod = NULL,
-                      gam.ci = FALSE,
-                      tradeseq.mod = NULL,
-                      ci.alpha = 0.05,
-                      plot.alpha = 0.25,
-                      line.size = 1.25,
-                      plot.theme = NULL) {
+                       gene.counts = NULL,
+                       pt = NULL,
+                       gene = NULL,
+                       marge.ci = TRUE,
+                       plot.breakpoints = FALSE,
+                       null.mod = NULL,
+                       null.ci = FALSE,
+                       gam.mod = NULL,
+                       gam.ci = FALSE,
+                       tradeseq.mod = NULL,
+                       ci.alpha = 0.05,
+                       plot.alpha = 0.25,
+                       line.size = 1.25,
+                       plot.theme = NULL) {
   # check inputs
   if (any(sapply(c(marge.mod, gene.counts, pt, gene, ci.alpha), is.null))) stop("You forgot one or more of the arguments to PlotMARGE().")
   Z <- abs(qnorm(ci.alpha / 2))
@@ -106,5 +108,9 @@ plotModels <- function(marge.mod = NULL,
   p <- p +
        ggplot2::scale_color_manual(values = col_values) +
        ggplot2::scale_fill_manual(values = fill_values)
+  if (plot.breakpoints) {
+    breakpoints <- extractBreakpoints(model = marge.mod)
+    p <- p + geom_vline(xintercept = breakpoints)
+  }
   return(p)
 }

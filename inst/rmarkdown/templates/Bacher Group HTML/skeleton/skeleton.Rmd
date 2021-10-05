@@ -1,0 +1,48 @@
+---
+title: "Title"
+subtitle: "University of Florida - Dept. of Biostatistics - Bacher Group"
+author: "Name"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    code_folding: show
+    code_download: true
+    toc: true
+    toc_float:
+      collpased: false
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      comment = NA, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      fig.align = "center")
+set.seed(312)  # lucky seed
+```
+
+# Libraries
+
+```{r}
+library(glm2)
+library(mgcv)
+library(dplyr)
+library(scran)
+library(scLANE)
+library(scater)
+library(ggplot2)
+library(tradeSeq)
+library(slingshot)
+library(doParallel)
+library(kableExtra)
+library(SingleCellExperiment)
+```
+
+# Data 
+
+# Analysis 
+
+# Conclusions 

@@ -15,6 +15,8 @@ plotModels(
   null.ci = FALSE,
   gam.mod = NULL,
   gam.ci = FALSE,
+  glm.mod = NULL,
+  glm.ci = TRUE,
   tradeseq.mod = NULL,
   ci.alpha = 0.05,
   plot.alpha = 0.25,
@@ -31,7 +33,7 @@ plotModels(
 
 \item{gene}{The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.}
 
-\item{marge.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE}
+\item{marge.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE}
 
 \item{plot.breakpoints}{A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.}
 
@@ -39,11 +41,15 @@ plotModels(
 
 \item{gam.mod}{(Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.}
 
-\item{gam.ci}{A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
+\item{gam.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
+
+\item{glm.mod}{(Optional) A \code{nb.glm} model to extract fitted values from. Defaults to NULL.}
+
+\item{glm.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.}
 
 \item{tradeseq.mod}{(Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. Defaults to NULL.}
 
-\item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating \eqn{(1 - \alpha)}\% CIs. Defaults to good old 0.05.}
+\item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 
 \item{plot.alpha}{(Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.}
 

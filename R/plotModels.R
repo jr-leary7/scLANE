@@ -9,14 +9,16 @@
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.
 #' @param marge.mod The \code{marge} model to extract fitted values from. Defaults to NULL.
-#' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the \code{marge} model. Defaults to TRUE.
+#' @param marge.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the \code{marge} model. Defaults to TRUE.
 #' @param plot.breakpoints A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.
 #' @param null.mod (Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.
-#' @param marge.ci A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
+#' @param marge.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
 #' @param gam.mod (Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.
-#' @param gam.ci A boolean indicating whether a \eqn{(1 - \alpha)}\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.
+#' @param gam.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.
+#' @param glm.mod (Optional) A \code{nb.glm} model to extract fitted values from. Defaults to NULL.
+#' @param glm.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.
 #' @param tradeseq.mod (Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. Defaults to NULL.
-#' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating \eqn{(1 - \alpha)}\% CIs. Defaults to good old 0.05.
+#' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
 #' @param plot.alpha (Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.
 #' @param line.size (Optional) The size of the lines showing the fitted values for each model. Defaults to 1.25.
 #' @param plot.theme (Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.
@@ -36,6 +38,8 @@ plotModels <- function(marge.mod = NULL,
                        null.ci = FALSE,
                        gam.mod = NULL,
                        gam.ci = FALSE,
+                       glm.mod = NULL,
+                       glm.ci = TRUE,
                        tradeseq.mod = NULL,
                        ci.alpha = 0.05,
                        plot.alpha = 0.25,
@@ -55,7 +59,7 @@ plotModels <- function(marge.mod = NULL,
              dplyr::mutate(marge_resp = exp(marge_link_fit),
                            marge_LL = exp(marge_link_fit - Z * marge_link_se),
                            marge_UL = exp(marge_link_fit + Z * marge_link_se),
-                           PT = pt_df[, 1],
+                           PT = pt[, 1],
                            counts = gene.counts)
   # generate base plot
   p <- ggplot2::ggplot(plot_df, aes(x = PT, y = counts)) +
@@ -78,7 +82,7 @@ plotModels <- function(marge.mod = NULL,
                     dplyr::mutate(null_resp = exp(null_link_fit),
                                   null_LL = exp(null_link_fit - Z * null_link_se),
                                   null_UL = exp(null_link_fit + Z * null_link_se),
-                                  PT = pt_df[, 1],
+                                  PT = pt[, 1],
                                   counts = gene.counts)
     p <- p + ggplot2::geom_line(null_plot_df, mapping = aes(x = PT, y = null_resp, color = "Null"), size = line.size)
     col_values <- c(col_values, "forestgreen")
@@ -95,7 +99,7 @@ plotModels <- function(marge.mod = NULL,
                    dplyr::mutate(gam_resp = exp(gam_link_fit),
                                  gam_LL = exp(gam_link_fit - Z * gam_link_se),
                                  gam_UL = exp(gam_link_fit + Z * gam_link_se),
-                                 PT = pt_df[, 1],
+                                 PT = pt[, 1],
                                  counts = gene.counts)
     p <- p + ggplot2::geom_line(gam_plot_df, mapping = aes(x = PT, y = gam_resp, color = "NB GAM"), size = line.size)
     col_values <- c(col_values, "firebrick")
@@ -103,6 +107,23 @@ plotModels <- function(marge.mod = NULL,
     if (gam.ci) {
       p <- p + ggplot2::geom_ribbon(gam_plot_df, mapping = aes(x = PT, ymin = gam_LL, ymax = gam_UL, fill = "NB GAM"), alpha = plot.alpha)
       fill_values <- c(fill_values, "firebrick")
+    }
+  }
+  # optionally add line of NB GLM fitted values
+  if (!is.null(glm.mod)) {
+    glm_plot_df <- data.frame(predict(glm.mod, type = "link", se.fit = TRUE)[1:2]) %>%
+      dplyr::rename(glm_link_fit = fit, glm_link_se = se.fit) %>%
+      dplyr::mutate(glm_resp = exp(glm_link_fit),
+                    glm_LL = exp(glm_link_fit - Z * glm_link_se),
+                    glm_UL = exp(glm_link_fit + Z * glm_link_se),
+                    PT = pt[, 1],
+                    counts = gene.counts)
+    p <- p + ggplot2::geom_line(glm_plot_df, mapping = aes(x = PT, y = glm_resp, color = "NB GLM"), size = line.size)
+    col_values <- c(col_values, "goldenrod2")
+    # optionally add CI for NB GAM model
+    if (glm.ci) {
+      p <- p + ggplot2::geom_ribbon(glm_plot_df, mapping = aes(x = PT, ymin = glm_LL, ymax = glm_UL, fill = "NB GLM"), alpha = plot.alpha)
+      fill_values <- c(fill_values, "goldenrod2")
     }
   }
   p <- p +

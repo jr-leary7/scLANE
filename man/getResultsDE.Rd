@@ -2,24 +2,24 @@
 % Please edit documentation in R/getResultsDE.R
 \name{getResultsDE}
 \alias{getResultsDE}
-\title{A function to tidy the results of \code{scLANE()}.}
+\title{A function to tidy the results of \code{testDynamic()}.}
 \usage{
-getResultsDE(scLANE.results = NULL, p.adj.method = "BH")
+getResultsDE(test.results = NULL, p.adj.method = "BH")
 }
 \arguments{
-\item{scLANE.results}{The nested list returned by \code{scLANE()}. Defaults to NULL.}
-
 \item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "BH", for Benjamini-Hochberg.}
+
+\item{scLANE.results}{The nested list returned by \code{testDynamic()}. Defaults to NULL.}
 }
 \value{
 A data.frame containing differential expression results & modeling statistics for each gene.
 }
 \description{
-This function turns the nested list differential expression results of \code{scLANE()} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
+This function turns the nested list differential expression results of \code{testDynamic()} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
 }
 \examples{
 GetResultsDE(scLANE.results = scLANE_res_list)
 }
 \seealso{
-\code{\link{scLANE}} \code{\link{p.adjust}}
+\code{\link{testDynamic}} \code{\link{p.adjust}}
 }

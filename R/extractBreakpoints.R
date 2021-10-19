@@ -1,7 +1,7 @@
 #' Identify breakpoints in a \code{marge} model.
 #'
 #' @name extractBreakpoints
-#' @description Extracts the breakpoints from a fitted \code{marge} model.
+#' @description Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" would be fine but "pseudotime1" would not.
 #' @param model The \code{marge} model to analyze. Defaults to NULL.
 #' @return A numeric vector of breakpoints.
 #' @export

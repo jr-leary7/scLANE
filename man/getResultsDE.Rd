@@ -2,7 +2,7 @@
 % Please edit documentation in R/getResultsDE.R
 \name{getResultsDE}
 \alias{getResultsDE}
-\title{A function to tidy the results of \code{testDynamic()}.}
+\title{Tidy the results of \code{testDynamic()}.}
 \usage{
 getResultsDE(test.results = NULL, p.adj.method = "BH")
 }

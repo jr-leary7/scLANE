@@ -1,4 +1,4 @@
-#' Identify breakpoints
+#' Identify breakpoints in a \code{marge} model.
 #'
 #' @name extractBreakpoints
 #' @description Extracts the breakpoints from a fitted \code{marge} model.
@@ -19,6 +19,6 @@ extractBreakpoints <- function(model = NULL) {
   coef_names <- gsub("\\)", "", gsub("\\(", "", coef_names))
   coef_names <- gsub("[A-z]|[a-z]", "", coef_names)
   changepoints_char <- gsub("-", "", gsub("_", "", coef_names))
-  changepoints <- as.numeric(changepoints_char)
+  changepoints <- sort(as.numeric(changepoints_char))
   return(changepoints)
 }

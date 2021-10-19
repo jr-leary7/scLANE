@@ -1,4 +1,4 @@
-#' A function to tidy the results of \code{testDynamic()}.
+#' Tidy the results of \code{testDynamic()}.
 #'
 #' @name getResultsDE
 #' @description This function turns the nested list differential expression results of \code{testDynamic()} and turns them into a tidy data.frame, minus the \code{ggplot} objects.

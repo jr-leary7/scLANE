@@ -2,7 +2,7 @@
 % Please edit documentation in R/extractBreakpoints.R
 \name{extractBreakpoints}
 \alias{extractBreakpoints}
-\title{Identify breakpoints}
+\title{Identify breakpoints in a \code{marge} model.}
 \usage{
 extractBreakpoints(model = NULL)
 }

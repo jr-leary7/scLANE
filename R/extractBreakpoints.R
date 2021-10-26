@@ -3,12 +3,13 @@
 #' @name extractBreakpoints
 #' @description Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" would be fine but "pseudotime1" would not.
 #' @param model The \code{marge} model to analyze. Defaults to NULL.
+#' @param sort Should the breakpoints be sorted into ascending order? Defaults to FALSE.
 #' @return A numeric vector of breakpoints.
 #' @export
 #' @examples
 #' extractBreakpoints(model = marge_mod)
 
-extractBreakpoints <- function(model = NULL) {
+extractBreakpoints <- function(model = NULL, sort = FALSE) {
   # check inputs
   if (is.null(model)) stop("Model input is missing from extractBreakpoints().")
   if (!"glm" %in% class(model)) stop("Model must be of class glm.")
@@ -19,6 +20,10 @@ extractBreakpoints <- function(model = NULL) {
   coef_names <- gsub("\\)", "", gsub("\\(", "", coef_names))
   coef_names <- gsub("[A-z]|[a-z]", "", coef_names)
   changepoints_char <- gsub("-", "", gsub("_", "", coef_names))
-  changepoints <- sort(as.numeric(changepoints_char))
+  if (sort) {
+    changepoints <- sort(as.numeric(changepoints_char))
+  } else {
+    changepoints <- as.numeric(changepoints_char)
+  }
   return(changepoints)
 }

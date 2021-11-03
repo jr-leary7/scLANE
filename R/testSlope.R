@@ -1,6 +1,6 @@
 #' Test whether a gene's expression is increasing or decreasing over a window of pseudotime.
 #'
-#'  @name testChange
+#'  @name testSlope
 #'  @description This function tests whether the slope of a gene's \eqn{\hat{\beta}} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us wether a gene's expression is changing over an interval or not.
 #'  @importFrom dplyr %>% arrange mutate
 #'  @param model.list A list of \code{marge} models. Defaults to NULL.
@@ -12,9 +12,9 @@
 #'  @seealso \code{\link{p.adjust}}
 #'  @export
 #'  @examples
-#'  testChange(model.list = marge_list, fdr.alpha = 0.01)
+#'  testSlope(model.list = marge_list, fdr.alpha = 0.01)
 
-testChange <- function(model.list = NULL, adj.method = "BH") {
+testSlope <- function(model.list = NULL, adj.method = "BH") {
   # check inputs
   if (is.null(model.list)) { stop("You forgot to provide a model list to testChange().") }
   if (!all(as.logical(lapply(model.list, function(x) "glm" %in% class(x))))) { stop("All models must be of class glm.") }

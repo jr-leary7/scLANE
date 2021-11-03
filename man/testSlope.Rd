@@ -6,18 +6,26 @@
 \usage{
 testSlope(model.list = NULL, adj.method = "BH")
 }
+\arguments{
+\item{model.list}{A list of \code{marge} models. Defaults to NULL.}
+
+\item{adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "BH" for Benjamini-Hochberg.}
+
+\item{expr}{A matrix or data.frame of raw integer counts. Defaults to NULL.}
+
+\item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
+
+\item{fdr.alpha}{The FDR statistical significance cutoff used after MHT adjustment. Defaults to 0.05.}
+}
+\value{
+A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
+}
 \description{
-@name testSlope
- @description This function tests whether the slope of a gene's \eqn{\hat{\beta}} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us wether a gene's expression is changing over an interval or not.
- @importFrom dplyr %>% arrange mutate
- @param model.list A list of \code{marge} models. Defaults to NULL.
- @param expr A matrix or data.frame of raw integer counts. Defaults to NULL.
- @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
- @param adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "BH" for Benjamini-Hochberg.
- @param fdr.alpha The FDR statistical significance cutoff used after MHT adjustment. Defaults to 0.05.
- @return A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
- @seealso \code{\link{p.adjust}}
- @export
- @examples
+This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
+}
+\examples{
  testSlope(model.list = marge_list, fdr.alpha = 0.01)
+}
+\seealso{
+\code{\link{p.adjust}}
 }

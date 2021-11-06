@@ -45,8 +45,8 @@ testDynamic <- function(expr = NULL,
   # iterate over genes & build models
   test_stats <- foreach::foreach(i = seq_along(genes),
                                  .combine = "list",
-                                 .multicombine = TRUE,
-                                 .maxcombine = length(genes),
+                                 .multicombine = ifelse(length(genes) > 1, TRUE, FALSE),
+                                 .maxcombine = ifelse(length(genes) > 1, length(genes), 2),
                                  .packages = c("glm2", "scLANE", "ggplot2", "MASS"),
                                  .export = c("expr", "genes", "pt")) %op% {
     # run original MARGE model

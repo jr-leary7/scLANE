@@ -665,25 +665,20 @@ marge2 <- function(X_pred = NULL,
 
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
-  final_mod.many_2 <- mvabund::manyglm(c(t(Y)) ~ B_final - 1, family = "negative.binomial", maxiter = 1000, maxiter2 = 100)
-  final_mod_2 <- MASS::glm.nb(c(t(Y)) ~ B_final - 1, method = "glm.fit2", init.theta = final_mod.many_2$theta)
+  final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1, method = "glm.fit2", init.theta = 1)
 
-  p_2 <- ncol(as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]]))
-  df1a_2 <- p_2 + pen * (p_2 - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
+  p_2 <- ncol(B_final)
+  df1a <- p_2 + pen * (p_2 - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
 
-  RSS1_2 <- sum((Y - stats::fitted(final_mod_2))^2)
-  GCV1_2 <- RSS1_2 / (NN * (1 - df1a_2 / NN)^2)
+  RSS1 <- sum((Y - stats::fitted(final_mod))^2)
+  GCV1 <- RSS1 / (NN * (1 - df1a / NN)^2)
 
-  B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
-  wic_mat <- wic_mat_2
   min_wic_own <- min(wic_mat_2, na.rm = TRUE)
-  GCV1 <- GCV1_2
-  y_pred <- stats::predict(final_mod_2)
-  final_mod <- final_mod_2
+  y_pred <- stats::predict(final_mod)
 
   z <- NULL
   z$bx <- B_final
-  z$wic_mat <- wic_mat
+  z$wic_mat <- wic_mat_2
   z$min_wic_own <- min_wic_own
   z$GCV <- GCV1
   z$y_pred <- y_pred

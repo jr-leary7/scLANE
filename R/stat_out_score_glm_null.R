@@ -13,7 +13,7 @@
 
 stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   # check inputs
-  if (any(sapply(c(Y, B_null), is.null))) stop("Some inputs to stat_out_score_glm_null() are missing.")
+  if (any(unlist(lapply(c(Y, B_null), is.null)))) stop("Some inputs to stat_out_score_glm_null() are missing.")
   # run function
   ests <- gamlss::gamlss(Y ~ B_null - 1, family = "NBI", trace = FALSE)
   mu.est <- as.matrix(stats::fitted.values(ests))

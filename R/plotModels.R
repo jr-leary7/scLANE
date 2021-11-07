@@ -46,7 +46,7 @@ plotModels <- function(marge.mod = NULL,
                        line.size = 1.25,
                        plot.theme = NULL) {
   # check inputs
-  if (any(sapply(c(marge.mod, gene.counts, pt, gene, ci.alpha), is.null))) stop("You forgot one or more of the arguments to PlotMARGE().")
+  if (any(unlist(lapply(c(marge.mod, gene.counts, pt, gene, ci.alpha), is.null)))) stop("You forgot one or more of the arguments to PlotMARGE().")
   Z <- abs(qnorm(ci.alpha / 2))
   if (is.null(plot.theme)) {
     plot.theme <- ggplot2::theme_classic(base_size = 14)

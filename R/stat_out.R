@@ -22,7 +22,7 @@ stat_out <- function(Y = NULL,
                      GCV.null = NULL,
                      pen = 2) {
   # check inputs
-  if (any(sapply(c(Y, B1, TSS, GCV.null), is.null))) stop("Some of the arguments to stat_out() are missing.")
+  if (any(unlist(lapply(c(Y, B1, TSS, GCV.null), is.null)))) stop("Some of the arguments to stat_out() are missing.")
   if (GCV.null == 0) stop("GCV.null argument to stat_out() cannot be 0.")
   N <- length(Y)
   reg <- stats::lm.fit(B1, Y)

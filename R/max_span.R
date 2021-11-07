@@ -12,7 +12,7 @@
 #' @importFrom stats binomial poisson
 
 max_span <- function(X_pred = NULL, q = NULL, alpha = 0.05) {
-  if (any(sapply(c(X_pred, q), is.null))) stop("Some inputs to max_span() are missing.")
+  if (any(unlist(lapply(c(X_pred, q), is.null)))) stop("Some inputs to max_span() are missing.")
   N <- length(unique(X_pred))
   x <- sort(unique(X_pred))
   maxspan <- round((3 - log2(alpha / q)))

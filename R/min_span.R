@@ -14,7 +14,7 @@
 
 min_span <- function(X_red = NULL, q = NULL, minspan = NULL, alpha = 0.05) {
   # check inputs
-  if (any(sapply(c(X_red, q), is.null))) stop("Some inputs to min_span() are missing.")
+  if (any(unlist(lapply(c(X_red, q), is.null)))) stop("Some inputs to min_span() are missing.")
   # run function
   N <- length((X_red))
   x <- sort((X_red))

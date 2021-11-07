@@ -32,7 +32,7 @@ mars_ls <- function(X_pred = NULL,
                     M = 7,
                     minspan = NULL) {
   # check inputs
-  if (any(sapply(c(X_pred, Y), is.null))) stop("Some inputs to mars_ls() are missing.")
+  if (any(unlist(lapply(c(X_pred, Y), is.null)))) stop("Some inputs to mars_ls() are missing.")
   N <- length(Y)    # Sample size.
   q <- ncol(X_pred)  # No. of predictor variables.
 

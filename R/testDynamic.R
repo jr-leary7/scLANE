@@ -67,7 +67,7 @@ testDynamic <- function(expr = NULL,
                        Dev_Null = NA,
                        Model_Status = "Original MARGE model error",
                        MARGE_Model = NA,
-                       Null_Model = null_mod,
+                       Null_Model = MASS::glm.nb(gene_data ~ 1),
                        Plot = NA)
     } else {
       # compare MARGE to null model - must use MASS::glm.nb() because log-likelihood differs when using lm()

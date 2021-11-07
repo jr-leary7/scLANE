@@ -23,6 +23,8 @@ score_fun_glm <- function(Y = NULL,
                           V.est = NULL,
                           B1 = NULL,
                           XA = NULL) {
+  # check inputs
+  if (any(unlist(lapply(list(Y, VS.est_list, A_list, B1_list, mu.est, V.est, B1, XA), is.null)))) { stop("Some inputs to score_fun_glm() are missing.") }
   # generate score statistic
   reg <- try(stats::lm.fit(B1, Y), silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
   if (class(reg)[1] == "try-error") {

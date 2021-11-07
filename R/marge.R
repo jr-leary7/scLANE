@@ -36,7 +36,7 @@ marge <- function(X_pred = NULL,
                   M = 7,
                   minspan = NULL) {
   # check inputs
-  if (any(sapply(c(X_pred, Y), is.null))) stop("Some inputs to marge() are missing.")
+  if (any(unlist(lapply(c(X_pred, Y), is.null)))) stop("Some inputs to marge() are missing.")
   N <- length(Y)
   NN <- length(Y)  # Total sample size
   q <- ncol(X_pred)  # Number of predictor variables

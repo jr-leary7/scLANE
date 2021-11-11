@@ -10,7 +10,10 @@ marge2(
   pen = 2,
   tols_score = 1e-05,
   M = 7,
-  minspan = NULL
+  minspan = NULL,
+  return.basis = FALSE,
+  return.wic = FALSE,
+  return.GCV = FALSE
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ marge2(
 \item{M}{A set threshold for the number of basis functions to be used. The default is 7.}
 
 \item{minspan}{A set minimum span value. The default is \code{minspan = NULL}.}
+
+\item{return.basis}{Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the mdoel object much larger than necessary.}
+
+\item{return.wic}{Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE because I don't ever use them.}
+
+\item{return.GCV}{Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE because I never use it.}
 }
 \value{
 \code{marge} returns a list of calculated values consisting of:

@@ -2,12 +2,16 @@
 #'
 #' @name marge2
 #' @description MARS fitting function for generalized linear models (GLMs).
+#' @importFrom glm2 glm.fit2
 #' @param X_pred A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
 #' @param Y The response variable. A vector of length n by N.
 #' @param pen A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
 #' @param tols_score The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
 #' @param M A set threshold for the number of basis functions to be used. The default is 7.
 #' @param minspan A set minimum span value. The default is \code{minspan = NULL}.
+#' @param return.basis Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the mdoel object much larger than necessary.
+#' @param return.wic Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE because I don't ever use them.
+#' @param return.GCV Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE because I never use it.
 #' @details For further details please look at the \code{mars_ls} function - there are more details on the general MARS algorithm. MARGE will produce output for two penalties: 2 and log(N). A figure is automatically generated plotting WIC against the no. of parameters.
 #' @return \code{marge} returns a list of calculated values consisting of:
 #' @return \code{B_final}Tthe basis model matrix for the final model fit.
@@ -30,11 +34,14 @@
 #' marge(X_pred = pseudotime_df, Y = expr_vec)
 
 marge2 <- function(X_pred = NULL,
-                  Y = NULL,
-                  pen = 2,
-                  tols_score = 0.00001,
-                  M = 7,
-                  minspan = NULL) {
+                   Y = NULL,
+                   pen = 2,
+                   tols_score = 0.00001,
+                   M = 7,
+                   minspan = NULL,
+                   return.basis = FALSE,
+                   return.wic = FALSE,
+                   return.GCV = FALSE) {
   # check inputs
   if (any(unlist(lapply(list(X_pred, Y), is.null)))) stop("Some inputs to marge() are missing.")
   NN <- length(Y)  # Total sample size
@@ -56,7 +63,7 @@ marge2 <- function(X_pred = NULL,
   mod_struct <- c(1)  # Univariate (1) or interaction (2).
   score_term <- c(0)
   TSS <- sum((Y - mean(Y))^2)
-  GCV.null <- TSS / (NN * (1 - 1 / NN)^2)
+  GCV.null <- TSS / (NN * (1 - (1 / NN))^2)
 
   # Null model setup.
 
@@ -665,7 +672,7 @@ marge2 <- function(X_pred = NULL,
 
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
-  final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1, method = "glm.fit2", init.theta = 1)
+  final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1, method = "glm.fit2", init.theta = 1, y = FALSE, model = FALSE)
 
   p_2 <- ncol(B_final)
   df1a <- p_2 + pen * (p_2 - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
@@ -674,16 +681,12 @@ marge2 <- function(X_pred = NULL,
   GCV1 <- RSS1 / (NN * (1 - df1a / NN)^2)
 
   min_wic_own <- min(wic_mat_2, na.rm = TRUE)
-  y_pred <- stats::predict(final_mod)
 
   z <- NULL
-  z$bx <- B_final
-  z$wic_mat <- wic_mat_2
-  z$min_wic_own <- min_wic_own
-  z$GCV <- GCV1
-  z$y_pred <- y_pred
+  if (return.basis) { z$bx <- B_final }
+  if (return.wic) { z$wic_mat <- wic_mat_2; z$min_wic_own <- min_wic_own; }
+  if (return.GCV) { z$GCV <- GCV1 }
   z$final_mod <- final_mod
-
   class(z) <- "marge"
 
   return(z)

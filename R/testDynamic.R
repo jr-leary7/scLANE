@@ -57,28 +57,22 @@ testDynamic <- function(expr = NULL,
                      M = 7),
       error = function(e) "Model error"
     )
+    marge_mod$final_mod <- stripGLM(glm.obj = marge_mod$final_mod)
+    # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm()
+    null_mod <- MASS::glm.nb(gene_data ~ 1, method = "glm.fit2", y = FALSE, model = FALSE)
+    null_mod <- stripGLM(glm.obj = null_mod)
     if (any(marge_mod == "Model error")) {
       res_list <- list(Gene = genes[i],
                        LRT_Stat = NA,
                        P_Val = NA,
                        LogLik_MARGE = NA,
-                       LogLik_Null = NA,
+                       LogLik_Null = as.numeric(stats::logLik(null_mod)),
                        Dev_MARGE = NA,
-                       Dev_Null = NA,
+                       Dev_Null = deviance(null_mod),
                        Model_Status = "Original MARGE model error",
                        MARGE_Model = NA,
-                       Null_Model = MASS::glm.nb(gene_data ~ 1),
-                       Plot = NA)
+                       Null_Model = null_mod)
     } else {
-      # compare MARGE to null model - must use MASS::glm.nb() because log-likelihood differs when using lm()
-      null_mod <- MASS::glm.nb(gene_data ~ 1)
-      model_plot <- scLANE::plotModels(marge.mod = marge_mod$final_mod,
-                                       gene.counts = gene_data,
-                                       pt = pt,
-                                       marge.ci = TRUE,
-                                       gene = genes[i],
-                                       null.mod = null_mod,
-                                       null.ci = TRUE)
       # compute LRT stat using asymptotic Chi-squared approximation
       lrt_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
       marge_ll <- lrt_res$Alt_Mod_LL
@@ -97,8 +91,7 @@ testDynamic <- function(expr = NULL,
                        Dev_Null = null_dev,
                        Model_Status = "All clear",
                        MARGE_Model = marge_mod,
-                       Null_Model = null_mod,
-                       Plot = model_plot)
+                       Null_Model = null_mod)
     }
     res_list
   }

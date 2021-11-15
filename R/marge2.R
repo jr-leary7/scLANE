@@ -673,7 +673,6 @@ marge2 <- function(X_pred = NULL,
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
   final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1, method = "glm.fit2", init.theta = 1, y = FALSE, model = FALSE)
-
   p_2 <- ncol(B_final)
   df1a <- p_2 + pen * (p_2 - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
 
@@ -681,6 +680,8 @@ marge2 <- function(X_pred = NULL,
   GCV1 <- RSS1 / (NN * (1 - df1a / NN)^2)
 
   min_wic_own <- min(wic_mat_2, na.rm = TRUE)
+
+  final_mod <- stripGLM(glm.obj = final_mod)
 
   z <- NULL
   if (return.basis) { z$bx <- B_final }

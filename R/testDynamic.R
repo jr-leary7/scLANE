@@ -57,7 +57,7 @@ testDynamic <- function(expr = NULL,
                      M = 7),
       error = function(e) "Model error"
     )
-    marge_mod$final_mod <- stripGLM(glm.obj = marge_mod$final_mod)
+
     # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm()
     null_mod <- MASS::glm.nb(gene_data ~ 1, method = "glm.fit2", y = FALSE, model = FALSE)
     null_mod <- stripGLM(glm.obj = null_mod)

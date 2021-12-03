@@ -4,7 +4,12 @@
 \alias{testSlope}
 \title{Test whether a gene's expression is increasing or decreasing over a window of pseudotime.}
 \usage{
-testSlope(model.list = NULL, pt = NULL, adj.method = "bonferroni")
+testSlope(
+  model.list = NULL,
+  pt = NULL,
+  adj.method = "bonferroni",
+  fdr.cutoff = 0.01
+)
 }
 \arguments{
 \item{model.list}{A list of \code{marge} models. Defaults to NULL.}
@@ -12,6 +17,8 @@ testSlope(model.list = NULL, pt = NULL, adj.method = "bonferroni")
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
 \item{adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".}
+
+\item{fdr.cutoff}{The FDR threshhold for determining statistical significance. Defaults to 0.01.}
 }
 \value{
 A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.

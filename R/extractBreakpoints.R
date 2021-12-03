@@ -3,13 +3,13 @@
 #' @name extractBreakpoints
 #' @description Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" would be fine but "pseudotime1" would not.
 #' @param model The \code{marge} model to analyze. Defaults to NULL.
-#' @param sort Should the breakpoints be sorted into ascending order? Defaults to FALSE.
-#' @return A numeric vector of breakpoints.
+#' @param directions Should the directions of the hinge functions also be extracted? Defults to TRUE.
+#' @return A data.frame of breakpoints & their directions.
 #' @export
 #' @examples
 #' extractBreakpoints(model = marge_mod)
 
-extractBreakpoints <- function(model = NULL, sort = FALSE) {
+extractBreakpoints <- function(model = NULL, directions = TRUE) {
   # check inputs
   if (is.null(model)) stop("Model input is missing from extractBreakpoints().")
   if (!"glm" %in% class(model)) stop("Model must be of class glm.")
@@ -18,12 +18,12 @@ extractBreakpoints <- function(model = NULL, sort = FALSE) {
   coef_names <- gsub("B_final", "", coef_names)
   coef_names <- coef_names[-which(coef_names == "Intercept")]
   coef_names <- gsub("\\)", "", gsub("\\(", "", coef_names))
-  coef_names <- gsub("[A-z]|[a-z]", "", coef_names)
-  changepoints_char <- gsub("-", "", gsub("_", "", coef_names))
-  if (sort) {
-    changepoints <- sort(as.numeric(changepoints_char))
-  } else {
-    changepoints <- as.numeric(changepoints_char)
+  coef_nums <- gsub("[A-z]|[a-z]", "", coef_names)
+  brkpts_char <- gsub("-", "", gsub("_", "", coef_nums))
+  brkpt_df <- data.frame(Breakpoint = as.numeric(brkpts_char))
+  if (directions) {
+    brkpt_dirs <- ifelse(grepl("^PT-.*", coef_names), "Right", "Left")
+    brkpt_df$Direction <- brkpt_dirs
   }
-  return(changepoints)
+  return(brkpt_df)
 }

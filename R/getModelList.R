@@ -17,9 +17,9 @@ getModelList <- function(test.results = NULL, which.model = "marge") {
   if (!which.model %in% c("marge", "null")) { stop("which.model must be either 'marge' or 'null'.") }
   # get models
   if (which.model == "marge") {
-    res <- lapply(gene_stats, function(x) x[[9]]$final_mod)
+    res <- lapply(test.results, function(x) x[[9]]$final_mod)
   } else {
-    res <- lapply(gene_stats, function(x) x[[10]])
+    res <- lapply(test.results, function(x) x[[10]])
   }
   return(res)
 }

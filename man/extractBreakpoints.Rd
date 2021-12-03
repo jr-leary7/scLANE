@@ -4,15 +4,15 @@
 \alias{extractBreakpoints}
 \title{Identify breakpoints in a \code{marge} model.}
 \usage{
-extractBreakpoints(model = NULL, sort = FALSE)
+extractBreakpoints(model = NULL, directions = TRUE)
 }
 \arguments{
 \item{model}{The \code{marge} model to analyze. Defaults to NULL.}
 
-\item{sort}{Should the breakpoints be sorted into ascending order? Defaults to FALSE.}
+\item{directions}{Should the directions of the hinge functions also be extracted? Defults to TRUE.}
 }
 \value{
-A numeric vector of breakpoints.
+A data.frame of breakpoints & their directions.
 }
 \description{
 Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" would be fine but "pseudotime1" would not.

@@ -4,18 +4,14 @@
 \alias{testSlope}
 \title{Test whether a gene's expression is increasing or decreasing over a window of pseudotime.}
 \usage{
-testSlope(model.list = NULL, adj.method = "BH")
+testSlope(model.list = NULL, pt = NULL, adj.method = "bonferroni")
 }
 \arguments{
 \item{model.list}{A list of \code{marge} models. Defaults to NULL.}
 
-\item{adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "BH" for Benjamini-Hochberg.}
-
-\item{expr}{A matrix or data.frame of raw integer counts. Defaults to NULL.}
-
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{fdr.alpha}{The FDR statistical significance cutoff used after MHT adjustment. Defaults to 0.05.}
+\item{adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".}
 }
 \value{
 A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
@@ -24,7 +20,7 @@ A dataframe containing the genes, breakpoints, and slope \emph{p}-values from ea
 This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
 }
 \examples{
- testSlope(model.list = marge_list, fdr.alpha = 0.01)
+ testSlope(model.list = marge_list, pt = pt_df)
 }
 \seealso{
 \code{\link{p.adjust}}

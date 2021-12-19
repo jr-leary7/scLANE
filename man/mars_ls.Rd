@@ -39,7 +39,7 @@ MARS estimation function for independent Gaussian response data. If non-Gaussian
 Note that no argument is provided for an "additive structure only" model but one could just use \code{mgcv::gam()} instead.
 }
 \examples{
-mars_ls(X_pred = pseudotime_df, Y = expr_vec)
+\dontrun{mars_ls(X_pred = pseudotime_df, Y = expr_vec)}
 }
 \references{
 Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.

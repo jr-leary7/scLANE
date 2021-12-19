@@ -1,11 +1,14 @@
 #' Test whether a gene is dynamic over pseudotime.
 #'
 #' @name testDynamic
+#' @author Jack Leary
 #' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
-#' @importFrom foreach foreach
+#' @importFrom foreach foreach %dopar% %do%
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel makeCluster detectCores stopCluster clusterEvalQ
 #' @importFrom MASS glm.nb
+#' @importFrom glm2 glm.fit2
+#' @importFrom stats deviance
 #' @param expr A matrix of integer-valued counts. Defaults to NULL.
 #' @param pt A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param genes A character vector of genes to model. If not provided, defaults to all genes in \code{expr}. Defaults to NULL.
@@ -15,8 +18,8 @@
 #' @return A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @export
 #' @examples
-#' testDynamic(expr = raw_counts, pt = pseudotime_df)
-#' testDynamic(expr = raw_counts, pt = pseudotime_df, parallel = TRUE, n.cores = 8)
+#' \dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df)}
+#' \dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df, parallel = TRUE, n.cores = 8)}
 
 testDynamic <- function(expr = NULL,
                         pt = NULL,
@@ -51,37 +54,60 @@ testDynamic <- function(expr = NULL,
                                  .export = c("expr", "genes", "pt")) %op% {
     # run original MARGE model
     gene_data <- expr[, genes[i]]
-    marge_mod <- tryCatch (
-      scLANE::marge2(X_pred = pt,
-                     Y = gene_data,
-                     M = 7),
+    marge_mod <- tryCatch(
+      marge2(X_pred = pt,
+             Y = gene_data,
+             M = 7),
       error = function(e) "Model error"
     )
 
     # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm()
-    null_mod <- MASS::glm.nb(gene_data ~ 1, method = "glm.fit2", y = FALSE, model = FALSE)
-    null_mod <- stripGLM(glm.obj = null_mod)
+    null_mod <- tryCatch(
+      MASS::glm.nb(gene_data ~ 1,
+                   method = "glm.fit2",
+                   y = FALSE,
+                   model = FALSE),
+      error = function(e) "Model error"
+    )
+    if (!any(null_mod == "Model error")) {
+      null_mod <- stripGLM(glm.obj = null_mod)
+    }
+
+    # prepare results if there were errors in either null or MARGE model
     if (any(marge_mod == "Model error")) {
-      res_list <- list(Gene = genes[i],
-                       LRT_Stat = NA,
-                       P_Val = NA,
-                       LogLik_MARGE = NA,
-                       LogLik_Null = as.numeric(stats::logLik(null_mod)),
-                       Dev_MARGE = NA,
-                       Dev_Null = deviance(null_mod),
-                       Model_Status = "Original MARGE model error",
-                       MARGE_Model = NA,
-                       Null_Model = null_mod)
+      if (any(null_mod == "Model error")) {
+        res_list <- list(Gene = genes[i],
+                         LRT_Stat = NA,
+                         P_Val = NA,
+                         LogLik_MARGE = NA,
+                         LogLik_Null = NA,
+                         Dev_MARGE = NA,
+                         Dev_Null = NA,
+                         Model_Status = "Null and MARGE model errors",
+                         MARGE_Model = NA,
+                         Null_Model = null_mod)
+      } else {
+        res_list <- list(Gene = genes[i],
+                         LRT_Stat = NA,
+                         P_Val = NA,
+                         LogLik_MARGE = NA,
+                         LogLik_Null = as.numeric(stats::logLik(null_mod)),
+                         Dev_MARGE = NA,
+                         Dev_Null = deviance(null_mod),
+                         Model_Status = "Original MARGE model error",
+                         MARGE_Model = NA,
+                         Null_Model = null_mod)
+      }
     } else {
       # compute LRT stat using asymptotic Chi-squared approximation
-      lrt_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
+      lrt_res <- modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
       marge_ll <- lrt_res$Alt_Mod_LL
       null_ll <- lrt_res$Null_Mod_LL
       lrt_stat <- lrt_res$LRT_Stat
       p_val <- lrt_res$P_Val
       # prepare results
-      marge_dev <- deviance(marge_mod$final_mod)
-      null_dev <- deviance(null_mod)
+      marge_dev <- stats::deviance(marge_mod$final_mod)
+      null_dev <- stats::deviance(null_mod)
       res_list <- list(Gene = genes[i],
                        LRT_Stat = lrt_stat,
                        P_Val = p_val,
@@ -96,7 +122,7 @@ testDynamic <- function(expr = NULL,
     res_list
   }
   # end parallelization
-  if (parallel) { stopCluster(cl) }
+  if (parallel) { parallel::stopCluster(cl) }
   # prepare results
   names(test_stats) <- genes
   if (track.time) {

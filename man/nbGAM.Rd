@@ -20,6 +20,9 @@ An object of class \code{gam}
 Fits a negative-binomial family GAM (glorified wrapper function).
 }
 \examples{
-nbGAM(expr_vec, pt_df)
-nbGAM(expr_vec, pt_vec, theta.init = 2.5)
+\dontrun{nbGAM(expr_vec, pt_df)}
+\dontrun{nbGAM(expr_vec, pt_vec, theta.init = 2.5)}
+}
+\author{
+Jack Leary
 }

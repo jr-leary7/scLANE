@@ -27,8 +27,11 @@ A dataframe containing the genes, breakpoints, and slope \emph{p}-values from ea
 This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
 }
 \examples{
- testSlope(model.list = marge_list, pt = pt_df)
+\dontrun{testSlope(model.list = marge_list, pt = pt_df)}
 }
 \seealso{
 \code{\link{p.adjust}}
+}
+\author{
+Jack Leary
 }

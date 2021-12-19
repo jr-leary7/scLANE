@@ -4,7 +4,7 @@
 \alias{backward_sel_WIC}
 \title{Backward selection function for MARGE - uses the Wald information criterion (WIC).}
 \usage{
-backward_sel_WIC(Y, B_new, ...)
+backward_sel_WIC(Y, B_new)
 }
 \arguments{
 \item{Y}{: the response variable.}

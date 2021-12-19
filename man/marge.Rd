@@ -48,7 +48,7 @@ MARS fitting function for generalized linear models (GLM).
 For further details please look at the \code{mars_ls} function - there are more details on the general MARS algorithm. MARGE will produce output for two penalties: 2 and log(N). A figure is automatically generated plotting WIC against the no. of parameters.
 }
 \examples{
-marge(X_pred = pseudotime_df, Y = expr_vec)
+\dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
 }
 \references{
 Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.

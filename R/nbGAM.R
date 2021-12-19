@@ -1,16 +1,17 @@
 #' Fit a negative-binomial GAM.
 #'
 #' @name nbGAM
+#' @author Jack Leary
 #' @description Fits a negative-binomial family GAM (glorified wrapper function).
-#' @importFrom mgcv gam nb
+#' @importFrom mgcv gam nb negbin
 #' @param expr A vector of integer counts. Defaults to NULL.
 #' @param pt A dataframe or vector of pesudotime values. Defaults to NULL.
 #' @param theta.init (Optional) If you have a numeric value for \eqn{\theta} you'd like to use provide it here, else it can be estimated internally. Defaults to NULL.
 #' @return An object of class \code{gam}
 #' @export
 #' @examples
-#' nbGAM(expr_vec, pt_df)
-#' nbGAM(expr_vec, pt_vec, theta.init = 2.5)
+#' \dontrun{nbGAM(expr_vec, pt_df)}
+#' \dontrun{nbGAM(expr_vec, pt_vec, theta.init = 2.5)}
 
 nbGAM <- function(expr = NULL, pt = NULL, theta.init = NULL) {
   # check inputs

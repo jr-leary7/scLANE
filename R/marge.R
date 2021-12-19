@@ -21,13 +21,14 @@
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @seealso \code{\link{mars_ls}} and \code{\link{backward_sel_WIC}}
-#' @export
 #' @importFrom gamlss gamlss
 #' @importFrom mvabund manyglm
 #' @importFrom MASS glm.nb
-#' @importFrom stats binomial poisson
+#' @importFrom glm2 glm.fit2
+#' @importFrom stats fitted predict
+#' @export
 #' @examples
-#' marge(X_pred = pseudotime_df, Y = expr_vec)
+#' \dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
 
 marge <- function(X_pred = NULL,
                   Y = NULL,
@@ -240,14 +241,14 @@ marge <- function(X_pred = NULL,
           if (all(is.na(score_knot_one_add_mat))) {
             int <- TRUE
             score_knot <- score_knot_one_int_mat
-            temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = T), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
+            temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = TRUE), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
             min_knot1 <- temp[1]
             best.var <- temp[2]
           } else {
             if (utils::tail(max(score_knot_one_int_mat, na.rm = TRUE), n = 1) > utils::tail(max(score_knot_one_add_mat, na.rm = TRUE), n = 1)) {
               int <- TRUE
               score_knot <- score_knot_one_int_mat
-              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = T), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
+              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = TRUE), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
               min_knot1 <- temp[1]
               best.var <- temp[2]
             } else {
@@ -257,24 +258,24 @@ marge <- function(X_pred = NULL,
             }
           }
         } else {
-          if (utils::tail(max(score_knot_one_int_mat, na.rm = T), n = 1) > utils::tail(max(score_knot_both_add_mat, na.rm = T), n = 1)) {
+          if (utils::tail(max(score_knot_one_int_mat, na.rm = TRUE), n = 1) > utils::tail(max(score_knot_both_add_mat, na.rm = TRUE), n = 1)) {
             trunc.type <- 1
-            if (utils::tail(max(score_knot_one_int_mat, na.rm = T), n = 1) > utils::tail(max(score_knot_one_add_mat, na.rm = T), n = 1)) {
+            if (utils::tail(max(score_knot_one_int_mat, na.rm = TRUE), n = 1) > utils::tail(max(score_knot_one_add_mat, na.rm = TRUE), n = 1)) {
               int <- TRUE
               score_knot <- score_knot_one_int_mat
-              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = T), n = 1) == round(score_knot, 6), arr.ind = T), n = 1)
+              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = TRUE), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
               min_knot1 <- temp[1]
               best.var <- temp[2]
             } else {
               int <- FALSE
               score_knot <- score_knot_one_add_mat
-              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = T), n = 1) == round(score_knot, 6), arr.ind = T), n = 1)
+              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = TRUE), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
               min_knot1 <- temp[1]
               best.var <- temp[2]
             }
           } else {
             int <- FALSE
-            if (utils::tail(max(score_knot_both_add_mat, na.rm = T), n = 1) <= utils::tail(max(score_knot_one_add_mat, na.rm = T), n = 1)) {
+            if (utils::tail(max(score_knot_both_add_mat, na.rm = TRUE), n = 1) <= utils::tail(max(score_knot_one_add_mat, na.rm = TRUE), n = 1)) {
               trunc.type <- 1
               score_knot <- score_knot_one_add_mat
               min_knot1 <- utils::tail(which.max(round(score_knot, 6)), n = 1)
@@ -291,11 +292,11 @@ marge <- function(X_pred = NULL,
             int <- TRUE
             trunc.type <- 2
             score_knot <- score_knot_both_int_mat
-            temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = T), n = 1) == round(score_knot, 6), arr.ind = T), n = 1)
+            temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = TRUE), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
             min_knot1 <- temp[1]
             best.var <- temp[2]
           }
-          if (utils::tail(max(score_knot_both_int_mat, na.rm = T), n = 1) > utils::tail(max(score_knot_one_add_mat, na.rm = TRUE), n = 1)) {
+          if (utils::tail(max(score_knot_both_int_mat, na.rm = TRUE), n = 1) > utils::tail(max(score_knot_one_add_mat, na.rm = TRUE), n = 1)) {
             int <- TRUE
             trunc.type <- 2
             score_knot <- score_knot_both_int_mat
@@ -627,8 +628,8 @@ marge <- function(X_pred = NULL,
 
   wic_mat_2[1, (ncol_B + 1)] <- wic_mat_log[1, (ncol_B  + 1)] <- full.wic
 
-  wic1_2 <- backward_sel_WIC(Y = Y, B = B_new)
-  wic1_log <- backward_sel_WIC(Y = Y, B = B_new)
+  wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
+  wic1_log <- backward_sel_WIC(Y = Y, B_new = B_new)
 
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
   wic_mat_log[2, 2:(length(wic1_log) + 1)] <- wic1_log

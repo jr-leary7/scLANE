@@ -16,5 +16,8 @@ A slimmed-down \code{glm} object.
 This function removes a \emph{lot} of components from the default GLM object in order to make it take up less memory. It does however retain enough pieces for \code{predict()} to still work. No promises beyond that.
 }
 \examples{
-stripGLM(marge_model)
+\dontrun{stripGLM(marge_model)}
+}
+\author{
+Jack Leary
 }

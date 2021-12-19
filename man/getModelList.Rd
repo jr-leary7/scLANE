@@ -12,12 +12,15 @@ getModelList(test.results = NULL, which.model = "marge")
 \item{which.model}{Whether the \code{marge} or null models should be returned. Defaults to "marge".}
 }
 \value{
-A list of \code{marge} or null NB GLM objects.
+A list of \code{marge} or null model NB GLM objects.
 }
 \description{
 This function retrieves a list of either \code{marge} or null models from the output of \code{testDynamic()}.
 }
 \examples{
-getModelList(test.results = gene_test_list)
-getModelList(test.results = gene_test_list, which.model = "null")
+\dontrun{getModelList(test.results = gene_test_list)}
+\dontrun{getModelList(test.results = gene_test_list, which.model = "null")}
+}
+\author{
+Jack Leary
 }

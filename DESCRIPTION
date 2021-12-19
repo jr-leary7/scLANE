@@ -1,12 +1,27 @@
 Package: scLANE
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Model gene expression over pseudotime with spline-based NB GLMs
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Jack Leary [aut]
+Maintainer: Jack Leary <j.leary@ufl.edu>
+Description: This package uses MARGE spline GLM models to build flexible, interpretable models of single cell gene expression over pseudotime / latent time. 
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
+Depends: 
+  magrittr
+Imports: 
+  dplyr,
+  foreach,
+  doParallel,
+  parallel, 
+  MASS,
+  ggplot2,
+  stats,
+  gamlss,
+  glm2, 
+  mgcv,
+  scales, 
+  mvabund
+URL: https://github.com/jr-leary7/scLANE

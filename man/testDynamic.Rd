@@ -33,6 +33,9 @@ A list of lists; each sublist contains a gene name, default \code{marge} vs. nul
 This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 }
 \examples{
-testDynamic(expr = raw_counts, pt = pseudotime_df)
-testDynamic(expr = raw_counts, pt = pseudotime_df, parallel = TRUE, n.cores = 8)
+\dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df)}
+\dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df, parallel = TRUE, n.cores = 8)}
+}
+\author{
+Jack Leary
 }

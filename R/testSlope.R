@@ -1,8 +1,10 @@
 #' Test whether a gene's expression is increasing or decreasing over a window of pseudotime.
 #'
 #' @name testSlope
+#' @author Jack Leary
 #' @description This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
-#' @importFrom dplyr %>% arrange mutate case_when with_groups
+#' @import magrittr
+#' @importFrom dplyr arrange mutate case_when with_groups
 #' @param model.list A list of \code{marge} models. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".
@@ -11,7 +13,7 @@
 #' @seealso \code{\link{p.adjust}}
 #' @export
 #' @examples
-#'  testSlope(model.list = marge_list, pt = pt_df)
+#' \dontrun{testSlope(model.list = marge_list, pt = pt_df)}
 
 testSlope <- function(model.list = NULL,
                       pt = NULL,
@@ -19,25 +21,34 @@ testSlope <- function(model.list = NULL,
                       fdr.cutoff = 0.01) {
   # check inputs
   if (is.null(model.list)) { stop("You forgot to provide a model list to testSlope().") }
-  if (!all(as.logical(lapply(model.list, function(x) "glm" %in% class(x))))) { stop("All models must be of class glm.") }
+  # if (!all(as.logical(lapply(model.list, function(x) "glm" %in% class(x))))) { stop("All models must be of class glm.") }
   # loops on loops
   genes <- names(model.list)
+  genes_long <- c()
   rounded_brkpts <- c()
   brkpts <- c()
   brkpt_dirs <- c()
   p_vals <- c()
   for (m in seq_along(model.list)) {
     marge_model <- model.list[m][[1]]
+    # no breakpoints in models with errors
+    if (is.na(marge_model)) {
+      next
+    }
+    # grab the k breakpoints from the MARGE model
     model_breakpoints_rounded <- extractBreakpoints(marge_model, directions = TRUE)
     model_breakpoints <- sapply(model_breakpoints_rounded$Breakpoint, function(x) pt$PT[which.min(abs(pt$PT - x))])
+    # extract Wald test p-values from summary.glm()
     coef_pvals <- unname(summary(marge_model)$coefficients[, "Pr(>|z|)"][-1])
     rounded_brkpts <- c(rounded_brkpts, model_breakpoints_rounded$Breakpoint)
     brkpts <- c(brkpts, model_breakpoints)
     brkpt_dirs <- c(brkpt_dirs, model_breakpoints_rounded$Direction)
     p_vals <- c(p_vals, coef_pvals)
+    genes_long <- c(genes_long, rep(genes[m], length(coef_pvals)))
   }
-  slope_df <- data.frame(Gene = genes,
-                         Breakpoint = brkpts,
+  # create table of results
+  slope_df <- data.frame(Gene = genes_long,
+                         Breakpoint = unlist(brkpts),
                          Rounded_Breakpoint = rounded_brkpts,
                          Direction = brkpt_dirs,
                          P_Value = p_vals) %>%

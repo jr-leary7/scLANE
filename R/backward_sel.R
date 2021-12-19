@@ -1,6 +1,7 @@
 #' Backward selection function for MARS that uses the generalized cross validation criterion (GCV).
 #'
 #' @name backward_sel
+#' @importFrom stats lm.fit fitted
 #' @param Y : the response variable.
 #' @param B_new : the model matrix.
 #' @param pen : the set/fixed penalty used for the GCV. The default is 2.
@@ -11,7 +12,7 @@
 #' @references Milborrow, S. (2017a). Notes on the \code{earth} package. Package vignette. Available at: \url{http://127.0.0.1:31355/library/earth/doc/earth-notes.pdf}.
 #' @references Milborrow, S. (2017b). \code{earth}: Multivariate Adaptive Regression Splines. R package version 4.4.7. Available at \url{http://CRAN.R-project.org/package = earth.}
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @importFrom stats binomial poisson
+#' @importFrom stats lm.fit fitted
 #' @seealso \code{\link{backward_sel_WIC}}
 
 backward_sel <- function(Y, B_new, pen = 2, GCV.null = 0.001) {

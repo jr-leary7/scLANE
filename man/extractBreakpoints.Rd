@@ -18,5 +18,8 @@ A data.frame of breakpoints & their directions.
 Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" would be fine but "pseudotime1" would not.
 }
 \examples{
-extractBreakpoints(model = marge_mod)
+\dontrun{extractBreakpoints(model = marge_mod)}
+}
+\author{
+Jack Leary
 }

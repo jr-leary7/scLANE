@@ -19,12 +19,6 @@ tp2(x, t, p = 1)
 \description{
 Truncated p-th power function (negative part).
 }
-\examples{
-data(leptrine)
-dat1 <- leptrine[[1]]
-X_pred <- dat1[, 1]  # One predictor used.
-tp2(X_pred, 1)  # Knot value set at x = 1.
-}
 \references{
 Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 

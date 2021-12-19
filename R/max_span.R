@@ -9,10 +9,9 @@
 #' @author Jakub Stoklosa and David I. Warton.
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @importFrom stats binomial poisson
 
 max_span <- function(X_pred = NULL, q = NULL, alpha = 0.05) {
-  if (any(unlist(lapply(c(X_pred, q), is.null)))) stop("Some inputs to max_span() are missing.")
+  if (is.null(X_pred) | is.null(q)) stop("Some inputs to max_span() are missing.")
   N <- length(unique(X_pred))
   x <- sort(unique(X_pred))
   maxspan <- round((3 - log2(alpha / q)))

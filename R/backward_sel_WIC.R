@@ -7,10 +7,10 @@
 #' @author Jakub Stoklosa and David I. Warton
 #' @references Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for Generalized Estimating Equations With a Large Number of Predictor Variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @importFrom stats binomial poisson
+#' @importFrom gamlss gamlss
 #' @seealso \code{\link{backward_sel}}
 
-backward_sel_WIC <- function(Y, B_new, ...) {
+backward_sel_WIC <- function(Y, B_new) {
   # check inputs
   if (any(unlist(lapply(c(Y, B_new), is.null)))) stop("Some inputs are missing from backward_sel_WIC().")
   fit <- gamlss::gamlss(Y ~ B_new - 1, family = "NBI", trace = FALSE)

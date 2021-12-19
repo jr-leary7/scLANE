@@ -20,10 +20,13 @@
 #' @references Milborrow, S. (2017a). Notes on the \code{earth} package. Package vignette. Available at: \url{http://127.0.0.1:31355/library/earth/doc/earth-notes.pdf}.
 #' @references Milborrow, S. (2017b). \code{earth}: Multivariate Adaptive Regression Splines. R package version 4.4.7. Available at \url{http://CRAN.R-project.org/package = earth.}
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @importFrom stats binomial poisson
+#' @importFrom mvabund manyglm
+#' @importFrom MASS glm.nb
+#' @importFrom stats fitted lm.fit predict
+#' @importFrom glm2 glm.fit2
 #' @seealso \code{\link{marge}}
 #' @examples
-#' mars_ls(X_pred = pseudotime_df, Y = expr_vec)
+#' \dontrun{mars_ls(X_pred = pseudotime_df, Y = expr_vec)}
 
 mars_ls <- function(X_pred = NULL,
                     Y = NULL,

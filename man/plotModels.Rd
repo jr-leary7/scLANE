@@ -39,6 +39,8 @@ plotModels(
 
 \item{null.mod}{(Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.}
 
+\item{null.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the null model. Defaults to FALSE.}
+
 \item{gam.mod}{(Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.}
 
 \item{gam.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
@@ -64,6 +66,9 @@ A \code{ggplot} object.
 This function visualizes the fitted values of a \code{marge} model over the expression and pseudotime values of each cell.
 }
 \examples{
-PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2")
-PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)
+\dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2")}
+\dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)}
+}
+\author{
+Jack Leary
 }

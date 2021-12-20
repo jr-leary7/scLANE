@@ -1,0 +1,133 @@
+---
+title: "scLANE_Simulation_Study"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scLANE_Simulation_Study}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE, 
+  message = FALSE, 
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(dplyr)
+library(scran)
+library(scater)
+library(scLANE)
+library(ggplot2)
+library(scaffold)
+library(slingshot)
+library(kableExtra)
+library(SingleCellExperiment)
+```
+
+# Simulation with `scaffold`
+
+First we'll use [Dr. Ronda Bacher's `scaffold` package](https://github.com/rhondabacher/scaffold/) to simulate scRNA-seq data with trajectories. The practical advantages of `scaffold` are that it bases its simulated data on real datasets, it generates large numbers of cells and features relatively quickly, and it includes an indicator variable that specifies whether genes are differentially expressed. This last feature will allow us to test the performance of `scLANE` with respect to its identification of genes that are dynamic over pseudotime. Let's dive in!
+
+Before all else one must `set.seed()`.
+
+```{r}
+set.seed(312)
+RcppZiggurat::zsetseed(312)
+```
+
+Let's load in some data. We're going to base our simulation on the data from [Baron *et al* (2016)](https://doi.org/10.1016/j.cels.2016.08.011); their dataset is a small-ish single cell atlas of normal pancreas cells.
+
+```{r}
+panc <- scRNAseq::BaronPancreasData()  # uses inDrop, a droplet-based tech
+```
+
+And now let's run `scaffold`. We want to generate a UMI-based 10X dataset with 3,000 cells, and `r ceiling(.15 * nrow(panc))` dynamic genes - 15% of the `r nrow(panc)` total genes in the Baron pancreas dataset.
+
+```{r}
+n_dyn_genes <- ceiling(.15 * nrow(panc))
+myknots <- matrix(runif(2 * n_dyn_genes, 0, 1), ncol = 2, nrow = n_dyn_genes)
+mytheta <- matrix(rnorm(5, 5, 5), ncol = 5, nrow = n_dyn_genes)
+dynamic_params <- list(propGenes = 0.15, 
+                       degree = 2, 
+                       knots = myknots, 
+                       theta = mytheta)
+scaffold_params <- estimateScaffoldParameters(sce = panc, 
+                                              sceUMI = TRUE, 
+                                              useUMI = TRUE, 
+                                              protocol = "droplet", 
+                                              numCells = 3000, 
+                                              popHet = c(1, 1), 
+                                              useDynamic = dynamic_params)
+panc_sim <- simulateScaffold(scaffoldParams = scaffold_params, originalSCE = panc)
+```
+
+# Data Pre-processing 
+
+Next we'll need to pre-process the raw counts in the typical way. 
+
+```{r}
+panc_sim <- logNormCounts(panc_sim)
+var_decomp <- modelGeneVar(panc_sim)
+top2k_hvgs <- getTopHVGs(var_decomp, n = 2000)
+panc_sim <- runPCA(panc_sim, subset_row = top2k_hvgs)
+reducedDim(panc_sim, "PCAsub") <- reducedDim(panc_sim, "PCA")[, 1:10, drop = FALSE]
+panc_sim <- runUMAP(panc_sim, dimred = "PCAsub", n_dimred = 1:10)
+g <- buildSNNGraph(panc_sim, use.dimred = "PCAsub", k = 30)
+clusters <- igraph::cluster_louvain(graph = g)$membership
+colLabels(panc_sim) <- factor(clusters)
+plotPCA(panc_sim, colour_by = "label")
+plotUMAP(panc_sim, colour_by = "label")
+```
+
+# Pseudotime Estimation with `slingshot`
+
+Next we'll estimate trajectories with `slingshot`. We see that there are two lineages, thus we'll need to run the `scLANE` process twice.
+
+```{r}
+ss_out <- slingshot(data = panc_sim, 
+                    reducedDim = "PCAsub",  
+                    clusterLabels = panc_sim$label)
+ss_pt <- slingPseudotime(ss_out)
+ss_pt %>% 
+  head() %>% 
+  kbl(digits = 5, booktabs = TRUE) %>% 
+  kable_paper(full_width = FALSE)
+```
+
+# Identifying Dynamic Genes with `scLANE` 
+
+## Branch 1
+
+We prepare the data from the first branch. 
+
+```{r}
+ss_pt_1_scaled <- na.omit(ss_pt[, 1]) / max(na.omit(ss_pt[, 1]))
+cells_branch_1 <- rownames(ss_pt)[!is.na(ss_pt[, 1])]
+sce_branch_1 <- panc_sim[, colnames(panc_sim) %in% cells_branch_1]
+sim_counts_1 <- t(counts(sce_branch_1))
+sim_counts_1 <- sim_counts_1[, which(colSums(sim_counts_1) > 0)]
+sim_counts_1 <- as.matrix(sim_counts_1)
+pt_df_1 <- data.frame(PT = ss_pt_1_scaled)
+```
+
+`testDynamic()` fits a `marge` spline-based NB GLM to each gene, using pseudotime as the sole covariate. 
+
+```{r}
+gene_stats_1 <- testDynamic(expr = sim_counts_1, 
+                            pt = pt_df_1, 
+                            genes = colnames(sim_counts_1)[sample(1:ncol(sim_counts_1), 50, replace = FALSE)], 
+                            parallel = FALSE, 
+                            #n.cores = 2, 
+                            track.time = TRUE) 
+```
+
+Let's check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 
+
+```{r}
+mod <- scLANE::marge2(X_pred = pt_df_1, Y = sim_counts_1[, 1])
+```
+

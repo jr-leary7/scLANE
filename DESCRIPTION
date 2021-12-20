@@ -25,3 +25,7 @@ Imports:
   scales, 
   mvabund
 URL: https://github.com/jr-leary7/scLANE
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr

@@ -51,7 +51,8 @@ testDynamic <- function(expr = NULL,
                                  .multicombine = ifelse(length(genes) > 1, TRUE, FALSE),
                                  .maxcombine = ifelse(length(genes) > 1, length(genes), 2),
                                  .packages = c("glm2", "scLANE", "ggplot2", "MASS"),
-                                 .export = c("expr", "genes", "pt")) %op% {
+                                 .export = c("expr", "genes", "pt"),
+                                 .verbose = FALSE) %op% {
     # run original MARGE model
     gene_data <- expr[, genes[i]]
     marge_mod <- tryCatch(

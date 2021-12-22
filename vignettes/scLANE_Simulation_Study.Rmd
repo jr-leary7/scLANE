@@ -1,5 +1,8 @@
 ---
 title: "scLANE_Simulation_Study"
+subtitle: "University of Florida Dept. of Biostatistics - The Bacher Group"
+author: "Jack Leary"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{scLANE_Simulation_Study}
@@ -26,6 +29,7 @@ library(scaffold)
 library(slingshot)
 library(kableExtra)
 library(SingleCellExperiment)
+select <- dplyr::select
 ```
 
 # Simulation with `scaffold`
@@ -127,20 +131,19 @@ pt_df_1 <- data.frame(PT = ss_pt_1_scaled)
 gene_stats_1 <- testDynamic(expr = sim_counts_1, 
                             pt = pt_df_1, 
                             genes = colnames(sim_counts_1)[sample(1:ncol(sim_counts_1), 10, replace = FALSE)], 
-                            parallel = FALSE, 
-                            #n.cores = 2, 
+                            parallel = TRUE, 
+                            n.cores = 2, 
                             track.time = TRUE) 
 ```
 
 Let's check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 
 
 ```{r}
-dyn_results_1 <- getResultsDE(gene_stats_1) %>% 
+dyn_results_1 <- getResultsDE(gene_stats_1, p.adj.method = "bonferroni", fdr.cutoff = 0.01) %>% 
                  inner_join((rowData(panc_sim) %>% 
                              as.data.frame() %>% 
                              mutate(gene = rownames(.))), by = c("Gene" = "gene")) %>% 
-                 mutate(GeneDynamic = case_when(P_Val_Adj < 0.01 ~ 1, TRUE ~ 0), 
-                        Correct_Ind = case_when(geneStatus == "Dynamic" & Gene_Dynamic == 1 ~ 1, 
+                 mutate(Correct_Ind = case_when(geneStatus == "Dynamic" & Gene_Dynamic == 1 ~ 1, 
                                                 geneStatus == "NotDynamic" & Gene_Dynamic == 0 ~ 1, 
                                                 TRUE ~ 0))
 ```
@@ -148,6 +151,7 @@ dyn_results_1 <- getResultsDE(gene_stats_1) %>%
 Next we'll run another test of dynamism (?) with `testSlopes()`. 
 
 ```{r}
+mod_list_1 <- getModelList(gene_stats_1)
 slope_test_1 <- testSlope(model.list = mod_list_1, 
                           pt = pt_df_1, 
                           adj.method = "bonferroni", 
@@ -158,7 +162,9 @@ slope_results_1 <- slope_test_1 %>%
                                mutate(gene = rownames(.))), by = c("Gene" = "gene")) %>% 
                    mutate(Correct_Ind = case_when(geneStatus == "Dynamic" & Gene_Dynamic == 1 ~ 1, 
                                                   geneStatus == "NotDynamic" & Gene_Dynamic == 0 ~ 1, 
-                                                  TRUE ~ 0))
+                                                  TRUE ~ 0)) %>% 
+                   select(Gene, Gene_Dynamic, geneStatus, Correct_Ind) %>% 
+                   distinct()
 ```
 
 ## Branch 2
@@ -181,8 +187,8 @@ pt_df_2 <- data.frame(PT = ss_pt_2_scaled)
 gene_stats_2 <- testDynamic(expr = sim_counts_2, 
                             pt = pt_df_2, 
                             genes = colnames(sim_counts_2)[sample(1:ncol(sim_counts_2), 10, replace = FALSE)], 
-                            parallel = FALSE, 
-                            #n.cores = 2, 
+                            parallel = TRUE, 
+                            n.cores = 2, 
                             track.time = TRUE) 
 ```
 

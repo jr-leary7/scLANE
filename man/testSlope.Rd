@@ -7,7 +7,7 @@
 testSlope(
   model.list = NULL,
   pt = NULL,
-  adj.method = "bonferroni",
+  p.adj.method = "bonferroni",
   fdr.cutoff = 0.01
 )
 }
@@ -16,7 +16,7 @@ testSlope(
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".}
+\item{p.adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".}
 
 \item{fdr.cutoff}{The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }

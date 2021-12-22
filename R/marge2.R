@@ -42,7 +42,7 @@ marge2 <- function(X_pred = NULL,
                    return.wic = FALSE,
                    return.GCV = FALSE) {
   # check inputs
-  if (any(unlist(lapply(list(X_pred, Y), is.null)))) stop("Some inputs to marge() are missing.")
+  if (is.null(X_pred) | is.null(Y)) stop("Some inputs to marge() are missing.")
   NN <- length(Y)  # Total sample size
   q <- ncol(X_pred)  # Number of predictor variables
 
@@ -72,7 +72,7 @@ marge2 <- function(X_pred = NULL,
   ok <- TRUE
   int.count <- 0
 
-  while(ok) {
+  while (ok) {
     if (breakFlag) break
 
     var.mod_temp <- c()
@@ -99,10 +99,9 @@ marge2 <- function(X_pred = NULL,
     for (v in seq(q)) {
       var_name <- colnames(X_pred)[v]
       X <- round(X_pred[, v], 4)
-      #X <- X_pred[, v]
 
-      X_red1 <- min_span(X_red = c(round(X, 4)), q = q, minspan = minspan)  # Reduce the space between knots.
-      X_red2 <- max_span(X_pred = c(round(X, 4)), q = q)  # Truncate the ends of data to avoid extreme values.
+      X_red1 <- min_span(X_red = X, q = q, minspan = minspan)  # Reduce the space between knots.
+      X_red2 <- max_span(X_pred = X, q = q)  # Truncate the ends of data to avoid extreme values.
 
       X_red <- intersect(X_red1, X_red2)
 

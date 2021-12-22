@@ -18,7 +18,7 @@ testSlope(
 
 \item{adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".}
 
-\item{fdr.cutoff}{The FDR threshhold for determining statistical significance. Defaults to 0.01.}
+\item{fdr.cutoff}{The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }
 \value{
 A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.

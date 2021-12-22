@@ -4,12 +4,14 @@
 \alias{getResultsDE}
 \title{Tidy the results of \code{testDynamic()}.}
 \usage{
-getResultsDE(test.results = NULL, p.adj.method = "BH")
+getResultsDE(test.results = NULL, p.adj.method = "BH", fdr.cutoff = 0.01)
 }
 \arguments{
 \item{test.results}{The nested list returned by \code{testDynamic()}. Defaults to NULL.}
 
 \item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "BH", for Benjamini-Hochberg.}
+
+\item{fdr.cutoff}{The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }
 \value{
 A data.frame containing differential expression results & modeling statistics for each gene.

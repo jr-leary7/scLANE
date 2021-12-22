@@ -8,7 +8,7 @@
 #' @param model.list A list of \code{marge} models. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".
-#' @param fdr.cutoff The FDR threshhold for determining statistical significance. Defaults to 0.01.
+#' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @return A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
 #' @seealso \code{\link{p.adjust}}
 #' @export
@@ -31,8 +31,8 @@ testSlope <- function(model.list = NULL,
   p_vals <- c()
   for (m in seq_along(model.list)) {
     marge_model <- model.list[m][[1]]
-    # no breakpoints in models with errors
-    if (is.na(marge_model)) {
+    # checks to see if marge_model was set to NA in testDynamic()
+    if (any(class(marge_model)) == "logical") {
       next
     }
     # grab the k breakpoints from the MARGE model
@@ -51,11 +51,11 @@ testSlope <- function(model.list = NULL,
                          Breakpoint = unlist(brkpts),
                          Rounded_Breakpoint = rounded_brkpts,
                          Direction = brkpt_dirs,
-                         P_Value = p_vals) %>%
-              dplyr::arrange(P_Value) %>%
-              dplyr::mutate(Adj_P_Value = p.adjust(P_Value, method = adj.method)) %>%
+                         P_Val = p_vals) %>%
+              dplyr::arrange(P_Val) %>%
+              dplyr::mutate(P_Val_Adj = p.adjust(P_Val, method = adj.method)) %>%
               dplyr::arrange(Gene, Breakpoint) %>%
-              dplyr::mutate(Adj_P_Value_Signif = dplyr::case_when(Adj_P_Value < fdr.cutoff ~ 1, TRUE ~ 0)) %>%
-              dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic = dplyr::case_when(any(Adj_P_Value_Signif == 1) ~ 1, TRUE ~ 0))
+              dplyr::mutate(P_Val_Adj_Signif = dplyr::case_when(P_Val_Adj < fdr.cutoff ~ 1, TRUE ~ 0)) %>%
+              dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic = dplyr::case_when(any(P_Val_Adj_Signif == 1) ~ 1, TRUE ~ 0))
   return(slope_df)
 }

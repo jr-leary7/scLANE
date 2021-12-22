@@ -125,15 +125,15 @@ plotModels <- function(marge.mod = NULL,
   }
 
   # optionally add tradeSeq GAM fitted values + CI to plot TODO: Jack
-  if (!is.null(tradeSeq.mod)) {
-    # tradeSeq_plot_df <- data.frame(stats::predict(tradeSeq.mod, type = "link", se.fit = TRUE)[1:2]) %>%
+  # if (!is.null(tradeseq.mod)) {
+    # tradeSeq_plot_df <- data.frame(stats::predict(tradeseq.mod, type = "link", se.fit = TRUE)[1:2]) %>%
     #                     dplyr::rename(trade_link_fit = fit, trade_link_se = se.fit) %>%
     #                     dplyr::mutate(trade_resp = exp(trade_link_fit),
     #                                   trade_LL = exp(trade_link_fit - Z * trade_link_se),
     #                                   trade_UL = exp(trade_link_fit + Z * trade_link_se),
     #                                   PT = pt[, 1],
     #                                   counts = gene.counts)
-  }
+  # }
 
   #  optionally add MARGE model fitted values + CI to plot
   if (!is.null(marge.mod)) {

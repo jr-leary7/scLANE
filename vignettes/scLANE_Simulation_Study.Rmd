@@ -42,27 +42,34 @@ RcppZiggurat::zsetseed(312)
 Let's load in some data. We're going to base our simulation on the data from [Baron *et al* (2016)](https://doi.org/10.1016/j.cels.2016.08.011); their dataset is a small-ish single cell atlas of normal pancreas cells.
 
 ```{r}
-panc <- scRNAseq::BaronPancreasData()  # uses inDrop, a droplet-based tech
+panc <- readRDS("~/Desktop/panc.Rds")
+#panc <- scRNAseq::BaronPancreasData()  # uses inDrop, a droplet-based tech
 ```
 
 And now let's run `scaffold`. We want to generate a UMI-based 10X dataset with 3,000 cells, and `r ceiling(.15 * nrow(panc))` dynamic genes - 15% of the `r nrow(panc)` total genes in the Baron pancreas dataset.
 
 ```{r}
-n_dyn_genes <- ceiling(.15 * nrow(panc))
-myknots <- matrix(runif(2 * n_dyn_genes, 0, 1), ncol = 2, nrow = n_dyn_genes)
-mytheta <- matrix(rnorm(5, 5, 5), ncol = 5, nrow = n_dyn_genes)
-dynamic_params <- list(propGenes = 0.15, 
-                       degree = 2, 
-                       knots = myknots, 
-                       theta = mytheta)
-scaffold_params <- estimateScaffoldParameters(sce = panc, 
-                                              sceUMI = TRUE, 
-                                              useUMI = TRUE, 
-                                              protocol = "droplet", 
-                                              numCells = 3000, 
-                                              popHet = c(1, 1), 
-                                              useDynamic = dynamic_params)
-panc_sim <- simulateScaffold(scaffoldParams = scaffold_params, originalSCE = panc)
+# n_dyn_genes <- ceiling(.15 * nrow(panc))
+# myknots <- matrix(runif(2 * n_dyn_genes, 0, 1), ncol = 2, nrow = n_dyn_genes)
+# mytheta <- matrix(rnorm(5, 5, 5), ncol = 5, nrow = n_dyn_genes)
+# dynamic_params <- list(propGenes = 0.15, 
+#                        degree = 2, 
+#                        knots = myknots, 
+#                        theta = mytheta)
+# scaffold_params <- estimateScaffoldParameters(sce = panc, 
+#                                               sceUMI = TRUE, 
+#                                               useUMI = TRUE, 
+#                                               protocol = "droplet", 
+#                                               numCells = 3000, 
+#                                               popHet = c(1, 1), 
+#                                               useDynamic = dynamic_params)
+# panc_sim <- simulateScaffold(scaffoldParams = scaffold_params, originalSCE = panc)
+# saveRDS(panc_sim, file = "~/Desktop/panc_sim.Rds")
+panc_sim <- readRDS("~/Desktop/panc_sim.Rds")
+```
+
+```{r, echo=FALSE}
+gc()
 ```
 
 # Data Pre-processing 
@@ -119,7 +126,7 @@ pt_df_1 <- data.frame(PT = ss_pt_1_scaled)
 ```{r}
 gene_stats_1 <- testDynamic(expr = sim_counts_1, 
                             pt = pt_df_1, 
-                            genes = colnames(sim_counts_1)[sample(1:ncol(sim_counts_1), 50, replace = FALSE)], 
+                            genes = colnames(sim_counts_1)[sample(1:ncol(sim_counts_1), 10, replace = FALSE)], 
                             parallel = FALSE, 
                             #n.cores = 2, 
                             track.time = TRUE) 
@@ -128,6 +135,94 @@ gene_stats_1 <- testDynamic(expr = sim_counts_1,
 Let's check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 
 
 ```{r}
-mod <- scLANE::marge2(X_pred = pt_df_1, Y = sim_counts_1[, 1])
+dyn_results_1 <- getResultsDE(gene_stats_1) %>% 
+                 inner_join((rowData(panc_sim) %>% 
+                             as.data.frame() %>% 
+                             mutate(gene = rownames(.))), by = c("Gene" = "gene")) %>% 
+                 mutate(GeneDynamic = case_when(P_Val_Adj < 0.01 ~ 1, TRUE ~ 0), 
+                        Correct_Ind = case_when(geneStatus == "Dynamic" & Gene_Dynamic == 1 ~ 1, 
+                                                geneStatus == "NotDynamic" & Gene_Dynamic == 0 ~ 1, 
+                                                TRUE ~ 0))
 ```
 
+Next we'll run another test of dynamism (?) with `testSlopes()`. 
+
+```{r}
+slope_test_1 <- testSlope(model.list = mod_list_1, 
+                          pt = pt_df_1, 
+                          adj.method = "bonferroni", 
+                          fdr.cutoff = 0.01)
+slope_results_1 <- slope_test_1 %>% 
+                   inner_join((rowData(panc_sim) %>% 
+                               as.data.frame() %>% 
+                               mutate(gene = rownames(.))), by = c("Gene" = "gene")) %>% 
+                   mutate(Correct_Ind = case_when(geneStatus == "Dynamic" & Gene_Dynamic == 1 ~ 1, 
+                                                  geneStatus == "NotDynamic" & Gene_Dynamic == 0 ~ 1, 
+                                                  TRUE ~ 0))
+```
+
+## Branch 2
+
+We'll repeat the analysis on the second branch. 
+
+```{r}
+ss_pt_2_scaled <- na.omit(ss_pt[, 2]) / max(na.omit(ss_pt[, 2]))
+cells_branch_2 <- rownames(ss_pt)[!is.na(ss_pt[, 2])]
+sce_branch_2 <- panc_sim[, colnames(panc_sim) %in% cells_branch_2]
+sim_counts_2 <- t(counts(sce_branch_2))
+sim_counts_2 <- sim_counts_2[, which(colSums(sim_counts_2) > 0)]
+sim_counts_2 <- as.matrix(sim_counts_2)
+pt_df_2 <- data.frame(PT = ss_pt_2_scaled)
+```
+
+`testDynamic()` fits a `marge` spline-based NB GLM to each gene, using pseudotime as the sole covariate. 
+
+```{r}
+gene_stats_2 <- testDynamic(expr = sim_counts_2, 
+                            pt = pt_df_2, 
+                            genes = colnames(sim_counts_2)[sample(1:ncol(sim_counts_2), 10, replace = FALSE)], 
+                            parallel = FALSE, 
+                            #n.cores = 2, 
+                            track.time = TRUE) 
+```
+
+We pull the results from `testDynamic()` into a tidy dataframe. 
+
+```{r}
+dyn_results_2 <- getResultsDE(gene_stats_2) %>% 
+                 inner_join((rowData(panc_sim) %>% 
+                             as.data.frame() %>% 
+                             mutate(gene = rownames(.))), by = c("Gene" = "gene")) %>% 
+                 mutate(GeneDynamic = case_when(P_Val_Adj < 0.01 ~ 1, TRUE ~ 0), 
+                        Correct_Ind = case_when(geneStatus == "Dynamic" & Gene_Dynamic == 1 ~ 1, 
+                                                geneStatus == "NotDynamic" & Gene_Dynamic == 0 ~ 1, 
+                                                TRUE ~ 0))
+```
+
+Next we'll run another test of dynamism (?) with `testSlopes()`. 
+
+```{r}
+slope_test_2 <- testSlope(model.list = mod_list_2, 
+                          pt = pt_df_2, 
+                          adj.method = "bonferroni", 
+                          fdr.cutoff = 0.01)
+slope_results_2 <- slope_test_2 %>% 
+                   inner_join((rowData(panc_sim) %>% 
+                               as.data.frame() %>% 
+                               mutate(gene = rownames(.))), by = c("Gene" = "gene")) %>% 
+                   mutate(Correct_Ind = case_when(geneStatus == "Dynamic" & Gene_Dynamic == 1 ~ 1, 
+                                                  geneStatus == "NotDynamic" & Gene_Dynamic == 0 ~ 1, 
+                                                  TRUE ~ 0))
+```
+
+# Model Performance
+
+We'll need to combine the results of the tests on the two lineages, since some genes may be dynamic in one lineage but not in another. 
+
+Lastly, let's check some performance metrics for our model:
+
+```{r}
+caret::confusionMatrix(data = as.factor(ifelse(results_1$geneStatus == "Dynamic", 1, 0)), 
+                       reference = as.factor(results_1$GeneDynamic), 
+                       positive = "1")
+```

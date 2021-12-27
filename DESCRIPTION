@@ -24,7 +24,7 @@ Imports:
   mgcv,
   scales, 
   mvabund, 
-  bigmemory
+  bigstatsr
 URL: https://github.com/jr-leary7/scLANE
 Suggests: 
     rmarkdown,

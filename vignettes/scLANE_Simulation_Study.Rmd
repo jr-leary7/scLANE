@@ -137,7 +137,7 @@ gene_stats_1 <- testDynamic(expr = sim_counts_1[, 1:20],
                             parallel = TRUE, 
                             n.cores = 2, 
                             n.potential.basis.fns = 5, 
-                            track.time = TRUE) 
+                            track.time = TRUE)
 ```
 
 Let's check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 

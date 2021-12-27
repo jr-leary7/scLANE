@@ -3,7 +3,7 @@
 #' @name testDynamic
 #' @author Jack Leary
 #' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
-#' @importFrom bigmemory as.big.matrix describe attach.big.matrix
+#' @importFrom bigstatsr as_FBM
 #' @importFrom foreach foreach %dopar%
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel makeCluster detectCores stopCluster clusterEvalQ clusterExport
@@ -43,31 +43,18 @@ testDynamic <- function(expr = NULL,
   # set up parallel operation if desired, otherwise just set n.cores = 1 (this causes a very slight setup time slowdown, but it's negligible compared to total runtime)
   cl <- parallel::makeCluster(ifelse(parallel, n.cores, 1))
   doParallel::registerDoParallel(cl)
-  sink(tempfile())
   clusterEvalQ(cl, expr = {
     set.seed(312)
-    rm(list = ls()); gc()
-    NULL
+    rm(list = ls())
   })
-  expr <- bigmemory::as.big.matrix(expr, shared = TRUE)
-  big_mat_desc <- bigmemory::describe(expr)
-  clusterEvalQ(cl, expr = {
-    library(bigmemory)
-    NULL
-  })
-  clusterExport(cl, "big_mat_desc")
-  clusterEvalQ(cl, expr = {
-    big_mat2 <- bigmemory::attach.big.matrix(big_mat_desc)
-    NULL
-  })
-  sink()
+  expr <- bigstatsr::as_FBM(expr)
   # build list of objects to prevent from being sent to workers
-  if (any(ls(envir = .GlobalEnv) %in% c("big_mat_desc", "genes", "pt", "n.potential.basis.fns"))) {
-    no_export <-  c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% c("big_mat_desc", "genes", "pt", "n.potential.basis.fns"))],
-                    ls()[-which(ls() %in% c("big_mat_desc", "genes", "pt", "n.potential.basis.fns"))])
+  if (any(ls(envir = .GlobalEnv) %in% c("expr", "genes", "pt", "n.potential.basis.fns"))) {
+    no_export <-  c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% c("expr", "genes", "pt", "n.potential.basis.fns"))],
+                    ls()[-which(ls() %in% c("expr", "genes", "pt", "n.potential.basis.fns"))])
   } else {
     no_export <- c(ls(envir = .GlobalEnv),
-                   ls()[-which(ls() %in% c("big_mat_desc", "genes", "pt", "n.potential.basis.fns"))])
+                   ls()[-which(ls() %in% c("expr", "genes", "pt", "n.potential.basis.fns"))])
   }
   no_export <- unique(no_export)
   # iterate over genes & build models
@@ -75,21 +62,19 @@ testDynamic <- function(expr = NULL,
                                  .combine = "list",
                                  .multicombine = ifelse(length(genes) > 1, TRUE, FALSE),
                                  .maxcombine = ifelse(length(genes) > 1, length(genes), 2),
-                                 .packages = c("glm2", "scLANE", "MASS",  "bigmemory", "stats"),
-                                 .export = c("genes", "pt", "big_mat_desc", "n.potential.basis.fns"),
+                                 .packages = c("glm2", "scLANE", "MASS",  "bigstatsr", "stats"),
                                  .noexport = no_export,
                                  .verbose = FALSE) %dopar% {
     # run original MARGE model
     marge_mod <- tryCatch(
       scLANE::marge2(X_pred = pt,
-                     Y = big_mat2[, i],
+                     Y = expr[, i],
                      M = n.potential.basis.fns),
       error = function(e) "Model error"
     )
-
     # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm()
     null_mod <- tryCatch(
-      MASS::glm.nb(big_mat2[, i] ~ 1,
+      MASS::glm.nb(expr[, i] ~ 1,
                    method = "glm.fit2",
                    y = FALSE,
                    model = FALSE),
@@ -98,7 +83,6 @@ testDynamic <- function(expr = NULL,
     if (!any(null_mod == "Model error")) {
       null_mod <- scLANE::stripGLM(glm.obj = null_mod)
     }
-
     # prepare results if there were errors in either null or MARGE model
     if (any(marge_mod == "Model error")) {
       if (any(null_mod == "Model error")) {
@@ -147,7 +131,7 @@ testDynamic <- function(expr = NULL,
     }
     res_list
   }
-  # end parallelization
+  # end parallelization & clean up
   sink(tempfile())
   parallel::clusterEvalQ(cl, expr = {
     rm(list = ls(all.names = TRUE)); gc(verbose = FALSE, full = TRUE)

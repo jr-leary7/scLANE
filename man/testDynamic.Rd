@@ -10,11 +10,12 @@ testDynamic(
   genes = NULL,
   parallel = FALSE,
   n.cores = 2,
+  n.potential.basis.fns = 5,
   track.time = FALSE
 )
 }
 \arguments{
-\item{expr}{A matrix of integer-valued counts. Defaults to NULL.}
+\item{expr}{A sparse (this is imporant for memory reasons) matrix of integer-valued counts. Defaults to NULL.}
 
 \item{pt}{A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
@@ -23,6 +24,8 @@ testDynamic(
 \item{parallel}{A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
+
+\item{n.potential.basis.fns}{The number of possible basis functions. See the parameter "M" in \code{\link{marge2}}. Defaults to 5.}
 
 \item{track.time}{A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
 }
@@ -34,7 +37,11 @@ This function tests whether a NB \code{marge} model is better than a null (inter
 }
 \examples{
 \dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df)}
-\dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df, parallel = TRUE, n.cores = 8)}
+\dontrun{testDynamic(expr = raw_counts,
+                     pt = pseudotime_df,
+                     parallel = TRUE,
+                     n.cores = 8,
+                     n.potential.basis.fns = 7)}
 }
 \author{
 Jack Leary

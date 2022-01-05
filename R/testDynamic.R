@@ -18,6 +18,7 @@
 #' @param n.potential.basis.fns The number of possible basis functions. See the parameter "M" in \code{\link{marge2}}. Defaults to 5.
 #' @param track.time A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
 #' @return A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values. Use \code{\link{getResultsDE}} to tidy the results.
+#' @seealso \code{\link{getResultsDE}}
 #' @export
 #' @examples
 #' \dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df)}

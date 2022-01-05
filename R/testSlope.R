@@ -5,12 +5,14 @@
 #' @description This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
 #' @import magrittr
 #' @importFrom dplyr arrange mutate case_when with_groups
+#' @importFrom stats p.adjust
 #' @param model.list A list of \code{marge} models. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param p.adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".
 #' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @return A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
-#' @seealso \code{\link{p.adjust}}
+#' @seealso \code{\link{testDynamic}}
+#' @seealso \code{\link[stats]{p.adjust}}
 #' @export
 #' @examples
 #' \dontrun{testSlope(model.list = marge_list, pt = pt_df)}
@@ -21,7 +23,6 @@ testSlope <- function(model.list = NULL,
                       fdr.cutoff = 0.01) {
   # check inputs
   if (is.null(model.list)) { stop("You forgot to provide a model list to testSlope().") }
-  # if (!all(as.logical(lapply(model.list, function(x) "glm" %in% class(x))))) { stop("All models must be of class glm.") }
   # loops on loops
   genes <- names(model.list)
   genes_long <- c()
@@ -29,6 +30,7 @@ testSlope <- function(model.list = NULL,
   brkpts <- c()
   brkpt_dirs <- c()
   p_vals <- c()
+  mod_notes <- c()
   for (m in seq_along(model.list)) {
     marge_model <- model.list[m][[1]]
     # checks to see if marge_model was set to NA in testDynamic()
@@ -38,13 +40,14 @@ testSlope <- function(model.list = NULL,
       brkpt_dirs <- c(brkpt_dirs, NA_character_)
       p_vals <- c(p_vals, NA_real_)
       genes_long <- c(genes_long, genes[m])
-    }
-    if (length(coef(marge_model)) == 1) {
+      mod_notes <- c(mod_notes, "Original MARGE model error")
+    } else if (length(coef(marge_model)) == 1) {
       rounded_brkpts <- c(rounded_brkpts, NA_real_)
       brkpts <- c(brkpts, NA_real_)
       brkpt_dirs <- c(brkpt_dirs, NA_character_)
       p_vals <- c(p_vals, NA_real_)
       genes_long <- c(genes_long, genes[m])
+      mod_notes <- c(mod_notes, "No non-intercept coefficients")
     } else {
       # grab the k breakpoints from the MARGE model
       model_breakpoints_rounded <- extractBreakpoints(marge_model, directions = TRUE)
@@ -56,6 +59,7 @@ testSlope <- function(model.list = NULL,
       brkpt_dirs <- c(brkpt_dirs, model_breakpoints_rounded$Direction)
       p_vals <- c(p_vals, coef_pvals)
       genes_long <- c(genes_long, rep(genes[m], length(coef_pvals)))
+      mod_notes <- c(mod_notes, rep(NA_character_, length(coef_pvals)))
     }
   }
   # create table of results
@@ -63,9 +67,10 @@ testSlope <- function(model.list = NULL,
                          Breakpoint = unlist(brkpts),
                          Rounded_Breakpoint = rounded_brkpts,
                          Direction = brkpt_dirs,
-                         P_Val = p_vals) %>%
+                         P_Val = p_vals,
+                         Notes = mod_notes) %>%
               dplyr::arrange(P_Val) %>%
-              dplyr::mutate(P_Val_Adj = p.adjust(P_Val, method = p.adj.method)) %>%
+              dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method)) %>%
               dplyr::arrange(Gene, Breakpoint) %>%
               dplyr::mutate(P_Val_Adj_Signif = dplyr::case_when(P_Val_Adj < fdr.cutoff ~ 1, TRUE ~ 0)) %>%
               dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic = dplyr::case_when(any(P_Val_Adj_Signif == 1) ~ 1, TRUE ~ 0))

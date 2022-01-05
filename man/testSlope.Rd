@@ -30,7 +30,9 @@ This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has
 \dontrun{testSlope(model.list = marge_list, pt = pt_df)}
 }
 \seealso{
-\code{\link{p.adjust}}
+\code{\link{testDynamic}}
+
+\code{\link[stats]{p.adjust}}
 }
 \author{
 Jack Leary

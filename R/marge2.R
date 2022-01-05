@@ -624,7 +624,7 @@ marge2 <- function(X_pred = NULL,
 
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
 
-  wic1_2 <- backward_sel_WIC(Y = Y, B = B_new)
+  wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
 
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
 

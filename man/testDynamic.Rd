@@ -43,6 +43,9 @@ This function tests whether a NB \code{marge} model is better than a null (inter
                      n.cores = 8,
                      n.potential.basis.fns = 7)}
 }
+\seealso{
+\code{\link{getResultsDE}}
+}
 \author{
 Jack Leary
 }

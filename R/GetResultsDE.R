@@ -1,10 +1,10 @@
-#' Tidy the results of \code{testDynamic()}.
+#' Tidy the results of \code{\link{testDynamic}}.
 #'
 #' @name getResultsDE
 #' @author Jack Leary
-#' @description This function turns the nested list differential expression results of \code{testDynamic()} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
-#' @param test.results The nested list returned by \code{testDynamic()}. Defaults to NULL.
-#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "BH", for Benjamini-Hochberg.
+#' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
+#' @param test.results The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
+#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "bonferroni".
 #' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @import magrittr
 #' @importFrom dplyr arrange mutate relocate
@@ -15,7 +15,7 @@
 #' @examples
 #' \dontrun{GetResultsDE(scLANE.results = scLANE_res_list)}
 
-getResultsDE <- function(test.results = NULL, p.adj.method = "BH", fdr.cutoff = 0.01) {
+getResultsDE <- function(test.results = NULL, p.adj.method = "bonferroni", fdr.cutoff = 0.01) {
   if (is.null(test.results)) stop("Please provide a result list.")
   result_df <- do.call(rbind, lapply(test.results, function(x) data.frame(x[1:8])))
   result_df <- result_df %>%

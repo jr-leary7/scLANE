@@ -5,23 +5,23 @@
 \title{Test whether a gene is dynamic over pseudotime.}
 \usage{
 testDynamic(
-  expr = NULL,
+  expr.mat = NULL,
   pt = NULL,
   genes = NULL,
-  parallel = FALSE,
+  parallel.exec = FALSE,
   n.cores = 2,
   n.potential.basis.fns = 5,
   track.time = FALSE
 )
 }
 \arguments{
-\item{expr}{A sparse (this is imporant for memory reasons) matrix of integer-valued counts. Defaults to NULL.}
+\item{expr.mat}{A dense matrix of integer-valued counts. Defaults to NULL.}
 
 \item{pt}{A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
-\item{genes}{A character vector of genes to model. If not provided, defaults to all genes in \code{expr}. Defaults to NULL.}
+\item{genes}{A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.}
 
-\item{parallel}{A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.}
+\item{parallel.exec}{A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
 
@@ -30,16 +30,16 @@ testDynamic(
 \item{track.time}{A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
 }
 \value{
-A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results & model statistics, and a \code{ggplot} of the models' fitted values. Use \code{\link{getResultsDE}} to tidy the results.
+A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 }
 \description{
 This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 }
 \examples{
-\dontrun{testDynamic(expr = raw_counts, pt = pseudotime_df)}
-\dontrun{testDynamic(expr = raw_counts,
+\dontrun{testDynamic(expr.mat = raw_counts, pt = pseudotime_df, parallel.exec = false)}
+\dontrun{testDynamic(expr.mat = raw_counts,
                      pt = pseudotime_df,
-                     parallel = TRUE,
+                     parallel.exec = TRUE,
                      n.cores = 8,
                      n.potential.basis.fns = 7)}
 }

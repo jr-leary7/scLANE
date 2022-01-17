@@ -47,7 +47,6 @@ RcppZiggurat::zsetseed(312)
 Let's load in some data. We're going to base our simulation on the data from [Baron *et al* (2016)](https://doi.org/10.1016/j.cels.2016.08.011); their dataset is a small-ish single cell atlas of normal pancreas cells.
 
 ```{r}
-#panc <- readRDS("~/Desktop/panc.Rds")
 panc <- scRNAseq::BaronPancreasData()  # uses inDrop, a droplet-based tech
 ```
 
@@ -94,25 +93,6 @@ plotPCA(panc_sim, colour_by = "label")
 plotUMAP(panc_sim, colour_by = "label")
 ```
 
-# Pseudotime Estimation with `slingshot`
-
-Next we'll estimate trajectories with `slingshot`. We see that there are two lineages, thus we'll need to run the `scLANE` process twice.
-
-```{r}
-ss_out <- slingshot(data = panc_sim, 
-                    reducedDim = "PCAsub",  
-                    clusterLabels = panc_sim$label)
-ss_pt <- slingPseudotime(ss_out)
-ss_pt %>% 
-  head() %>% 
-  kbl(digits = 5, booktabs = TRUE) %>% 
-  kable_paper(full_width = FALSE)
-```
-
-```{r, echo=FALSE, results='hide'}
-rm(ss_out); gc()
-```
-
 # Identifying Dynamic Genes with `scLANE` 
 
 First we'll need to correctly format our data for testing - we need a matrix of integer counts, and a dataframe of cell orderings (pseudotime, latent time, etc.). 
@@ -134,12 +114,18 @@ pt_df <- colData(panc_sim) %>%
 ```{r}
 set.seed(312)
 samp_idx <- sample(1:ncol(sim_counts), 100)
-gene_stats <- testDynamic(expr = sim_counts[, samp_idx], 
+gene_stats <- scLANE::testDynamic(expr = sim_counts[, samp_idx], 
                           pt = pt_df, 
                           parallel = TRUE, 
                           n.cores = 4, 
                           n.potential.basis.fns = 5, 
                           track.time = TRUE)
+gene_stats2 <- testDynamic(expr.mat = sim_counts[, samp_idx], 
+                           pt = pt_df, 
+                           parallel = TRUE, 
+                           n.cores = 4, 
+                           n.potential.basis.fns = 5, 
+                           track.time = TRUE)
 ```
 
 Let's check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 
@@ -173,67 +159,67 @@ gc()
 
 ## `tradeSeq`
 
+We use `tradeSeq()` to generate a NB-GAM for each gene, i.e., the same model form that we used in `testDynamic()` and `testSlope()`. 
+
 ```{r}
 library(tradeSeq)
-## this actually errored out for me:
-icMat <- evaluateK(counts = t(sim_counts_1[,1:100]), pseudotime=pt_df_1$PT, cellWeights = rep(1, length(pt_df_1$PT)),k = 3:10,
-                   nGenes = 100, verbose = T)
-trade.sce <- fitGAM(counts = t(sim_counts_1[,1:100]), pseudotime=pt_df_1$PT, cellWeights = rep(1, length(pt_df_1$PT)),
-              nknots = 6, verbose = FALSE)
-table(rowData(trade.sce)$tradeSeq$converged)
-assoRes <- associationTest(trade.sce)
-head(assoRes)
-assoRes$Gene_Dynamic[assoRes$pvalue <= .05] <- 1
-assoRes$Gene_Dynamic[assoRes$pvalue > .05] <- 0
-trade_results_1 <- cbind(assoRes, geneStatus = rowData(panc_sim)[1:100,])
-table(trade_results_1$Gene_Dynamic, trade_results_1$geneStatus)
+# evaulateK() errors out 
+icMat <- evaluateK(counts = t(sim_counts[, samp_idx]), 
+                   pseudotime = pt_df$PT, 
+                   cellWeights = rep(1, nrow(pt_df)), 
+                   k = 3:10,
+                   nGenes = length(samp_idx), 
+                   verbose = TRUE)
+trade.sce <- fitGAM(counts = t(sim_counts[, samp_idx]), 
+                    pseudotime = pt_df$PT, 
+                    cellWeights = rep(1, nrow(pt_df)), 
+                    nknots = 6, 
+                    verbose = FALSE)
+ts_asso_test <- associationTest(trade.sce) %>% 
+                mutate(Gene_Dynamic = case_when(pvalue < 0.01 ~ 1, TRUE ~ 0), 
+                       geneStatus = rowData(panc_sim)[samp_idx, ])
+```
+
+The results of `tradeSeq()` aren't incredible. The sensitivity is very low, and 
+
+```{r}
+caret::confusionMatrix(data = as.factor(ifelse(ts_asso_test$geneStatus == "Dynamic", 1, 0)), 
+                       reference = as.factor(ts_asso_test$Gene_Dynamic), 
+                       positive = "1", 
+                       mode = "everything")
 ```
 
 ## `testDynamic()`
 
-Lastly, let's check some performance metrics for our model. To be categorized as dynamic, a gene must be considered so by the `marge` model on both lineages. 
+Lastly, let's check some performance metrics for our model. First we'll check the global LRT as performed in `testDynamic()`. The sensitivity and specificity are both very high!
 
 ```{r}
-caret::confusionMatrix(data = as.factor(ifelse(dyn_res_combined$geneStatus == "Dynamic", 1, 0)), 
-                       reference = as.factor(dyn_res_combined$Gene_Dynamic_Both), 
-                       positive = "1")
+caret::confusionMatrix(data = as.factor(ifelse(dyn_results$geneStatus == "Dynamic", 1, 0)), 
+                       reference = as.factor(dyn_results$Gene_Dynamic), 
+                       positive = "1", 
+                       mode = "everything")
 ```
 
 ## `testSlope()`
 
-We'll repeat the process with `testSlope()`. 
+We'll generate the same confusion matrix for the results from `testSlope()`. The results are pretty similar to those of `testDynamic()`, which we expect. 
 
 ```{r}
-slope_res_combined <- slope_results_1 %>% 
-                      select(Gene, geneStatus, Gene_Dynamic) %>% 
-                      rename(Gene_Dynamic_1 = Gene_Dynamic) %>% 
-                      distinct() %>% 
-                      inner_join((slope_results_2 %>% 
-                                  select(Gene, geneStatus, Gene_Dynamic) %>% 
-                                  rename(Gene_Dynamic_2 = Gene_Dynamic) %>% 
-                                  distinct()), by = c("Gene", "geneStatus")) %>% 
-                      mutate(Gene_Dynamic_Both = case_when(Gene_Dynamic_1 == 1 & Gene_Dynamic_2 == 1 ~ 1, TRUE ~ 0), 
-                            Gene_Dynamic_One = case_when(Gene_Dynamic_1 == 1 & Gene_Dynamic_2 == 0 ~ 1, 
-                                                         Gene_Dynamic_1 == 0 & Gene_Dynamic_2 == 1 ~ 1, 
-                                                         TRUE ~ 0))
+slope_res_sum <- slope_results %>% 
+                 select(Gene, Gene_Dynamic, geneStatus) %>% 
+                 distinct()
+caret::confusionMatrix(data = as.factor(ifelse(slope_res_sum$geneStatus == "Dynamic", 1, 0)), 
+                       reference = as.factor(slope_res_sum$Gene_Dynamic), 
+                       positive = "1", 
+                       mode = "everything")
 ```
 
-And another confusion matrix:
+# Conclusions
+
+In general, it looks as though `scLANE` outperforms `tradeSeq` in terms of accurately and precisely determining which genes are significantly differentially expressed over pseudotime. 
+
+# Session Info
 
 ```{r}
-caret::confusionMatrix(data = as.factor(ifelse(slope_res_combined$geneStatus == "Dynamic", 1, 0)), 
-                       reference = as.factor(slope_res_combined$Gene_Dynamic_Both), 
-                       positive = "1")
-```
-
-# Save Data 
-
-Lastly, we save everything. 
-
-```{r}
-saveRDS(panc_sim, file = paste0("./panc_sim_", gsub("-", "", Sys.Date()), ".Rds"))
-saveRDS(gene_stats_1, file = file = paste0("./gene_stats_1_", gsub("-", "", Sys.Date()), ".Rds"))
-saveRDS(gene_stats_2, file = file = paste0("./gene_stats_2_", gsub("-", "", Sys.Date()), ".Rds"))
-saveRDS(dyn_res_combined, file = paste0("./dyn_res_combined_", gsub("-", "", Sys.Date()), ".Rds"))
-saveRDS(slope_res_combined, file = paste0("./slope_res_combined_", gsub("-", "", Sys.Date()), ".Rds"))
+sessioninfo::session_info()
 ```

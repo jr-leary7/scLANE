@@ -92,6 +92,13 @@ testDynamic <- function(expr.mat = NULL,
     }
     # prepare results if there were errors in either null or MARGE model
     if (unname(marge_mod == "Model error" & all(class(null_mod) == "character"))) {
+      # generate empty dataframe for slope test
+      slope_data_error <- data.frame(Gene = genes[i],
+                                     Breakpoint = NA_real_,
+                                     Rounded_Breakpoint = NA_real_,
+                                     Direction = NA_character_,
+                                     P_Val = NA_real_,
+                                     Notes = "MARGE model error")
       res_list <- list(Gene = genes[i],
                        LRT_Stat = NA,
                        P_Val = NA,
@@ -104,10 +111,17 @@ testDynamic <- function(expr.mat = NULL,
                        Null_Summary = NA,
                        MARGE_Preds = NA,
                        Null_Preds = NA,
-                       MARGE_Slope_Data = NA)
+                       MARGE_Slope_Data = slope_data_error)
     } else if (unname(marge_mod == "Model error" & !all(class(null_mod) == "character"))) {
+      # generate empty dataframe for slope test
+      slope_data_error <- data.frame(Gene = genes[i],
+                                     Breakpoint = NA_real_,
+                                     Rounded_Breakpoint = NA_real_,
+                                     Direction = NA_character_,
+                                     P_Val = NA_real_,
+                                     Notes = "MARGE model error")
       # generate null model summary table
-      null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()  # saves a few bytes
+      null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()  # saves a few bytes by converting from tibble
       # compute fitted values + SE for null model
       null_pred_df <- data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
                       dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
@@ -123,9 +137,9 @@ testDynamic <- function(expr.mat = NULL,
                        Null_Summary = null_sumy_df,
                        MARGE_Preds = NA,
                        Null_Preds = null_pred_df,
-                       MARGE_Slope_Data = NA)
+                       MARGE_Slope_Data = slope_data_error)
     } else if (unname(marge_mod != "Model error" & !all(class(null_mod) == "character"))) {
-      # compute fitted values + SE for both models
+      # compute fitted values + SE for both models (if possible)
       null_pred_df <- tryCatch(
         data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
         dplyr::rename(null_link_fit = fit, null_link_se = se.fit),

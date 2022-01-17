@@ -125,24 +125,22 @@ gene_stats <- testDynamic(expr.mat = sim_counts[, samp_idx],
 Let's check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 
 
 ```{r}
-dyn_results <- getResultsDE(gene_stats, p.adj.method = "bonferroni", fdr.cutoff = 0.01) %>% 
-               inner_join((rowData(panc_sim) %>% 
-                           as.data.frame() %>% 
-                           mutate(gene = rownames(.))), by = c("Gene" = "gene"))
+global_test_results <- getResultsDE(gene_stats, p.adj.method = "bonferroni", fdr.cutoff = 0.01) %>% 
+                       inner_join((rowData(panc_sim) %>% 
+                                   as.data.frame() %>% 
+                                   mutate(gene = rownames(.))), by = c("Gene" = "gene"))
 ```
 
 Next we'll run another test of dynamism (?) with `testSlopes()`. 
 
 ```{r}
-mod_list <- getModelList(gene_stats)
-slope_test <- testSlope(model.list = mod_list, 
-                        pt = pt_df, 
+slope_test <- testSlope(dyn.results = gene_stats, 
                         p.adj.method = "bonferroni", 
                         fdr.cutoff = 0.01)
-slope_results <- slope_test %>% 
-                 inner_join((rowData(panc_sim) %>% 
-                             as.data.frame() %>% 
-                             mutate(gene = rownames(.))), by = c("Gene" = "gene"))
+slope_test_results <- slope_test %>% 
+                      inner_join((rowData(panc_sim) %>% 
+                                  as.data.frame() %>% 
+                                  mutate(gene = rownames(.))), by = c("Gene" = "gene"))
 ```
 
 ```{r, echo=FALSE, results='hide'}
@@ -170,11 +168,13 @@ trade.sce <- fitGAM(counts = t(sim_counts[, samp_idx]),
                     nknots = 6, 
                     verbose = FALSE)
 ts_asso_test <- associationTest(trade.sce) %>% 
-                mutate(Gene_Dynamic = case_when(pvalue < 0.01 ~ 1, TRUE ~ 0), 
+                arrange(pvalue) %>% 
+                mutate(pvalue_adj = p.adjust(pvalue, method = "bonferroni"), 
+                       Gene_Dynamic = case_when(pvalue_adj < 0.01 ~ 1, TRUE ~ 0), 
                        geneStatus = rowData(panc_sim)[samp_idx, ])
 ```
 
-The results of `tradeSeq()` aren't incredible. The sensitivity is very low, and 
+The results of `tradeSeq()` aren't incredible. The sensitivity is very low, and the accuracy is lower than the NIR. 
 
 ```{r}
 caret::confusionMatrix(data = as.factor(ifelse(ts_asso_test$geneStatus == "Dynamic", 1, 0)), 
@@ -188,8 +188,8 @@ caret::confusionMatrix(data = as.factor(ifelse(ts_asso_test$geneStatus == "Dynam
 Lastly, let's check some performance metrics for our model. First we'll check the global LRT as performed in `testDynamic()`. The sensitivity and specificity are both very high!
 
 ```{r}
-caret::confusionMatrix(data = as.factor(ifelse(dyn_results$geneStatus == "Dynamic", 1, 0)), 
-                       reference = as.factor(dyn_results$Gene_Dynamic), 
+caret::confusionMatrix(data = as.factor(ifelse(global_test_results$geneStatus == "Dynamic", 1, 0)), 
+                       reference = as.factor(global_test_results$Gene_Dynamic), 
                        positive = "1", 
                        mode = "everything")
 ```
@@ -199,11 +199,11 @@ caret::confusionMatrix(data = as.factor(ifelse(dyn_results$geneStatus == "Dynami
 We'll generate the same confusion matrix for the results from `testSlope()`. The results are pretty similar to those of `testDynamic()`, which we expect. 
 
 ```{r}
-slope_res_sum <- slope_results %>% 
-                 select(Gene, Gene_Dynamic, geneStatus) %>% 
-                 distinct()
-caret::confusionMatrix(data = as.factor(ifelse(slope_res_sum$geneStatus == "Dynamic", 1, 0)), 
-                       reference = as.factor(slope_res_sum$Gene_Dynamic), 
+slope_test_sum <- slope_test_results %>% 
+                  select(Gene, Gene_Dynamic, geneStatus) %>% 
+                  distinct()
+caret::confusionMatrix(data = as.factor(ifelse(slope_test_sum$geneStatus == "Dynamic", 1, 0)), 
+                       reference = as.factor(slope_test_sum$Gene_Dynamic), 
                        positive = "1", 
                        mode = "everything")
 ```

@@ -4,17 +4,10 @@
 \alias{testSlope}
 \title{Test whether a gene's expression is increasing or decreasing over a window of pseudotime.}
 \usage{
-testSlope(
-  model.list = NULL,
-  pt = NULL,
-  p.adj.method = "bonferroni",
-  fdr.cutoff = 0.01
-)
+testSlope(dyn.results = NULL, p.adj.method = "bonferroni", fdr.cutoff = 0.01)
 }
 \arguments{
-\item{model.list}{A list of \code{marge} models. Defaults to NULL.}
-
-\item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
+\item{dyn.results}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
 
 \item{p.adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".}
 
@@ -24,10 +17,10 @@ testSlope(
 A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
 }
 \description{
-This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
+This function tests whether the slope of a gene's \eqn{\beta} coefficient(s) for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
 }
 \examples{
-\dontrun{testSlope(model.list = marge_list, pt = pt_df)}
+\dontrun{testSlope(dyn.results = test_dyn_results)}
 }
 \seealso{
 \code{\link{testDynamic}}

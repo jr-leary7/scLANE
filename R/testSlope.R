@@ -2,12 +2,11 @@
 #'
 #' @name testSlope
 #' @author Jack Leary
-#' @description This function tests whether the slope of a gene's \eqn{\beta} for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
+#' @description This function tests whether the slope of a gene's \eqn{\beta} coefficient(s) for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
 #' @import magrittr
 #' @importFrom dplyr arrange mutate case_when with_groups
 #' @importFrom stats p.adjust
-#' @param model.list A list of \code{marge} models. Defaults to NULL.
-#' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
+#' @param dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param p.adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".
 #' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @return A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
@@ -15,60 +14,15 @@
 #' @seealso \code{\link[stats]{p.adjust}}
 #' @export
 #' @examples
-#' \dontrun{testSlope(model.list = marge_list, pt = pt_df)}
+#' \dontrun{testSlope(dyn.results = test_dyn_results)}
 
-testSlope <- function(model.list = NULL,
-                      pt = NULL,
+testSlope <- function(dyn.results = NULL,
                       p.adj.method = "bonferroni",
                       fdr.cutoff = 0.01) {
   # check inputs
-  if (is.null(model.list)) { stop("You forgot to provide a model list to testSlope().") }
-  # loops on loops
-  genes <- names(model.list)
-  genes_long <- c()
-  rounded_brkpts <- c()
-  brkpts <- c()
-  brkpt_dirs <- c()
-  p_vals <- c()
-  mod_notes <- c()
-  for (m in seq_along(model.list)) {
-    marge_model <- model.list[m][[1]]
-    # checks to see if marge_model was set to NA in testDynamic()
-    if (any(class(marge_model) == "logical")) {
-      rounded_brkpts <- c(rounded_brkpts, NA_real_)
-      brkpts <- c(brkpts, NA_real_)
-      brkpt_dirs <- c(brkpt_dirs, NA_character_)
-      p_vals <- c(p_vals, NA_real_)
-      genes_long <- c(genes_long, genes[m])
-      mod_notes <- c(mod_notes, "Original MARGE model error")
-    } else if (length(coef(marge_model)) == 1) {
-      rounded_brkpts <- c(rounded_brkpts, NA_real_)
-      brkpts <- c(brkpts, NA_real_)
-      brkpt_dirs <- c(brkpt_dirs, NA_character_)
-      p_vals <- c(p_vals, NA_real_)
-      genes_long <- c(genes_long, genes[m])
-      mod_notes <- c(mod_notes, "No non-intercept coefficients")
-    } else {
-      # grab the k breakpoints from the MARGE model
-      model_breakpoints_rounded <- extractBreakpoints(marge_model, directions = TRUE)
-      model_breakpoints <- sapply(model_breakpoints_rounded$Breakpoint, function(x) pt$PT[which.min(abs(pt$PT - x))])
-      # extract Wald test p-values from summary.glm()
-      coef_pvals <- unname(summary(marge_model)$coefficients[, "Pr(>|z|)"][-1])
-      rounded_brkpts <- c(rounded_brkpts, model_breakpoints_rounded$Breakpoint)
-      brkpts <- c(brkpts, model_breakpoints)
-      brkpt_dirs <- c(brkpt_dirs, model_breakpoints_rounded$Direction)
-      p_vals <- c(p_vals, coef_pvals)
-      genes_long <- c(genes_long, rep(genes[m], length(coef_pvals)))
-      mod_notes <- c(mod_notes, rep(NA_character_, length(coef_pvals)))
-    }
-  }
+  if (is.null(dyn.results)) { stop("You forgot to provide results from testDynamic() to testSlope().") }
   # create table of results
-  slope_df <- data.frame(Gene = genes_long,
-                         Breakpoint = unlist(brkpts),
-                         Rounded_Breakpoint = rounded_brkpts,
-                         Direction = brkpt_dirs,
-                         P_Val = p_vals,
-                         Notes = mod_notes) %>%
+  slope_df <- do.call(rbind, lapply(dyn.results, function(x) x[13][[1]])) %>%
               dplyr::arrange(P_Val) %>%
               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method)) %>%
               dplyr::arrange(Gene, Breakpoint) %>%

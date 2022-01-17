@@ -26,7 +26,6 @@
 #' @importFrom MASS glm.nb
 #' @importFrom glm2 glm.fit2
 #' @importFrom stats fitted predict
-#' @export
 #' @examples
 #' \dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
 

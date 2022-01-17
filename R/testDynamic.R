@@ -142,7 +142,10 @@ testDynamic <- function(expr.mat = NULL,
                         dplyr::relocate(Gene)
       # generate model summary tables
       null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()
-      marge_sumy_df <- broom::tidy(marge_mod$final_mod) %>% as.data.frame()
+      marge_sumy_df <- broom::tidy(marge_mod$final_mod) %>%
+                       as.data.frame() %>%
+                       lapply(FUN = unname) %>%
+                       as.data.frame()
       # compute LRT stat using asymptotic Chi-squared approximation
       lrt_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
       # prepare results

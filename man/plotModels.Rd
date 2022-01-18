@@ -2,19 +2,19 @@
 % Please edit documentation in R/plotModels.R
 \name{plotModels}
 \alias{plotModels}
-\title{Plot results of \code{marge} models using \code{ggplot2}.}
+\title{Plot results of \code{marge} and other models using \code{ggplot2}.}
 \usage{
 plotModels(
-  marge.mod = NULL,
+  marge.preds = NULL,
   gene.counts = NULL,
   pt = NULL,
   gene = NULL,
   marge.ci = TRUE,
   plot.breakpoints = FALSE,
-  null.mod = NULL,
-  null.ci = FALSE,
+  null.preds = NULL,
+  null.ci = TRUE,
   gam.mod = NULL,
-  gam.ci = FALSE,
+  gam.ci = TRUE,
   glm.mod = NULL,
   glm.ci = TRUE,
   tradeseq.mod = NULL,
@@ -25,7 +25,7 @@ plotModels(
 )
 }
 \arguments{
-\item{marge.mod}{The \code{marge} model to extract fitted values from. Defaults to NULL.}
+\item{marge.preds}{(Optional) The fitted values for a \code{marge} model as returned by \code{\link{testDynamic}}. Defaults to NULL.}
 
 \item{gene.counts}{A vector of integer expression values for each cell. Defaults to NULL.}
 
@@ -37,7 +37,7 @@ plotModels(
 
 \item{plot.breakpoints}{A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.}
 
-\item{null.mod}{(Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.}
+\item{null.preds}{(Optional) The fitted values for a null (intercept-only) model as returned by \code{\link{testDynamic}}. Defaults to NULL.}
 
 \item{null.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the null model. Defaults to FALSE.}
 
@@ -49,7 +49,7 @@ plotModels(
 
 \item{glm.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.}
 
-\item{tradeseq.mod}{(Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. Defaults to NULL.}
+\item{tradeseq.mod}{(Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. NOTE: this functionality is not fully implemented yet. Defaults to NULL.}
 
 \item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 

@@ -64,7 +64,7 @@ scaffold_params <- estimateScaffoldParameters(sce = panc,
                                               sceUMI = TRUE,
                                               useUMI = TRUE,
                                               protocol = "droplet",
-                                              numCells = 1000,
+                                              numCells = 3000,
                                               popHet = c(1, 1),
                                               useDynamic = dynamic_params)
 panc_sim <- simulateScaffold(scaffoldParams = scaffold_params, originalSCE = panc)
@@ -113,7 +113,7 @@ pt_df <- colData(panc_sim) %>%
 
 ```{r}
 set.seed(312)
-samp_idx <- sample(1:ncol(sim_counts), 100)
+samp_idx <- sample(1:ncol(sim_counts), 200)
 gene_stats <- testDynamic(expr.mat = sim_counts[, samp_idx], 
                           pt = pt_df, 
                           parallel = TRUE, 
@@ -155,13 +155,6 @@ We use `tradeSeq()` to generate a NB-GAM for each gene, i.e., the same model for
 
 ```{r}
 library(tradeSeq)
-# evaulateK() errors out 
-icMat <- evaluateK(counts = t(sim_counts[, samp_idx]), 
-                   pseudotime = pt_df$PT, 
-                   cellWeights = rep(1, nrow(pt_df)), 
-                   k = 3:10,
-                   nGenes = length(samp_idx), 
-                   verbose = TRUE)
 trade.sce <- fitGAM(counts = t(sim_counts[, samp_idx]), 
                     pseudotime = pt_df$PT, 
                     cellWeights = rep(1, nrow(pt_df)), 
@@ -211,6 +204,19 @@ caret::confusionMatrix(data = as.factor(ifelse(slope_test_sum$geneStatus == "Dyn
 # Conclusions
 
 In general, it looks as though `scLANE` outperforms `tradeSeq` in terms of accurately and precisely determining which genes are significantly differentially expressed over pseudotime. 
+
+# Visualization 
+
+We can plot some of the model results using the `plotModels()` function. 
+
+```{r}
+plotModels(marge.preds = gene_stats$PGAM1$MARGE_Preds,
+           null.preds = gene_stats$PGAM1$Null_Preds, 
+           gene.counts = sim_counts[, "PGAM1"], 
+           pt = pt_df, 
+           gene = "PGAM1")
+```
+
 
 # Session Info
 

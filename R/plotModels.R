@@ -1,4 +1,4 @@
-#' Plot results of \code{marge} models using \code{ggplot2}.
+#' Plot results of \code{marge} and other models using \code{ggplot2}.
 #'
 #' @name plotModels
 #' @author Jack Leary
@@ -11,17 +11,17 @@
 #' @param gene.counts A vector of integer expression values for each cell. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.
-#' @param marge.mod The \code{marge} model to extract fitted values from. Defaults to NULL.
+#' @param marge.preds (Optional) The fitted values for a \code{marge} model as returned by \code{\link{testDynamic}}. Defaults to NULL.
 #' @param marge.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the \code{marge} model. Defaults to TRUE.
 #' @param plot.breakpoints A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.
-#' @param null.mod (Optional) An \code{lm} or \code{glm} object specifying the intercept-only null model for comparison. Defaults to NULL.
+#' @param null.preds (Optional) The fitted values for a null (intercept-only) model as returned by \code{\link{testDynamic}}. Defaults to NULL.
 #' @param null.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the null model. Defaults to FALSE.
 #' @param marge.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
 #' @param gam.mod (Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.
 #' @param gam.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.
 #' @param glm.mod (Optional) A \code{nb.glm} model to extract fitted values from. Defaults to NULL.
 #' @param glm.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.
-#' @param tradeseq.mod (Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. Defaults to NULL.
+#' @param tradeseq.mod (Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. NOTE: this functionality is not fully implemented yet. Defaults to NULL.
 #' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
 #' @param plot.alpha (Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.
 #' @param line.size (Optional) The size of the lines showing the fitted values for each model. Defaults to 1.25.
@@ -32,16 +32,16 @@
 #' \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2")}
 #' \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)}
 
-plotModels <- function(marge.mod = NULL,
+plotModels <- function(marge.preds = NULL,
                        gene.counts = NULL,
                        pt = NULL,
                        gene = NULL,
                        marge.ci = TRUE,
                        plot.breakpoints = FALSE,
-                       null.mod = NULL,
-                       null.ci = FALSE,
+                       null.preds = NULL,
+                       null.ci = TRUE,
                        gam.mod = NULL,
-                       gam.ci = FALSE,
+                       gam.ci = TRUE,
                        glm.mod = NULL,
                        glm.ci = TRUE,
                        tradeseq.mod = NULL,
@@ -50,7 +50,8 @@ plotModels <- function(marge.mod = NULL,
                        line.size = 1.25,
                        plot.theme = NULL) {
   # check inputs
-  if (any(unlist(lapply(c(gene.counts, pt, gene, ci.alpha), is.null)))) stop("You forgot one or more of the arguments to PlotMARGE().")
+  if (is.null(gene.counts) | is.null(pt) | is.null(gene) | is.null(ci.alpha)) { stop("You forgot one or more of the arguments to plotModels().") }
+  # generate parameters for CIs
   Z <- abs(stats::qnorm(ci.alpha / 2))
   if (is.null(plot.theme)) {
     plot.theme <- ggplot2::theme_classic(base_size = 14)
@@ -68,9 +69,8 @@ plotModels <- function(marge.mod = NULL,
        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
 
   # optionally add intercept-only model fitted values + CI to plot
-  if (!is.null(null.mod)) {
-    null_plot_df <- data.frame(stats::predict(null.mod, type = "link", se.fit = TRUE)[1:2]) %>%
-                    dplyr::rename(null_link_fit = fit, null_link_se = se.fit) %>%
+  if (!is.null(null.preds)) {
+    null_plot_df <- null.preds %>%
                     dplyr::mutate(null_resp = exp(null_link_fit),
                                   null_LL = exp(null_link_fit - Z * null_link_se),
                                   null_UL = exp(null_link_fit + Z * null_link_se),
@@ -136,19 +136,19 @@ plotModels <- function(marge.mod = NULL,
   # }
 
   #  optionally add MARGE model fitted values + CI to plot
-  if (!is.null(marge.mod)) {
-    plot_df <- plot_df %>%
-               dplyr::bind_cols(stats::predict(marge.mod, type = "link", se.fit = TRUE)[1:2]) %>%
-               dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit) %>%
-               dplyr::mutate(marge_resp = exp(marge_link_fit),
-                             marge_LL = exp(marge_link_fit - Z * marge_link_se),
-                             marge_UL = exp(marge_link_fit + Z * marge_link_se))
-    p <- p + ggplot2::geom_line(plot_df, mapping = ggplot2::aes(x = PT, y = marge_resp, color = "MARGE"), size = line.size) +
+  if (!is.null(marge.preds)) {
+    marge_plot_df <- marge.preds %>%
+                     dplyr::mutate(marge_resp = exp(marge_link_fit),
+                                   marge_LL = exp(marge_link_fit - Z * marge_link_se),
+                                   marge_UL = exp(marge_link_fit + Z * marge_link_se),
+                                   PT = pt[, 1],
+                                   counts = gene.counts)
+    p <- p + ggplot2::geom_line(marge_plot_df, mapping = ggplot2::aes(x = PT, y = marge_resp, color = "MARGE"), size = line.size) +
              ggplot2::labs(color = "Model", fill = "Model")
     col_values <- c(col_values, "dodgerblue")
     # optionally add CI for MARGE model
     if (marge.ci) {
-      p <- p + ggplot2::geom_ribbon(plot_df, mapping = ggplot2::aes(ymin = marge_LL, ymax = marge_UL, fill = "MARGE"), alpha = plot.alpha)
+      p <- p + ggplot2::geom_ribbon(marge_plot_df, mapping = ggplot2::aes(ymin = marge_LL, ymax = marge_UL, fill = "MARGE"), alpha = plot.alpha)
       fill_values <- c(fill_values, "dodgerblue")
     }
   }
@@ -156,7 +156,6 @@ plotModels <- function(marge.mod = NULL,
   # finalize colors
   p <- p + ggplot2::scale_color_manual(values = col_values) +
            ggplot2::scale_fill_manual(values = fill_values)
-
   # optionally add vertical lines for MARGE model breakpoints
   if (plot.breakpoints) {
     breakpoints <- extractBreakpoints(model = marge.mod) %>% pull(Breakpoint)

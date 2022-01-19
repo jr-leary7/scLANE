@@ -114,10 +114,10 @@ pt_df <- colData(panc_sim) %>%
 ```{r}
 set.seed(312)
 samp_idx <- sample(1:ncol(sim_counts), 200)
-gene_stats <- testDynamic(expr.mat = sim_counts[, samp_idx], 
+gene_stats <- testDynamic(expr.mat = sim_counts, 
                           pt = pt_df, 
                           parallel = TRUE, 
-                          n.cores = 4, 
+                          n.cores = 5, 
                           n.potential.basis.fns = 5, 
                           track.time = TRUE)
 ```
@@ -155,16 +155,17 @@ We use `tradeSeq()` to generate a NB-GAM for each gene, i.e., the same model for
 
 ```{r}
 library(tradeSeq)
-trade.sce <- fitGAM(counts = t(sim_counts[, samp_idx]), 
+trade.sce <- fitGAM(counts = counts(panc_sim), 
                     pseudotime = pt_df$PT, 
                     cellWeights = rep(1, nrow(pt_df)), 
                     nknots = 6, 
-                    verbose = FALSE)
+                    verbose = FALSE, 
+                    parallel = TRUE)
 ts_asso_test <- associationTest(trade.sce) %>% 
                 arrange(pvalue) %>% 
                 mutate(pvalue_adj = p.adjust(pvalue, method = "bonferroni"), 
                        Gene_Dynamic = case_when(pvalue_adj < 0.01 ~ 1, TRUE ~ 0), 
-                       geneStatus = rowData(panc_sim)[samp_idx, ])
+                       geneStatus = (rowData(panc_sim) %>% as.data.frame() %>% pull(geneStatus)))
 ```
 
 The results of `tradeSeq()` aren't incredible. The sensitivity is very low, and the accuracy is lower than the NIR. 
@@ -207,14 +208,14 @@ In general, it looks as though `scLANE` outperforms `tradeSeq` in terms of accur
 
 # Visualization 
 
-We can plot some of the model results using the `plotModels()` function. 
+Here's how we can plot model results using the `plotModels()` function. 
 
 ```{r}
-plotModels(marge.preds = gene_stats$PGAM1$MARGE_Preds,
-           null.preds = gene_stats$PGAM1$Null_Preds, 
-           gene.counts = sim_counts[, "PGAM1"], 
+plotModels(marge.preds = gene_stats$APOBEC3C$MARGE_Preds,
+           null.preds = gene_stats$APOBEC3C$Null_Preds, 
+           gene.counts = sim_counts[, "APOBEC3C"], 
            pt = pt_df, 
-           gene = "PGAM1")
+           gene = "APOBEC3C")
 ```
 
 

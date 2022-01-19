@@ -211,13 +211,12 @@ In general, it looks as though `scLANE` outperforms `tradeSeq` in terms of accur
 Here's how we can plot model results using the `plotModels()` function. 
 
 ```{r}
-plotModels(marge.preds = gene_stats$APOBEC3C$MARGE_Preds,
-           null.preds = gene_stats$APOBEC3C$Null_Preds, 
-           gene.counts = sim_counts[, "APOBEC3C"], 
+plotModels(marge.preds = gene_stats$CTR9$MARGE_Preds,
+           null.preds = gene_stats$CTR9$Null_Preds, 
+           gene.counts = sim_counts[, "CTR9"], 
            pt = pt_df, 
-           gene = "APOBEC3C")
+           gene = "CTR9")
 ```
-
 
 # Session Info
 

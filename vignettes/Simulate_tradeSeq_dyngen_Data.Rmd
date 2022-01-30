@@ -30,8 +30,11 @@ set.seed(312)  # lucky seed
 library(dplyr)
 library(purrr)
 library(irlba)
+library(foreach)
+library(parallel)
 library(tradeSeq)
 library(slingshot)
+library(doParallel)
 ```
 
 # Load Multifurcating Datasets

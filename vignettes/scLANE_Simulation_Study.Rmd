@@ -118,9 +118,11 @@ pt_df <- colData(panc_sim) %>%
 We use `testDynamic()` to fit a `marge` model to each gene with a maximum of $k = 5$ breakpoints. 
 
 ```{r}
+set.seed(312)
+samp_idx <- sample(1:ncol(sim_counts), 10, replace = FALSE)
 gene_stats <- testDynamic(expr.mat = sim_counts, 
                           pt = pt_df, 
-                          parallel = TRUE, 
+                          parallel.exec = TRUE, 
                           n.cores = 2, 
                           n.potential.basis.fns = 5, 
                           track.time = TRUE)

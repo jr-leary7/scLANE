@@ -68,7 +68,6 @@ scaffold_params <- estimateScaffoldParameters(sce = panc,
                                               popHet = c(1, 1),
                                               useDynamic = dynamic_params)
 panc_sim <- simulateScaffold(scaffoldParams = scaffold_params, originalSCE = panc)
-panc_sim <- readRDS("~/Desktop/panc_sim.Rds")
 ```
 
 ```{r, echo=FALSE, results='hide'}
@@ -93,6 +92,11 @@ plotPCA(panc_sim, colour_by = "label")
 plotUMAP(panc_sim, colour_by = "label")
 ```
 
+```{r, echo=FALSE, results='hide'}
+panc_sim <- readRDS("~/Desktop/panc_sim.Rds")
+gc()
+```
+
 # Identifying Dynamic Genes with `scLANE` 
 
 First we'll need to correctly format our data for testing - we need a matrix of integer counts, and a dataframe of cell orderings (pseudotime, latent time, etc.). 
@@ -111,13 +115,13 @@ pt_df <- colData(panc_sim) %>%
          rename(PT = cell_time_normed)
 ```
 
+We use `testDynamic()` to fit a `marge` model to each gene with a maximum of $k = 5$ breakpoints. 
+
 ```{r}
-set.seed(312)
-samp_idx <- sample(1:ncol(sim_counts), 200)
 gene_stats <- testDynamic(expr.mat = sim_counts, 
                           pt = pt_df, 
                           parallel = TRUE, 
-                          n.cores = 5, 
+                          n.cores = 2, 
                           n.potential.basis.fns = 5, 
                           track.time = TRUE)
 ```
@@ -211,11 +215,12 @@ In general, it looks as though `scLANE` outperforms `tradeSeq` in terms of accur
 Here's how we can plot model results using the `plotModels()` function. 
 
 ```{r}
-plotModels(marge.preds = gene_stats$CTR9$MARGE_Preds,
-           null.preds = gene_stats$CTR9$Null_Preds, 
-           gene.counts = sim_counts[, "CTR9"], 
+plotModels(marge.preds = gene_stats$TMEM55A$MARGE_Preds,
+           null.preds = gene_stats$TMEM55A$Null_Preds, 
+           gene.counts = sim_counts[, "TMEM55A"], 
            pt = pt_df, 
-           gene = "CTR9")
+           gene = "TMEM55A", 
+           plot.gam = TRUE)
 ```
 
 # Session Info

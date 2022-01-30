@@ -17,9 +17,9 @@
 #' @param null.preds (Optional) The fitted values for a null (intercept-only) model as returned by \code{\link{testDynamic}}. Defaults to NULL.
 #' @param null.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the null model. Defaults to FALSE.
 #' @param marge.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
-#' @param gam.mod (Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.
+#' @param plot.gam (Optional) Should the fitted values from an NB GAM be plotted? Defaults to FALSE.
 #' @param gam.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.
-#' @param glm.mod (Optional) A \code{nb.glm} model to extract fitted values from. Defaults to NULL.
+#' @param plot.glm (Optional) Should the fitted values from an NB GLM be plotted? Defaults to FALSE.
 #' @param glm.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.
 #' @param tradeseq.mod (Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. NOTE: this functionality is not fully implemented yet. Defaults to NULL.
 #' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
@@ -29,7 +29,7 @@
 #' @return A \code{ggplot} object.
 #' @export
 #' @examples
-#' \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2")}
+#' \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", plot.gam = TRUE)}
 #' \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)}
 
 plotModels <- function(marge.preds = NULL,
@@ -40,9 +40,9 @@ plotModels <- function(marge.preds = NULL,
                        plot.breakpoints = FALSE,
                        null.preds = NULL,
                        null.ci = TRUE,
-                       gam.mod = NULL,
+                       plot.gam = FALSE,
                        gam.ci = TRUE,
-                       glm.mod = NULL,
+                       plot.glm = FALSE,
                        glm.ci = TRUE,
                        tradeseq.mod = NULL,
                        ci.alpha = 0.05,
@@ -87,8 +87,9 @@ plotModels <- function(marge.preds = NULL,
   }
 
   # optionally add NB GLM fitted values + CI to plot
-  if (!is.null(glm.mod)) {
-    glm_plot_df <- data.frame(stats::predict(glm.mod, type = "link", se.fit = TRUE)[1:2]) %>%
+  if (plot.glm) {
+    glm_mod <- MASS::glm.nb(gene.counts ~ ., pt, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
+    glm_plot_df <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2]) %>%
                    dplyr::rename(glm_link_fit = fit, glm_link_se = se.fit) %>%
                    dplyr::mutate(glm_resp = exp(glm_link_fit),
                                  glm_LL = exp(glm_link_fit - Z * glm_link_se),
@@ -106,8 +107,9 @@ plotModels <- function(marge.preds = NULL,
   }
 
   # optionally add NB GAM fitted values + CI to plot
-  if (!is.null(gam.mod)) {
-    gam_plot_df <- data.frame(stats::predict(gam.mod, type = "link", se.fit = TRUE)[1:2]) %>%
+  if (plot.gam) {
+    gam_mod <- nbGAM(expr = gene.counts, pt = pt)
+    gam_plot_df <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2]) %>%
                    dplyr::rename(gam_link_fit = fit, gam_link_se = se.fit) %>%
                    dplyr::mutate(gam_resp = exp(gam_link_fit),
                                  gam_LL = exp(gam_link_fit - Z * gam_link_se),

@@ -13,9 +13,9 @@ plotModels(
   plot.breakpoints = FALSE,
   null.preds = NULL,
   null.ci = TRUE,
-  gam.mod = NULL,
+  plot.gam = FALSE,
   gam.ci = TRUE,
-  glm.mod = NULL,
+  plot.glm = FALSE,
   glm.ci = TRUE,
   tradeseq.mod = NULL,
   ci.alpha = 0.05,
@@ -41,11 +41,11 @@ plotModels(
 
 \item{null.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the null model. Defaults to FALSE.}
 
-\item{gam.mod}{(Optional) A \code{gam} model to extract fitted values from. Defaults to NULL.}
+\item{plot.gam}{(Optional) Should the fitted values from an NB GAM be plotted? Defaults to FALSE.}
 
 \item{gam.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
 
-\item{glm.mod}{(Optional) A \code{nb.glm} model to extract fitted values from. Defaults to NULL.}
+\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be plotted? Defaults to FALSE.}
 
 \item{glm.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.}
 
@@ -66,7 +66,7 @@ A \code{ggplot} object.
 This function visualizes the fitted values of a \code{marge} model over the expression and pseudotime values of each cell.
 }
 \examples{
-\dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2")}
+\dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", plot.gam = TRUE)}
 \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)}
 }
 \author{

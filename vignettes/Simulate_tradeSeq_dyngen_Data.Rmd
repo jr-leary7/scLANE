@@ -1,0 +1,125 @@
+---
+title: "Title"
+subtitle: "University of Florida - Dept. of Biostatistics - Bacher Group"
+author: "Name"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: yeti
+    highlight: tango
+    code_folding: show
+    code_download: true
+    toc: true
+    toc_float:
+      collpased: false
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      comment = NA, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      fig.align = "center")
+set.seed(312)  # lucky seed
+```
+
+# Libraries
+
+```{r}
+library(irlba)
+library(tradeSeq)
+library(tidyverse)
+library(slingshot)
+```
+
+# Load Multifurcating Datasets
+
+Here we'll read in 10 datasets generated using the `dyntoy` package taken from [the tradeSeqPaper repo on GitHub](https://github.com/statOmics/tradeSeqPaper/tree/master/simulation/sim2_dyntoy_multifurcating_4/multiple/datasets). 
+
+```{r}
+ts_mf_dir <- "~/Desktop/UF Biostatistics/Capstone/tradeSeqPaper/simulation/sim2_dyntoy_multifurcating_4/multiple/datasets/"
+ts_mf_list <- map(paste0(ts_mf_dir, list.files(ts_mf_dir)), readRDS)
+names(ts_mf_list) <- paste0("dyntoy_", gsub("\\.rds", "", gsub(".*_", "", list.files(ts_mf_dir))))
+```
+
+# Process Data 
+
+```{r}
+a <- ts_mf_list[[1]]$counts
+de_genes <- ts_mf_list[[1]]$tde_overall
+true_pt <- ts_mf_list[[1]]$prior_information$timecourse_continuous
+```
+
+## `tradeSeq`
+
+We'll need to define the following function to perform quantile normalization as the `tradeSeq` authors did (see [here](https://github.com/statOmics/tradeSeqPaper/blob/master/simulation/sim2_dyntoy_multifurcating_4/20190326_evaluateDyntoyMultifurcating4.Rmd)). While `tradeSeq` uses raw expression as the response variable in its GAMs, calculating pseudotime using `slingshot` requires principal components and clusters as input, and thus we'll need to process the raw counts a bit first. 
+
+```{r}
+FQnorm <- function(counts) {
+  rk <- apply(counts, 2, rank, ties.method = "min")
+  counts.sort <- apply(counts, 2, sort)
+  refdist <- apply(counts.sort, 1, median)
+  norm <- apply(rk, 2, function(r) { refdist[r] })
+  rownames(norm) <- rownames(counts)
+  return(norm)
+}
+```
+
+Now we'll loop through each of the 10 datasets (in parallel using `foreach`) and process them in the same way. We use `tradeSeq`'s `evaluateK()` function to determine how many knots should be used in each GAM by choosing the value of $k$ with the lowest average AIC. 
+
+```{r}
+cl <- makeCluster(4)
+registerDoParallel(cl)
+clusterSetRNGStream(cl, 312)
+ts_res_all <- foreach(i = 1:length(ts_mf_list), 
+                      .combine = "list", 
+                      .multicombine = TRUE, 
+                      .maxcombine = length(ts_mf_list), 
+                      .export = c("FQnorm", "ts_mf_list"),
+                      .packages = c("tradeSeq", "slingshot", "irlba", "bluster", "igraph")) %dopar% {
+  ts_counts_norm <- FQnorm(t(ts_mf_list[[i]]$counts))
+  ts_pca <- prcomp_irlba(t(ts_counts_norm), n = 3, scale. = FALSE)
+  ts_graph <- makeSNNGraph(ts_pca$x, k = 30, type = "jaccard")
+  ts_cl <- cluster_louvain(graph = ts_graph)$membership
+  ts_lineage <- getLineages(ts_pca$x, clusterLabels = ts_cl)
+  ts_crv <- getCurves(ts_lineage)
+  ts_cell_weights <- slingCurveWeights(ts_crv)
+  ts_pt <- slingPseudotime(ts_crv, na = FALSE)
+  k_vals <- c(3:8)
+  icMat <- evaluateK(counts = t(ts_mf_list[[i]]$counts),  
+                     pseudotime = ts_pt, 
+                     cellWeights = ts_cell_weights,
+                     nGenes = 500, 
+                     k = k_vals)
+  k_to_use <- k_vals[which.min(colMeans(icMat))]
+  ts_gam_list <- fitGAM(t(ts_mf_list[[i]]$counts), 
+                        pseudotime = ts_pt, 
+                        cellWeights = ts_cell_weights, 
+                        nknots = k_to_use)
+}
+stopCluster(cl)
+names(ts_res_all) <- names(ts_mf_list)
+```
+
+Next we'll need to run `associationTest()` on each GAM to determine whether genes are differentially expressed. 
+
+```{r}
+ts_asso_test_list <- map2(.x = ts_res_all, 
+                          .y = ts_mf_list, 
+                          ~ associationTest(.x) %>% bind_cols(.y$tde_overall$differentially_expressed))
+ts_asso_test_df <- purrr::reduce(ts_asso_test_list, bind_rows) %>% 
+                   mutate(dataset = rep(names(ts_mf_list), each = 5000)) %>% 
+                   setNames(nm = c("wald_stat", "df", "pvalue", "mean_log_fc", "true_de", "dataset")) %>% 
+                   arrange(pvalue) %>% 
+                   mutate(pvalue_adj = p.adjust(pvalue, method = "bonferroni"), 
+                          ts_de = case_when(pvalue_adj < 0.01 ~ TRUE, TRUE ~ FALSE))
+```
+
+Let's check out the predictive results. 
+
+```{r}
+caret::confusionMatrix(data = as.factor(ts_asso_test_df$ts_de), 
+                       reference = as.factor(ts_asso_test_df$true_de), 
+                       positive = "TRUE")
+```

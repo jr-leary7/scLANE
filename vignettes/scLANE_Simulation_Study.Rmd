@@ -118,8 +118,6 @@ pt_df <- colData(panc_sim) %>%
 We use `testDynamic()` to fit a `marge` model to each gene with a maximum of $k = 5$ breakpoints. 
 
 ```{r}
-set.seed(312)
-samp_idx <- sample(1:ncol(sim_counts), 10, replace = FALSE)
 gene_stats <- testDynamic(expr.mat = sim_counts, 
                           pt = pt_df, 
                           parallel.exec = TRUE, 
@@ -161,13 +159,13 @@ We use `tradeSeq()` to generate a NB-GAM for each gene, i.e., the same model for
 
 ```{r}
 library(tradeSeq)
-trade.sce <- fitGAM(counts = counts(panc_sim), 
+trade_sce <- fitGAM(counts = counts(panc_sim), 
                     pseudotime = pt_df$PT, 
                     cellWeights = rep(1, nrow(pt_df)), 
                     nknots = 6, 
                     verbose = FALSE, 
                     parallel = TRUE)
-ts_asso_test <- associationTest(trade.sce) %>% 
+ts_asso_test <- associationTest(trade_sce) %>% 
                 arrange(pvalue) %>% 
                 mutate(pvalue_adj = p.adjust(pvalue, method = "bonferroni"), 
                        Gene_Dynamic = case_when(pvalue_adj < 0.01 ~ 1, TRUE ~ 0), 
@@ -183,6 +181,25 @@ caret::confusionMatrix(data = as.factor(ifelse(ts_asso_test$geneStatus == "Dynam
                        mode = "everything")
 ```
 
+Let's check out the AUC-ROC curve. 
+
+```{r}
+roc_df_ts <- yardstick::roc_curve((ts_asso_test %>% mutate(geneStatus = as.factor(geneStatus))), 
+                                  truth = geneStatus, 
+                                  estimate = pvalue, 
+                                  event_level = "second")
+roc_auc_ts <- yardstick::roc_auc((ts_asso_test %>% mutate(geneStatus = as.factor(geneStatus))), 
+                                 truth = geneStatus, 
+                                 estimate = pvalue, 
+                                 event_level = "second")
+ggplot(roc_df_ts, aes(x = 1 - specificity, y = sensitivity)) + 
+  geom_line(color = "forestgreen", size = 1) + 
+  geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), color = "firebrick", size = 1) + 
+  labs(x = "1 - Specificity", y = "Sensitivity", title = "tradeSeq", 
+       caption = paste0("AUC-ROC = ", round(roc_auc_ts[1, 3], 3))) + 
+  theme_classic(base_size = 14)
+```
+
 ## `testDynamic()`
 
 Lastly, let's check some performance metrics for our model. First we'll check the global LRT as performed in `testDynamic()`. The sensitivity and specificity are both very high!
@@ -192,6 +209,25 @@ caret::confusionMatrix(data = as.factor(ifelse(global_test_results$geneStatus ==
                        reference = as.factor(global_test_results$Gene_Dynamic), 
                        positive = "1", 
                        mode = "everything")
+```
+
+We can also calculate the ROC-AUC based on different thresholds of the adjusted $p$-value. 
+
+```{r}
+roc_df <- yardstick::roc_curve((global_test_results %>% mutate(geneStatus = as.factor(geneStatus))), 
+                               truth = geneStatus, 
+                               estimate = P_Val, 
+                               event_level = "second")
+roc_auc <- yardstick::roc_auc((global_test_results %>% mutate(geneStatus = as.factor(geneStatus))), 
+                              truth = geneStatus, 
+                              estimate = P_Val, 
+                              event_level = "second")
+ggplot(roc_df, aes(x = 1 - specificity, y = sensitivity)) + 
+  geom_line(color = "forestgreen", size = 1) + 
+  geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), color = "firebrick", size = 1) + 
+  labs(x = "1 - Specificity", y = "Sensitivity", title = "testDynamic", 
+       caption = paste0("AUC-ROC = ", round(roc_auc[1, 3], 3))) + 
+  theme_classic(base_size = 14)
 ```
 
 ## `testSlope()`

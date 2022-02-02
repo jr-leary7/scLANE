@@ -64,7 +64,8 @@ testDynamic <- function(expr.mat = NULL,
                    ls()[-which(ls() %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns"))])
   }
   no_export <- unique(no_export)
-  # iterate over genes & build models
+  n_lineages <- ncol(pt)
+  # build models per-lineage per-gene, parallelize over genes
   test_stats <- foreach::foreach(i = seq_along(genes),
                                  .combine = "list",
                                  .multicombine = ifelse(length(genes) > 1, TRUE, FALSE),
@@ -72,124 +73,166 @@ testDynamic <- function(expr.mat = NULL,
                                  .packages = c("glm2", "scLANE", "MASS",  "bigstatsr", "broom", "dplyr", "stats"),
                                  .noexport = no_export,
                                  .verbose = FALSE) %dopar% {
-    # run original MARGE model
-    marge_mod <- tryCatch(
-      scLANE::marge2(X_pred = pt,
-                     Y = expr.mat[, i],
-                     M = n.potential.basis.fns),
-      error = function(e) "Model error"
-    )
-    # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm()
-    null_mod <- tryCatch(
-      MASS::glm.nb(expr.mat[, i] ~ 1,
-                   method = "glm.fit2",
-                   y = FALSE,
-                   model = FALSE),
-      error = function(e) "Model error"
-    )
-    if (all(class(null_mod) != "character")) {
-      null_mod <- scLANE::stripGLM(glm.obj = null_mod)
-    }
-    # prepare results if there were errors in either null or MARGE model
-    if (unname(marge_mod == "Model error" & all(class(null_mod) == "character"))) {
-      # generate empty dataframe for slope test
-      slope_data_error <- data.frame(Gene = genes[i],
-                                     Breakpoint = NA_real_,
-                                     Rounded_Breakpoint = NA_real_,
-                                     Direction = NA_character_,
-                                     P_Val = NA_real_,
-                                     Notes = "MARGE model error")
-      res_list <- list(Gene = genes[i],
-                       LRT_Stat = NA,
-                       P_Val = NA,
-                       LogLik_MARGE = NA,
-                       LogLik_Null = NA,
-                       Dev_MARGE = NA,
-                       Dev_Null = NA,
-                       Model_Status = "Null and MARGE model errors",
-                       MARGE_Summary = NA,
-                       Null_Summary = NA,
-                       MARGE_Preds = NA,
-                       Null_Preds = NA,
-                       MARGE_Slope_Data = slope_data_error)
-    } else if (unname(marge_mod == "Model error" & !all(class(null_mod) == "character"))) {
-      # generate empty dataframe for slope test
-      slope_data_error <- data.frame(Gene = genes[i],
-                                     Breakpoint = NA_real_,
-                                     Rounded_Breakpoint = NA_real_,
-                                     Direction = NA_character_,
-                                     P_Val = NA_real_,
-                                     Notes = "MARGE model error")
-      # generate null model summary table
-      null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()  # saves a few bytes by converting from tibble
-      # compute fitted values + SE for null model
-      null_pred_df <- data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-                      dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
-      res_list <- list(Gene = genes[i],
-                       LRT_Stat = NA,
-                       P_Val = NA,
-                       LogLik_MARGE = NA,
-                       LogLik_Null = as.numeric(stats::logLik(null_mod)),
-                       Dev_MARGE = NA,
-                       Dev_Null = stats::deviance(null_mod),
-                       Model_Status = "MARGE model error, null model OK",
-                       MARGE_Summary = NA,
-                       Null_Summary = null_sumy_df,
-                       MARGE_Preds = NA,
-                       Null_Preds = null_pred_df,
-                       MARGE_Slope_Data = slope_data_error)
-    } else if (unname(marge_mod != "Model error" & !all(class(null_mod) == "character"))) {
-      # compute fitted values + SE for both models (if possible)
-      null_pred_df <- tryCatch(
-        data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-        dplyr::rename(null_link_fit = fit, null_link_se = se.fit),
-        error = function(e) "Null model prediction error"
+    lineage_list <- vector("list", n_lineages)
+    for (j in seq(n_lineages)) {
+      lineage_cells <- which(!is.na(pt[, j]))
+      # run original MARGE model
+      marge_mod <- try(
+        { scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
+                         Y = expr.mat[lineage_cells, i],
+                         M = n.potential.basis.fns) },
+        silent = TRUE
       )
-      marge_pred_df <- tryCatch(
-        data.frame(stats::predict(marge_mod$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-        dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit),
-        error = function(e) "MARGE model prediction error"
+      # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm()
+      null_mod <- try(
+        { MASS::glm.nb(expr.mat[lineage_cells, i] ~ 1,
+                       method = "glm.fit2",
+                       y = FALSE,
+                       model = FALSE) },
+        silent = TRUE
       )
-      # generate data for slope test
-      marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt) %>%
-                        dplyr::mutate(Gene = genes[i]) %>%
-                        dplyr::relocate(Gene)
-      # generate model summary tables
-      null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()
-      marge_sumy_df <- broom::tidy(marge_mod$final_mod) %>%
-                       as.data.frame() %>%
-                       lapply(FUN = unname) %>%
-                       as.data.frame()
-      # compute LRT stat using asymptotic Chi-squared approximation
-      lrt_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
-      # prepare results
-      if (class(null_pred_df) == "character" & class(marge_pred_df) == "character") {
-        mod_status <- "MARGE & null model prediction errors"
-      } else if (class(null_pred_df) == "character" & class(marge_pred_df) == "data.frame") {
-        mod_status <- "Null model prediction error"
-      } else if (class(null_pred_df) == "data.frame" & class(marge_pred_df) == "character") {
-        mod_status <- "MARGE model prediction error"
-      } else {
-        mod_status <- "All clear"
+      if (all(class(null_mod) != "try-error")) {
+        null_mod <- scLANE::stripGLM(glm.obj = null_mod)
       }
-      res_list <- list(Gene = genes[i],
-                       LRT_Stat = lrt_res$LRT_Stat,
-                       P_Val = lrt_res$P_Val,
-                       LogLik_MARGE = lrt_res$Alt_Mod_LL,
-                       LogLik_Null = lrt_res$Null_Mod_LL,
-                       Dev_MARGE = stats::deviance(marge_mod$final_mod),
-                       Dev_Null = stats::deviance(null_mod),
-                       Model_Status = mod_status,
-                       MARGE_Summary = marge_sumy_df,
-                       Null_Summary = null_sumy_df,
-                       MARGE_Preds = marge_pred_df,
-                       Null_Preds = null_pred_df,
-                       MARGE_Slope_Data = marge_slope_df)
-    } else {
-      stop(sprintf("Conditions for marge & null model convergence incorrect in testDynamic() - iteration %s.", i))
+      # prepare results if there were errors in either null or MARGE model
+      if (all(class(marge_mod) == "try-error") & all(class(null_mod) == "try-error")) {
+        mod_status <- "MARGE & null model errors"
+        # generate empty dataframe for slope test
+        slope_data_error <- data.frame(Gene = genes[i],
+                                       Lineage = j,
+                                       Breakpoint = NA_real_,
+                                       Rounded_Breakpoint = NA_real_,
+                                       Direction = NA_character_,
+                                       P_Val = NA_real_,
+                                       Notes = mod_status)
+        # create lineage result list
+        lineage_list[[j]] <- list(Gene = genes[i],
+                                  Lineage = j,
+                                  LRT_Stat = NA_real_,
+                                  P_Val = NA_real_,
+                                  LogLik_MARGE = NA_real_,
+                                  LogLik_Null = NA_real_,
+                                  Dev_MARGE = NA_real_,
+                                  Dev_Null = NA_real_,
+                                  Model_Status = mod_status,
+                                  MARGE_Summary = NA,
+                                  Null_Summary = NA,
+                                  MARGE_Preds = NA,
+                                  Null_Preds = NA,
+                                  MARGE_Slope_Data = slope_data_error)
+      # prepare results if there were errors in MARGE model but not in null model
+      } else if (all(class(marge_mod) == "try-error") & !all(class(null_mod) == "try-error")) {
+        mod_status <- "MARGE model error, null model OK"
+        # generate empty dataframe for slope test
+        slope_data_error <- data.frame(Gene = genes[i],
+                                       Lineage = j,
+                                       Breakpoint = NA_real_,
+                                       Rounded_Breakpoint = NA_real_,
+                                       Direction = NA_character_,
+                                       P_Val = NA_real_,
+                                       Notes = mod_status)
+        # generate null model summary table
+        null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()  # saves a few bytes by converting from tibble
+        # compute fitted values + SE for null model
+        null_pred_df <- data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
+                        dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
+        # create lineage result list
+        lineage_list[[j]] <- list(Gene = genes[i],
+                                  Lineage = j,
+                                  LRT_Stat = NA_real_,
+                                  P_Val = NA_real_,
+                                  LogLik_MARGE = NA_real_,
+                                  LogLik_Null = as.numeric(stats::logLik(null_mod)),
+                                  Dev_MARGE = NA_real_,
+                                  Dev_Null = stats::deviance(null_mod),
+                                  Model_Status = mod_status,
+                                  MARGE_Summary = NA,
+                                  Null_Summary = null_sumy_df,
+                                  MARGE_Preds = NA,
+                                  Null_Preds = null_pred_df,
+                                  MARGE_Slope_Data = slope_data_error)
+      # prepare results if there were errors in null model but not in marge model
+      } else if (!all(class(marge_mod) == "try-error") & all(class(null_mod) == "try-error")) {
+        mod_status <- "MARGE model OK, null model error"
+        # compute fitted values + SE for marge model if possible
+        marge_pred_df <- try(
+          { data.frame(stats::predict(marge_mod$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
+              dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit) },
+          silent = TRUE
+        )
+        # generate data for slope test
+        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt) %>%
+                          dplyr::mutate(Gene = genes[i], Lineage = j) %>%
+                          dplyr::relocate(Gene, Lineage)
+        # create marge summary table
+        marge_sumy_df <- broom::tidy(marge_mod$final_mod) %>%
+                         as.data.frame() %>%
+                         lapply(unname) %>%
+                         as.data.frame()
+        # create lineage result list
+        lineage_list[[j]] <- list(Gene = genes[i],
+                                  Lineage = j,
+                                  LRT_Stat = NA_real_,
+                                  P_Val = NA_real_,
+                                  LogLik_MARGE = as.numeric(stats::logLik(marge_mod$final_mod)),
+                                  LogLik_Null = NA_real_,
+                                  Dev_MARGE = stats::deviance(marge_mod$final_mod),
+                                  Dev_Null = NA_real_,
+                                  Model_Status = mod_status,
+                                  MARGE_Summary = marge_sumy_df,
+                                  Null_Summary = NA,
+                                  MARGE_Preds = marge_pred_df,
+                                  Null_Preds = NA,
+                                  MARGE_Slope_Data = marge_slope_df)
+
+      # prepare results if neither model had errors
+      } else if (!all(class(marge_mod) == "try-error") & !all(class(null_mod) == "try-error")) {
+        mod_status <- "MARGE & null model OK"
+        # compute fitted values + SE for both models (if possible - this very rarely won't work)
+        null_pred_df <- try(
+          { data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
+            dplyr::rename(null_link_fit = fit, null_link_se = se.fit) },
+          silent = TRUE
+        )
+        marge_pred_df <- try(
+          { data.frame(stats::predict(marge_mod$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
+            dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit) },
+          silent = TRUE
+        )
+        # generate data for slope test
+        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt) %>%
+                          dplyr::mutate(Gene = genes[i], Lineage = j) %>%
+                          dplyr::relocate(Gene, Lineage)
+        # generate model summary tables
+        null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()
+        marge_sumy_df <- broom::tidy(marge_mod$final_mod) %>%
+                         as.data.frame() %>%
+                         lapply(unname) %>%
+                         as.data.frame()
+        # compute LRT stat using asymptotic Chi-squared approximation
+        lrt_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
+        # create lineage result list
+        lineage_list[[j]] <- list(Gene = genes[i],
+                                  Lineage = j,
+                                  LRT_Stat = lrt_res$LRT_Stat,
+                                  P_Val = lrt_res$P_Val,
+                                  LogLik_MARGE = lrt_res$Alt_Mod_LL,
+                                  LogLik_Null = lrt_res$Null_Mod_LL,
+                                  Dev_MARGE = stats::deviance(marge_mod$final_mod),
+                                  Dev_Null = stats::deviance(null_mod),
+                                  Model_Status = mod_status,
+                                  MARGE_Summary = marge_sumy_df,
+                                  Null_Summary = null_sumy_df,
+                                  MARGE_Preds = marge_pred_df,
+                                  Null_Preds = null_pred_df,
+                                  MARGE_Slope_Data = marge_slope_df)
+      } else {
+        stop(sprintf("Conditions for marge or null model fits not met for gene %s on lineage %s.", genes[i], j))
+      }
     }
+    names(lineage_list) <- paste0("Lineage_", seq(n_lineages))
     rm(marge_mod, null_mod)  # a vain attempt to conserve memory
-    res_list
+    lineage_list
   }
   # end parallelization & clean up
   sink(tempfile())
@@ -209,8 +252,9 @@ testDynamic <- function(expr.mat = NULL,
     total_time <- end_time - start_time
     total_time_units <- attributes(total_time)$units
     total_time_numeric <- as.numeric(total_time)
-    print(sprintf("testDynamic evaluated %s genes in %s %s",
+    print(sprintf("testDynamic evaluated %s genes with %s lineages apiece in %s %s",
                   length(genes),
+                  n_lineages,
                   round(total_time_numeric, 3),
                   total_time_units))
   }

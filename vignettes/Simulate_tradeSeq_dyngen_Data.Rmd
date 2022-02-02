@@ -90,11 +90,12 @@ ts_res_all <- foreach(i = 1:length(ts_mf_list),
                      k = k_vals, 
                      verbose = FALSE)
   k_to_use <- k_vals[which.min(colMeans(icMat))]
-  ts_gam_list <- fitGAM(t(ts_mf_list[[i]]$counts), 
-                        pseudotime = ts_pt, 
-                        cellWeights = ts_cell_weights, 
-                        nknots = k_to_use, 
-                        verbose = FALSE)
+  ts_gam <- fitGAM(t(ts_mf_list[[i]]$counts), 
+                   pseudotime = ts_pt, 
+                   cellWeights = ts_cell_weights, 
+                   nknots = k_to_use, 
+                   verbose = FALSE)
+  ts_gam
 }
 stopCluster(cl)
 names(ts_res_all) <- names(ts_mf_list)
@@ -121,3 +122,29 @@ caret::confusionMatrix(data = as.factor(ts_asso_test_df$ts_de),
                        reference = as.factor(ts_asso_test_df$true_de), 
                        positive = "TRUE")
 ```
+
+# DE Testing with `scLANE`
+
+```{r}
+scl_counts_norm <- FQnorm(t(ts_mf_list[[1]]$counts))
+scl_pca <- prcomp_irlba(t(scl_counts_norm), n = 3, scale. = FALSE)
+scl_graph <- bluster::makeSNNGraph(scl_pca$x, k = 30, type = "jaccard")
+scl_cl <- igraph::cluster_louvain(graph = scl_graph)$membership
+scl_lineage <- getLineages(scl_pca$x, clusterLabels = scl_cl)
+scl_crv <- getCurves(scl_lineage)
+scl_cell_weights <- slingCurveWeights(scl_crv)
+scl_pt <- slingPseudotime(scl_crv)
+```
+
+prep data
+
+```{r}
+library(scLANE)
+pt_df <- as.data.frame(scl_pt) %>% 
+         rename(PT1 = curve1, PT2 = curve2) %>% 
+         mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
+sim_counts <- ts_mf_list[[1]]$counts
+gene_stats <- testDynamic(expr.mat = sim_counts[, sample(1:ncol(sim_counts), 10)], 
+                          pt = pt_df)
+```
+

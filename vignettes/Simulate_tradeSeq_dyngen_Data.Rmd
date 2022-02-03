@@ -35,6 +35,7 @@ library(parallel)
 library(tradeSeq)
 library(slingshot)
 library(doParallel)
+rename <- dplyr::rename
 ```
 
 # Load Multifurcating Datasets
@@ -123,7 +124,9 @@ caret::confusionMatrix(data = as.factor(ts_asso_test_df$ts_de),
                        positive = "TRUE")
 ```
 
-# DE Testing with `scLANE`
+# DE Testing Over Multiple Lineages with `scLANE`
+
+This is a test case with just one dataset until I get all the functions working. 
 
 ```{r}
 scl_counts_norm <- FQnorm(t(ts_mf_list[[1]]$counts))
@@ -144,7 +147,35 @@ pt_df <- as.data.frame(scl_pt) %>%
          rename(PT1 = curve1, PT2 = curve2) %>% 
          mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
 sim_counts <- ts_mf_list[[1]]$counts
-gene_stats <- testDynamic(expr.mat = sim_counts[, sample(1:ncol(sim_counts), 10)], 
+set.seed(312)
+samp_idx <- sample(1:ncol(sim_counts), 10)
+gene_stats <- testDynamic(expr.mat = sim_counts[, samp_idx], 
                           pt = pt_df)
+```
+
+
+```{r}
+getResultsDE <- function(test.dyn.results = NULL, p.adj.method = "bonferroni", fdr.cutoff = 0.01) {
+  if (is.null(test.results)) stop("Please provide a result list.")
+  result_df <- purrr::map(test.dyn.results, function(x) data.frame(x[1:9])) %>%
+               purrr::reduce(rbind) %>% 
+               dplyr::arrange(P_Val) %>%
+               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),
+                             Gene_Dynamic_Lineage  = case_when(P_Val_Adj < fdr.cutoff ~ 1, TRUE ~ 0)) %>%
+               dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic_Overall = max(Gene_Dynamic_Lineage)) %>% 
+               dplyr::relocate(Gene, Lineage, LRT_Stat, P_Val)
+  return(result_df)
+}
+
+a <- gene_stats[[1]]
+names(a[[1]])
+b <- purrr::reduce(purrr::map(a, function(x) data.frame(x[1:9])), rbind)
+purrr::map(a, function(x) data.frame(x[1:9])) %>%
+               purrr::reduce(rbind) %>% 
+               dplyr::arrange(P_Val) %>%
+               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = "BH"),
+                             Gene_Dynamic_Lineage  = case_when(P_Val_Adj < .01 ~ 1, TRUE ~ 0)) %>%
+               dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic_Overall = max(Gene_Dynamic_Lineage)) %>% 
+               dplyr::relocate(Gene, LRT_Stat, P_Val)
 ```
 

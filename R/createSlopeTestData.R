@@ -35,7 +35,7 @@ createSlopeTestData <- function(marge.model = NULL, pt = NULL) {
       model_breakpoints_rounded <- extractBreakpoints(marge.model[[1]], directions = TRUE)
       rounded_brkpts <- model_breakpoints_rounded$Breakpoint
       brkpt_dirs <- model_breakpoints_rounded$Direction
-      brkpts <- sapply(rounded_brkpts, function(x) pt$PT[which.min(abs(pt$PT - x))])
+      brkpts <- sapply(rounded_brkpts, function(x) pt[, 1][which.min(abs(pt[, 1] - x))])
       # extract Wald test p-values from summary.glm()
       p_vals <- unname(summary(marge.model[[1]])$coefficients[, "Pr(>|z|)"][-1])
       mod_notes <- rep(NA_character_, length(p_vals))

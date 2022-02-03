@@ -79,13 +79,13 @@ testDynamic <- function(expr.mat = NULL,
       # run original MARGE model
       marge_mod <- try(
         { scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
-                         Y = expr.mat[lineage_cells, i],
+                         Y = expr.mat[lineage_cells, i, drop = FALSE],
                          M = n.potential.basis.fns) },
         silent = TRUE
       )
       # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm()
       null_mod <- try(
-        { MASS::glm.nb(expr.mat[lineage_cells, i] ~ 1,
+        { MASS::glm.nb(expr.mat[lineage_cells, i, drop = FALSE] ~ 1,
                        method = "glm.fit2",
                        y = FALSE,
                        model = FALSE) },
@@ -200,7 +200,7 @@ testDynamic <- function(expr.mat = NULL,
           silent = TRUE
         )
         # generate data for slope test
-        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt) %>%
+        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt[lineage_cells, j, drop = FALSE]) %>%
                           dplyr::mutate(Gene = genes[i], Lineage = j) %>%
                           dplyr::relocate(Gene, Lineage)
         # generate model summary tables

@@ -19,7 +19,7 @@
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
 #' @param n.potential.basis.fns The number of possible basis functions. See the parameter "M" in \code{\link{marge2}}. Defaults to 5.
 #' @param track.time A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
-#' @return A list of lists; each sublist contains a gene name, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
+#' @return A list of list, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
 #' @export
 #' @examples
@@ -258,5 +258,6 @@ testDynamic <- function(expr.mat = NULL,
                   round(total_time_numeric, 3),
                   total_time_units))
   }
+  class(test_stats) <- "scLANE"
   return(test_stats)
 }

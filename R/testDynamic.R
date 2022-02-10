@@ -161,7 +161,7 @@ testDynamic <- function(expr.mat = NULL,
           silent = TRUE
         )
         # generate data for slope test
-        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt) %>%
+        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt[lineage_cells, j, drop = FALSE]) %>%
                           dplyr::mutate(Gene = genes[i], Lineage = j) %>%
                           dplyr::relocate(Gene, Lineage)
         # create marge summary table

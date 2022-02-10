@@ -9,7 +9,7 @@ extractBreakpoints(model = NULL, directions = TRUE)
 \arguments{
 \item{model}{The \code{marge} model to analyze. Defaults to NULL.}
 
-\item{directions}{Should the directions of the hinge functions also be extracted? Defults to TRUE.}
+\item{directions}{Should the directions of the hinge functions also be extracted? Defaults to TRUE.}
 }
 \value{
 A data.frame of breakpoints & their directions.

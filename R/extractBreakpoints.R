@@ -5,7 +5,7 @@
 #' @description Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" would be fine but "pseudotime1" would not.
 #' @importFrom stats coef
 #' @param model The \code{marge} model to analyze. Defaults to NULL.
-#' @param directions Should the directions of the hinge functions also be extracted? Defults to TRUE.
+#' @param directions Should the directions of the hinge functions also be extracted? Defaults to TRUE.
 #' @return A data.frame of breakpoints & their directions.
 #' @export
 #' @examples

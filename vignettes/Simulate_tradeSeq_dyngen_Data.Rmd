@@ -26,7 +26,7 @@ set.seed(312)  # lucky seed
 
 # Libraries
 
-```{r}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 library(dplyr)
 library(purrr)
 library(irlba)
@@ -139,43 +139,87 @@ scl_cell_weights <- slingCurveWeights(scl_crv)
 scl_pt <- slingPseudotime(scl_crv)
 ```
 
-prep data
+# Development Area 
 
 ```{r}
 library(scLANE)
 pt_df <- as.data.frame(scl_pt) %>% 
-         rename(PT1 = curve1, PT2 = curve2) %>% 
+         rename(L_One = curve1, L_Two = curve2) %>% 
          mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
 sim_counts <- ts_mf_list[[1]]$counts
 set.seed(312)
 samp_idx <- sample(1:ncol(sim_counts), 10)
 gene_stats <- testDynamic(expr.mat = sim_counts[, samp_idx], 
-                          pt = pt_df)
+                          pt = pt_df, 
+                          parallel.exec = TRUE, 
+                          n.cores = 2, 
+                          track.time = TRUE)
+```
+
+```{r}
+global_test_results <- getResultsDE(gene_stats)
+global_test_results
 ```
 
 
-```{r}
-getResultsDE <- function(test.dyn.results = NULL, p.adj.method = "bonferroni", fdr.cutoff = 0.01) {
-  if (is.null(test.results)) stop("Please provide a result list.")
-  result_df <- purrr::map(test.dyn.results, function(x) data.frame(x[1:9])) %>%
-               purrr::reduce(rbind) %>% 
-               dplyr::arrange(P_Val) %>%
-               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),
-                             Gene_Dynamic_Lineage  = case_when(P_Val_Adj < fdr.cutoff ~ 1, TRUE ~ 0)) %>%
-               dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic_Overall = max(Gene_Dynamic_Lineage)) %>% 
-               dplyr::relocate(Gene, Lineage, LRT_Stat, P_Val)
-  return(result_df)
-}
+slope test
 
-a <- gene_stats[[1]]
-names(a[[1]])
-b <- purrr::reduce(purrr::map(a, function(x) data.frame(x[1:9])), rbind)
-purrr::map(a, function(x) data.frame(x[1:9])) %>%
-               purrr::reduce(rbind) %>% 
-               dplyr::arrange(P_Val) %>%
-               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = "BH"),
-                             Gene_Dynamic_Lineage  = case_when(P_Val_Adj < .01 ~ 1, TRUE ~ 0)) %>%
-               dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic_Overall = max(Gene_Dynamic_Lineage)) %>% 
-               dplyr::relocate(Gene, LRT_Stat, P_Val)
+```{r}
+slope_test_results <- testSlope(dyn.results = gene_stats)
+slope_test_results
+```
+
+plot models 
+
+```{r}
+
+```
+
+# Run `scLANE` on All Ten Datasets
+
+```{r}
+scl_res_list <- vector("list", length(ts_mf_list))
+for (i in seq(ts_mf_list)) {
+  scl_counts_norm <- FQnorm(t(ts_mf_list[[i]]$counts))
+  scl_pca <- prcomp_irlba(t(scl_counts_norm), n = 3, scale. = FALSE)
+  scl_graph <- bluster::makeSNNGraph(scl_pca$x, k = 30, type = "jaccard")
+  scl_cl <- igraph::cluster_louvain(graph = scl_graph)$membership
+  scl_lineage <- getLineages(scl_pca$x, clusterLabels = scl_cl)
+  scl_crv <- getCurves(scl_lineage)
+  scl_cell_weights <- slingCurveWeights(scl_crv)
+  scl_pt <- slingPseudotime(scl_crv, na = FALSE)
+  pt_df <- as.data.frame(scl_pt) %>% 
+           setNames(nm = unlist(map(LETTERS[1:ncol(.)], function(.x) paste0("Lineage_", .x)))) %>%  # adaptively names lineage columns WITHOUT numbers
+           mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
+  gene_stats <- testDynamic(expr.mat = ts_mf_list[[i]]$counts, 
+                            pt = pt_df, 
+                            parallel.exec = TRUE, 
+                            n.cores = 6, 
+                            track.time = TRUE)
+  scl_res_list[[i]] <- gene_stats
+  rm(gene_stats)
+}
+```
+
+```{r}
+global_res_list <- map(scl_res_list, getResultsDE)
+for (i in seq(global_res_list)) { 
+  global_res_list[[i]] <- global_res_list[[i]] %>% 
+                          mutate(Dataset = names(ts_mf_list)[i]) %>% 
+                          left_join(ts_mf_list[[i]]$tde_overall, by = c("Gene" = "feature_id")) %>% 
+                          mutate(True_DE_Ind = case_when(differentially_expressed ~ 1, TRUE ~ 0))
+}
+global_res_df <- reduce(global_res_list, rbind)
+```
+
+Let's check out our overall prediction metrics. 
+
+```{r}
+global_res_de_sum <- global_res_df %>% 
+                     select(Gene, Dataset, Gene_Dynamic_Overall, True_DE_Ind) %>% 
+                     distinct()
+caret::confusionMatrix(data = as.factor(global_res_de_sum$Gene_Dynamic_Overall), 
+                       reference = as.factor(global_res_de_sum$True_DE_Ind), 
+                       positive = "1")
 ```
 

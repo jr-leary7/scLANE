@@ -23,7 +23,7 @@ getResultsDE <- function(test.dyn.results = NULL,
   # check inputs
   if (is.null(test.dyn.results)) stop("Please provide a result list.")
   # take non-dataframe items of nested list structure from testDynamic() and turn them into a dataframe
-  result_df <- purrr::map(gene_stats, function(x) { purrr::map(x, function(y) data.frame(y[1:9])) %>% purrr::reduce(rbind) }) %>%
+  result_df <- purrr::map(test.dyn.results, function(x) { purrr::map(x, function(y) data.frame(y[1:9])) %>% purrr::reduce(rbind) }) %>%
                purrr::reduce(rbind) %>%
                dplyr::arrange(P_Val) %>%
                dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),

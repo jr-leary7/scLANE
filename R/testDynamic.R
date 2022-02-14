@@ -43,6 +43,9 @@ testDynamic <- function(expr.mat = NULL,
   if (class(pt) != "data.frame") stop("Input pt must be of class data.frame.")
   if (track.time) { start_time <- Sys.time() }
   if (is.null(genes)) { genes <- colnames(expr.mat) }
+  # set column names automatically to prevent user error
+  n_lineages <- ncol(pt)
+  colnames(pt) <- paste0("Lineage_", LETTERS[1:n_lineages])
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
     doParallel::registerDoParallel(cl)
@@ -56,15 +59,14 @@ testDynamic <- function(expr.mat = NULL,
   }
   expr.mat <- bigstatsr::as_FBM(expr.mat)
   # build list of objects to prevent from being sent to workers
-  if (any(ls(envir = .GlobalEnv) %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns"))) {
-    no_export <-  c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns"))],
-                    ls()[-which(ls() %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns"))])
+  if (any(ls(envir = .GlobalEnv) %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns", "n_lineages"))) {
+    no_export <-  c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns", "n_lineages"))],
+                    ls()[-which(ls() %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns", "n_lineages"))])
   } else {
     no_export <- c(ls(envir = .GlobalEnv),
-                   ls()[-which(ls() %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns"))])
+                   ls()[-which(ls() %in% c("expr.mat", "genes", "pt", "n.potential.basis.fns", "n_lineages"))])
   }
   no_export <- unique(no_export)
-  n_lineages <- ncol(pt)
   # build models per-lineage per-gene, parallelize over genes
   test_stats <- foreach::foreach(i = seq_along(genes),
                                  .combine = "list",
@@ -99,7 +101,7 @@ testDynamic <- function(expr.mat = NULL,
         mod_status <- "MARGE & null model errors"
         # generate empty dataframe for slope test
         slope_data_error <- data.frame(Gene = genes[i],
-                                       Lineage = j,
+                                       Lineage = LETTERS[j],
                                        Breakpoint = NA_real_,
                                        Rounded_Breakpoint = NA_real_,
                                        Direction = NA_character_,
@@ -107,7 +109,7 @@ testDynamic <- function(expr.mat = NULL,
                                        Notes = mod_status)
         # create lineage result list
         lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = j,
+                                  Lineage = LETTERS[j],
                                   LRT_Stat = NA_real_,
                                   P_Val = NA_real_,
                                   LogLik_MARGE = NA_real_,
@@ -138,7 +140,7 @@ testDynamic <- function(expr.mat = NULL,
                         dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
         # create lineage result list
         lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = j,
+                                  Lineage = LETTERS[j],
                                   LRT_Stat = NA_real_,
                                   P_Val = NA_real_,
                                   LogLik_MARGE = NA_real_,
@@ -162,7 +164,7 @@ testDynamic <- function(expr.mat = NULL,
         )
         # generate data for slope test
         marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt[lineage_cells, j, drop = FALSE]) %>%
-                          dplyr::mutate(Gene = genes[i], Lineage = j) %>%
+                          dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
                           dplyr::relocate(Gene, Lineage)
         # create marge summary table
         marge_sumy_df <- broom::tidy(marge_mod$final_mod) %>%
@@ -171,7 +173,7 @@ testDynamic <- function(expr.mat = NULL,
                          as.data.frame()
         # create lineage result list
         lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = j,
+                                  Lineage = LETTERS[j],
                                   LRT_Stat = NA_real_,
                                   P_Val = NA_real_,
                                   LogLik_MARGE = as.numeric(stats::logLik(marge_mod$final_mod)),
@@ -201,7 +203,7 @@ testDynamic <- function(expr.mat = NULL,
         )
         # generate data for slope test
         marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod, pt = pt[lineage_cells, j, drop = FALSE]) %>%
-                          dplyr::mutate(Gene = genes[i], Lineage = j) %>%
+                          dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
                           dplyr::relocate(Gene, Lineage)
         # generate model summary tables
         null_sumy_df <- broom::tidy(null_mod) %>% as.data.frame()
@@ -213,7 +215,7 @@ testDynamic <- function(expr.mat = NULL,
         lrt_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
         # create lineage result list
         lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = j,
+                                  Lineage = LETTERS[j],
                                   LRT_Stat = lrt_res$LRT_Stat,
                                   P_Val = lrt_res$P_Val,
                                   LogLik_MARGE = lrt_res$Alt_Mod_LL,
@@ -230,7 +232,7 @@ testDynamic <- function(expr.mat = NULL,
         stop(sprintf("Conditions for marge or null model fits not met for gene %s on lineage %s.", genes[i], j))
       }
     }
-    names(lineage_list) <- paste0("Lineage_", seq(n_lineages))
+    names(lineage_list) <- paste0("Lineage_", LETTERS[1:n_lineages])
     rm(marge_mod, null_mod)  # a vain attempt to conserve memory
     lineage_list
   }

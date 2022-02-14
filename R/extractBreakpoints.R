@@ -24,7 +24,7 @@ extractBreakpoints <- function(model = NULL, directions = TRUE) {
   brkpts_char <- gsub("-", "", gsub("_", "", coef_nums))
   brkpt_df <- data.frame(Breakpoint = as.numeric(brkpts_char))
   if (directions) {
-    brkpt_dirs <- ifelse(grepl("^PT-.*", coef_names), "Right", "Left")
+    brkpt_dirs <- ifelse(grepl("_[A-Z]-.*", coef_names), "Right", "Left")
     brkpt_df$Direction <- brkpt_dirs
   }
   return(brkpt_df)

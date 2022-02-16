@@ -3,165 +3,133 @@
 #' @name plotModels
 #' @author Jack Leary
 #' @import magrittr
+#' @importFrom ggplot2 theme_classic ggplot aes geom_point geom_line geom_ribbon facet_wrap scale_y_continuous labs theme element_text
 #' @importFrom stats qnorm predict
-#' @importFrom dplyr mutate rename bind_cols pull
-#' @importFrom ggplot2 ggplot aes geom_point geom_line scale_y_continuous labs theme_classic theme element_text geom_ribbon scale_color_manual scale_fill_manual geom_vline
+#' @importFrom purrr map map2 reduce
+#' @importFrom dplyr relocate mutate select contains case_when filter
+#' @importFrom tidyr pivot_longer
 #' @importFrom scales comma_format
-#' @description This function visualizes the fitted values of a \code{marge} model over the expression and pseudotime values of each cell.
-#' @param gene.counts A vector of integer expression values for each cell. Defaults to NULL.
+#' @description This function visualizes the fitted values of several types of models over the expression and pseudotime values of each cell.
+#' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to NULL.
+#' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object & to subset the counts matrix. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
-#' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.
-#' @param marge.preds (Optional) The fitted values for a \code{marge} model as returned by \code{\link{testDynamic}}. Defaults to NULL.
-#' @param marge.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the \code{marge} model. Defaults to TRUE.
-#' @param plot.breakpoints A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.
-#' @param null.preds (Optional) The fitted values for a null (intercept-only) model as returned by \code{\link{testDynamic}}. Defaults to NULL.
-#' @param null.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the null model. Defaults to FALSE.
-#' @param marge.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE
-#' @param plot.gam (Optional) Should the fitted values from an NB GAM be plotted? Defaults to FALSE.
-#' @param gam.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.
-#' @param plot.glm (Optional) Should the fitted values from an NB GLM be plotted? Defaults to FALSE.
-#' @param glm.ci A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.
-#' @param tradeseq.mod (Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. NOTE: this functionality is not fully implemented yet. Defaults to NULL.
+#' @param gene.counts A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.
 #' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
-#' @param plot.alpha (Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.
-#' @param line.size (Optional) The size of the lines showing the fitted values for each model. Defaults to 1.25.
-#' @param plot.theme (Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.
+#' @param plot.null (Optional) Should the fitted values from the intercept-only null model be plotted? Defaults to TRUE.
+#' @param plot.glm (Optional) Should the fitted values from an NB GLM be plotted? Defaults to TRUE.
+#' @param plot.gam (Optional) Should the fitted values from an NB GAM be plotted? Defaults to TRUE.
+#' @param plot.marge (Optional) Should the fitted values from the \code{marge} model be plotted? Defaults to TRUE.
+#' @param filter.lineage (Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.
+#' @param gg.theme (Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.
 #' @return A \code{ggplot} object.
 #' @export
 #' @examples
-#' \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", plot.gam = TRUE)}
-#' \dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)}
+#' \dontrun{PlotMARGE(gene_stats, gene = "AURKA", pt = pt_df, gene.counts = count_mat)}
+#' \dontrun{PlotMARGE(gene_stats, gene = "BRCA2", pt = pt_df, gene.counts = count_mat, ci.alpha = 0.1, filter.lineage = c("A", "C"))}
 
-plotModels <- function(marge.preds = NULL,
-                       gene.counts = NULL,
-                       pt = NULL,
+plotModels <- function(test.dyn.res = NULL,
                        gene = NULL,
-                       marge.ci = TRUE,
-                       plot.breakpoints = FALSE,
-                       null.preds = NULL,
-                       null.ci = TRUE,
-                       plot.gam = FALSE,
-                       gam.ci = TRUE,
-                       plot.glm = FALSE,
-                       glm.ci = TRUE,
-                       tradeseq.mod = NULL,
+                       pt = NULL,
+                       gene.counts = NULL,
                        ci.alpha = 0.05,
-                       plot.alpha = 0.25,
-                       line.size = 1.25,
-                       plot.theme = NULL) {
+                       plot.null = TRUE,
+                       plot.glm = TRUE,
+                       plot.gam = TRUE,
+                       plot.marge = TRUE,
+                       filter.lineage = NULL,
+                       gg.theme = ggplot2::theme_classic(base_size = 14)) {
   # check inputs
-  if (is.null(gene.counts) | is.null(pt) | is.null(gene) | is.null(ci.alpha)) { stop("You forgot one or more of the arguments to plotModels().") }
+  if (is.null(gene.counts) | is.null(pt) | is.null(gene) | is.null(test.dyn.res)) { stop("You forgot one or more of the arguments to plotModels().") }
   # generate parameters for CIs
   Z <- abs(stats::qnorm(ci.alpha / 2))
-  if (is.null(plot.theme)) {
-    plot.theme <- ggplot2::theme_classic(base_size = 14)
-  }
-  col_values <- c()
-  fill_values <- c()
-  # create dataframe of gene / PT data
-  plot_df <- data.frame(PT = pt[, 1], counts = gene.counts)
-  # generate base plot
-  p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = PT, y = counts)) +
-       ggplot2::geom_point(alpha = 0.75, size = 2.5) +
+  # select sublist for gene of interest
+  td_res <- test.dyn.res[[gene]]
+  # make sure lineages are named nicely
+  colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
+  # create base list w/ elements being lineage-specific dataframes
+  counts_df_list <- purrr::map(pt, function(x) data.frame(CELL = rownames(pt)[!is.na(x)],
+                                                          PT = x[!is.na(x)],
+                                                          COUNT = gene.counts[!is.na(x), gene]))
+  for (i in seq(length(counts_df_list))) { counts_df_list[[i]]$LINEAGE <- LETTERS[i] }
+  # create list of dataframes w/ predicted values, standard errors, CIs for null, GLM, GAM, & MARGE models
+  counts_df_list <- purrr::map(counts_df_list, function(x) x %>% dplyr::relocate(CELL, LINEAGE, COUNT, PT)) %>%
+                    purrr::map2(.y = td_res, function(.x, .y) .x %>% dplyr::mutate(RESP_MARGE = .y$MARGE_Preds$marge_link_fit,
+                                                                                   SE_MARGE = .y$MARGE_Preds$marge_link_se,
+                                                                                   PRED_MARGE = exp(RESP_MARGE),
+                                                                                   CI_LL_MARGE = exp(RESP_MARGE - Z * SE_MARGE),
+                                                                                   CI_UL_MARGE = exp(RESP_MARGE + Z * SE_MARGE),
+                                                                                   RESP_NULL = .y$Null_Preds$null_link_fit,
+                                                                                   SE_NULL = .y$Null_Preds$null_link_se,
+                                                                                   PRED_NULL = exp(RESP_NULL),
+                                                                                   CI_LL_NULL = exp(RESP_NULL - Z * SE_NULL),
+                                                                                   CI_UL_NULL = exp(RESP_NULL + Z * SE_NULL))) %>%
+                    purrr::map(function(x) {
+                      glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
+                      glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
+                      x %<>% dplyr::mutate(RESP_GLM = glm_preds$fit,
+                                           SE_GLM = glm_preds$se.fit,
+                                           PRED_GLM = exp(RESP_GLM),
+                                           CI_LL_GLM = exp(RESP_GLM - Z * SE_GLM),
+                                           CI_UL_GLM = exp(RESP_GLM + Z * SE_GLM))
+                      return(x)
+                    }) %>%
+                    purrr::map(function(x) {
+                      gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT)
+                      gam_preds <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
+                      x %<>% dplyr::mutate(RESP_GAM = gam_preds$fit,
+                                           SE_GAM = gam_preds$se.fit,
+                                           PRED_GAM = exp(RESP_GAM),
+                                           CI_LL_GAM = exp(RESP_GAM - Z * SE_GAM),
+                                           CI_UL_GAM = exp(RESP_GAM + Z * SE_GAM))
+                      return(x)
+                    }) %>%
+                    purrr::map(function(x) {
+                      dplyr::select(x, CELL, LINEAGE, COUNT, PT) %>%
+                      dplyr::left_join((x %>%
+                                        dplyr::select(CELL, LINEAGE, dplyr::contains("RESP")) %>%
+                                        tidyr::pivot_longer(cols = dplyr::contains("RESP"), values_to = "RESPONSE", names_to = "MODEL") %>%
+                                        dplyr::mutate(MODEL = gsub("RESP_", "", MODEL))),
+                                       by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE")) %>%
+                      dplyr::left_join((x %>%
+                                        dplyr::select(CELL, LINEAGE, dplyr::contains("SE")) %>%
+                                        tidyr::pivot_longer(cols = dplyr::contains("SE"), values_to = "SE", names_to = "MODEL") %>%
+                                        dplyr::mutate(MODEL = gsub("SE_", "", MODEL))),
+                                       by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
+                      dplyr::left_join((x %>%
+                                        dplyr::select(CELL, LINEAGE, dplyr::contains("PRED")) %>%
+                                        tidyr::pivot_longer(cols = dplyr::contains("PRED"), values_to = "PRED", names_to = "MODEL") %>%
+                                        dplyr::mutate(MODEL = gsub("PRED_", "", MODEL))),
+                                       by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
+                      dplyr::left_join((x %>%
+                                        dplyr::select(CELL, LINEAGE, dplyr::contains("CI_LL")) %>%
+                                        tidyr::pivot_longer(cols = dplyr::contains("CI_LL"), values_to = "CI_LL", names_to = "MODEL") %>%
+                                        dplyr::mutate(MODEL = gsub("CI_LL_", "", MODEL))),
+                                       by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
+                      dplyr::left_join((x %>%
+                                        dplyr::select(CELL, LINEAGE, dplyr::contains("CI_UL")) %>%
+                                        tidyr::pivot_longer(cols = dplyr::contains("CI_UL"), values_to = "CI_UL", names_to = "MODEL") %>%
+                                        dplyr::mutate(MODEL = gsub("CI_UL_", "", MODEL))),
+                                       by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL"))
+    })
+  counts_df <- counts_df_list %>%
+               purrr::reduce(rbind) %>%
+               dplyr::mutate(MODEL = factor(dplyr::case_when(MODEL == "NULL" ~ "Intercept-only", TRUE ~ MODEL),
+                                           levels = c("Intercept-only", "GLM", "GAM", "MARGE")))
+  # add conditional filters here
+  if (!plot.null) { counts_df %<>% dplyr::filter(MODEL != "Intercept-only") }
+  if (!plot.glm) { counts_df %<>% dplyr::filter(MODEL != "GLM") }
+  if (!plot.gam) { counts_df %<>% dplyr::filter(MODEL != "GAM") }
+  if (!plot.marge) { counts_df %<>% dplyr::filter(MODEL != "MARGE") }
+  if (!is.null(filter.lineage)) { counts_df %<>% dplyr::filter(!LINEAGE %in% filter.lineage) }
+  # generate plot
+  p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
+       ggplot2::geom_point(alpha = 0.5, size = 0.5) +
+       ggplot2::geom_line(ggplot2::aes(x = PT, y = PRED, color = LINEAGE), size = 1) +
+       ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL, fill = LINEAGE), alpha = 0.5, size = 0) +
+       ggplot2::facet_wrap(~MODEL) +
        ggplot2::scale_y_continuous(labels = scales::comma_format()) +
-       ggplot2::labs(x = "Pseudotime", y = "Expression", title = gene) +
-       ggplot2::theme_classic(base_size = 14) +
+       ggplot2::labs(x = "Pseudotime", y = "Expression", color = "Lineage", fill = "Lineage", title = gene) +
+       gg.theme +
        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
-
-  # optionally add intercept-only model fitted values + CI to plot
-  if (!is.null(null.preds)) {
-    null_plot_df <- null.preds %>%
-                    dplyr::mutate(null_resp = exp(null_link_fit),
-                                  null_LL = exp(null_link_fit - Z * null_link_se),
-                                  null_UL = exp(null_link_fit + Z * null_link_se),
-                                  PT = pt[, 1],
-                                  counts = gene.counts)
-    p <- p + ggplot2::geom_line(null_plot_df, mapping = ggplot2::aes(x = PT, y = null_resp, color = "Null"), size = line.size)
-    col_values <- c(col_values, "forestgreen")
-    # optionally add CI for null model (lol)
-    if (null.ci) {
-      p <- p + ggplot2::geom_ribbon(null_plot_df, mapping = ggplot2::aes(x = PT, ymin = null_LL, ymax = null_UL, fill = "Null"), alpha = plot.alpha) +
-               ggplot2::labs(color = "Model", fill = "Model")
-      fill_values <- c(fill_values, "forestgreen")
-    }
-  }
-
-  # optionally add NB GLM fitted values + CI to plot
-  if (plot.glm) {
-    glm_mod <- MASS::glm.nb(gene.counts ~ ., pt, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
-    glm_plot_df <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-                   dplyr::rename(glm_link_fit = fit, glm_link_se = se.fit) %>%
-                   dplyr::mutate(glm_resp = exp(glm_link_fit),
-                                 glm_LL = exp(glm_link_fit - Z * glm_link_se),
-                                 glm_UL = exp(glm_link_fit + Z * glm_link_se),
-                                 PT = pt[, 1],
-                                 counts = gene.counts)
-    p <- p + ggplot2::geom_line(glm_plot_df, mapping = ggplot2::aes(x = PT, y = glm_resp, color = "NB GLM"), size = line.size) +
-             ggplot2::labs(color = "Model", fill = "Model")
-    col_values <- c(col_values, "goldenrod2")
-    # optionally add CI for NB GLM
-    if (glm.ci) {
-      p <- p + ggplot2::geom_ribbon(glm_plot_df, mapping = ggplot2::aes(x = PT, ymin = glm_LL, ymax = glm_UL, fill = "NB GLM"), alpha = plot.alpha)
-      fill_values <- c(fill_values, "goldenrod2")
-    }
-  }
-
-  # optionally add NB GAM fitted values + CI to plot
-  if (plot.gam) {
-    gam_mod <- nbGAM(expr = gene.counts, pt = pt)
-    gam_plot_df <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-                   dplyr::rename(gam_link_fit = fit, gam_link_se = se.fit) %>%
-                   dplyr::mutate(gam_resp = exp(gam_link_fit),
-                                 gam_LL = exp(gam_link_fit - Z * gam_link_se),
-                                 gam_UL = exp(gam_link_fit + Z * gam_link_se),
-                                 PT = pt[, 1],
-                                 counts = gene.counts)
-    p <- p + ggplot2::geom_line(gam_plot_df, mapping = ggplot2::aes(x = PT, y = gam_resp, color = "NB GAM"), size = line.size) +
-             ggplot2::labs(color = "Model", fill = "Model")
-    col_values <- c(col_values, "firebrick")
-    # optionally add CI for NB GAM
-    if (gam.ci) {
-      p <- p + ggplot2::geom_ribbon(gam_plot_df, mapping = ggplot2::aes(x = PT, ymin = gam_LL, ymax = gam_UL, fill = "NB GAM"), alpha = plot.alpha)
-      fill_values <- c(fill_values, "firebrick")
-    }
-  }
-
-  # optionally add tradeSeq GAM fitted values + CI to plot TODO: Jack
-  # if (!is.null(tradeseq.mod)) {
-    # tradeSeq_plot_df <- data.frame(stats::predict(tradeseq.mod, type = "link", se.fit = TRUE)[1:2]) %>%
-    #                     dplyr::rename(trade_link_fit = fit, trade_link_se = se.fit) %>%
-    #                     dplyr::mutate(trade_resp = exp(trade_link_fit),
-    #                                   trade_LL = exp(trade_link_fit - Z * trade_link_se),
-    #                                   trade_UL = exp(trade_link_fit + Z * trade_link_se),
-    #                                   PT = pt[, 1],
-    #                                   counts = gene.counts)
-  # }
-
-  #  optionally add MARGE model fitted values + CI to plot
-  if (!is.null(marge.preds)) {
-    marge_plot_df <- marge.preds %>%
-                     dplyr::mutate(marge_resp = exp(marge_link_fit),
-                                   marge_LL = exp(marge_link_fit - Z * marge_link_se),
-                                   marge_UL = exp(marge_link_fit + Z * marge_link_se),
-                                   PT = pt[, 1],
-                                   counts = gene.counts)
-    p <- p + ggplot2::geom_line(marge_plot_df, mapping = ggplot2::aes(x = PT, y = marge_resp, color = "MARGE"), size = line.size) +
-             ggplot2::labs(color = "Model", fill = "Model")
-    col_values <- c(col_values, "dodgerblue")
-    # optionally add CI for MARGE model
-    if (marge.ci) {
-      p <- p + ggplot2::geom_ribbon(marge_plot_df, mapping = ggplot2::aes(ymin = marge_LL, ymax = marge_UL, fill = "MARGE"), alpha = plot.alpha)
-      fill_values <- c(fill_values, "dodgerblue")
-    }
-  }
-
-  # finalize colors
-  p <- p + ggplot2::scale_color_manual(values = col_values) +
-           ggplot2::scale_fill_manual(values = fill_values)
-  # optionally add vertical lines for MARGE model breakpoints
-  if (plot.breakpoints) {
-    breakpoints <- extractBreakpoints(model = marge.mod) %>% pull(Breakpoint)
-    p <- p + ggplot2::geom_vline(xintercept = breakpoints)
-  }
   return(p)
 }

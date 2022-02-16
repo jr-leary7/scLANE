@@ -5,7 +5,7 @@
 #' @description Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" would be fine but "pseudotime1" would not.
 #' @importFrom stats coef
 #' @param model The \code{marge} model to analyze. Defaults to NULL.
-#' @param directions Should the directions of the hinge functions also be extracted? Defults to TRUE.
+#' @param directions Should the directions of the hinge functions also be extracted? Defaults to TRUE.
 #' @return A data.frame of breakpoints & their directions.
 #' @export
 #' @examples
@@ -24,7 +24,7 @@ extractBreakpoints <- function(model = NULL, directions = TRUE) {
   brkpts_char <- gsub("-", "", gsub("_", "", coef_nums))
   brkpt_df <- data.frame(Breakpoint = as.numeric(brkpts_char))
   if (directions) {
-    brkpt_dirs <- ifelse(grepl("^PT-.*", coef_names), "Right", "Left")
+    brkpt_dirs <- ifelse(grepl("_[A-Z]-.*", coef_names), "Right", "Left")
     brkpt_df$Direction <- brkpt_dirs
   }
   return(brkpt_df)

@@ -5,13 +5,13 @@
 \title{Tidy the results of \code{\link{testDynamic}}.}
 \usage{
 getResultsDE(
-  test.results = NULL,
+  test.dyn.results = NULL,
   p.adj.method = "bonferroni",
   fdr.cutoff = 0.01
 )
 }
 \arguments{
-\item{test.results}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
+\item{test.dyn.results}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
 
 \item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "bonferroni".}
 
@@ -24,7 +24,8 @@ A data.frame containing differential expression results & modeling statistics fo
 This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
 }
 \examples{
-\dontrun{GetResultsDE(scLANE.results = scLANE_res_list)}
+\dontrun{GetResultsDE(test.dyn.results = gene_stats)}
+#' \dontrun{GetResultsDE(test.dyn.results = gene_stats, p.adj.method = "BH")}
 }
 \seealso{
 \code{\link{testDynamic}} \code{\link{p.adjust}}

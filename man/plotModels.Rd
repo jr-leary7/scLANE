@@ -5,69 +5,51 @@
 \title{Plot results of \code{marge} and other models using \code{ggplot2}.}
 \usage{
 plotModels(
-  marge.preds = NULL,
-  gene.counts = NULL,
-  pt = NULL,
+  test.dyn.res = NULL,
   gene = NULL,
-  marge.ci = TRUE,
-  plot.breakpoints = FALSE,
-  null.preds = NULL,
-  null.ci = TRUE,
-  plot.gam = FALSE,
-  gam.ci = TRUE,
-  plot.glm = FALSE,
-  glm.ci = TRUE,
-  tradeseq.mod = NULL,
+  pt = NULL,
+  gene.counts = NULL,
   ci.alpha = 0.05,
-  plot.alpha = 0.25,
-  line.size = 1.25,
-  plot.theme = NULL
+  plot.null = TRUE,
+  plot.glm = TRUE,
+  plot.gam = TRUE,
+  plot.marge = TRUE,
+  filter.lineage = NULL,
+  gg.theme = ggplot2::theme_classic(base_size = 14)
 )
 }
 \arguments{
-\item{marge.preds}{(Optional) The fitted values for a \code{marge} model as returned by \code{\link{testDynamic}}. Defaults to NULL.}
+\item{test.dyn.res}{The output from \code{\link{testDynamic}}. Defaults to NULL.}
 
-\item{gene.counts}{A vector of integer expression values for each cell. Defaults to NULL.}
+\item{gene}{The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object & to subset the counts matrix. Defaults to NULL.}
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{gene}{The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object. Defaults to NULL.}
-
-\item{marge.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional intercept-only model. Defaults to FALSE}
-
-\item{plot.breakpoints}{A boolean indicating whether or not vertical lines for each changepoint in the \code{marge} model should be plotted. Defaults to FALSE.}
-
-\item{null.preds}{(Optional) The fitted values for a null (intercept-only) model as returned by \code{\link{testDynamic}}. Defaults to NULL.}
-
-\item{null.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the null model. Defaults to FALSE.}
-
-\item{plot.gam}{(Optional) Should the fitted values from an NB GAM be plotted? Defaults to FALSE.}
-
-\item{gam.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{gam} model. Defaults to TRUE.}
-
-\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be plotted? Defaults to FALSE.}
-
-\item{glm.ci}{A boolean indicating whether a (\eqn{1 - \alpha})\% CI ribbon should be drawn for the optional \code{glm} model. Defaults to TRUE.}
-
-\item{tradeseq.mod}{(Optional) An \code{tradeseq} object specifying a GAM fit using the \code{tradeSeq} package. NOTE: this functionality is not fully implemented yet. Defaults to NULL.}
+\item{gene.counts}{A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.}
 
 \item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 
-\item{plot.alpha}{(Optional) The opacity of the user-specified confidence interval bands. Defaults to 0.25.}
+\item{plot.null}{(Optional) Should the fitted values from the intercept-only null model be plotted? Defaults to TRUE.}
 
-\item{line.size}{(Optional) The size of the lines showing the fitted values for each model. Defaults to 1.25.}
+\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be plotted? Defaults to TRUE.}
 
-\item{plot.theme}{(Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.}
+\item{plot.gam}{(Optional) Should the fitted values from an NB GAM be plotted? Defaults to TRUE.}
+
+\item{plot.marge}{(Optional) Should the fitted values from the \code{marge} model be plotted? Defaults to TRUE.}
+
+\item{filter.lineage}{(Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.}
+
+\item{gg.theme}{(Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
-This function visualizes the fitted values of a \code{marge} model over the expression and pseudotime values of each cell.
+This function visualizes the fitted values of several types of models over the expression and pseudotime values of each cell.
 }
 \examples{
-\dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", plot.gam = TRUE)}
-\dontrun{PlotMARGE(marge_mod, gene.counts = exp_vec, pt = pt_df, gene = "BRCA2", marge.ci = TRUE, ci.alpha = 0.1)}
+\dontrun{PlotMARGE(gene_stats, gene = "AURKA", pt = pt_df, gene.counts = count_mat)}
+\dontrun{PlotMARGE(gene_stats, gene = "BRCA2", pt = pt_df, gene.counts = count_mat, ci.alpha = 0.1, filter.lineage = c("A", "C"))}
 }
 \author{
 Jack Leary

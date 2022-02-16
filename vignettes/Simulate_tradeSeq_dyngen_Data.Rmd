@@ -26,7 +26,7 @@ set.seed(312)  # lucky seed
 
 # Libraries
 
-```{r}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 library(dplyr)
 library(purrr)
 library(irlba)
@@ -35,6 +35,7 @@ library(parallel)
 library(tradeSeq)
 library(slingshot)
 library(doParallel)
+rename <- dplyr::rename
 ```
 
 # Load Multifurcating Datasets
@@ -45,6 +46,17 @@ Here we'll read in 10 datasets generated using the `dyntoy` package taken from [
 ts_mf_dir <- "~/Desktop/UF Biostatistics/Capstone/tradeSeqPaper/simulation/sim2_dyntoy_multifurcating_4/multiple/datasets/"
 ts_mf_list <- map(paste0(ts_mf_dir, list.files(ts_mf_dir)), readRDS)
 names(ts_mf_list) <- paste0("dyntoy_", gsub("\\.rds", "", gsub(".*_", "", list.files(ts_mf_dir))))
+```
+
+Let's examine the counts distribution of each dataset. 
+
+```{r}
+nonzero_counts <- map(ts_mf_list, function(x) sum(x$counts > 0))
+zero_counts <- map(ts_mf_list, function(x) sum(x$counts == 0))
+reduce(zero_counts, `+`) / reduce(nonzero_counts, `+`)
+count_sum <- map(ts_mf_list, function(x) sum(x$counts)) %>% reduce(`+`)
+n_elem <- map(ts_mf_list, function(x) nrow(x$counts) * ncol(x$counts)) %>% reduce(`+`)
+count_sum / n_elem
 ```
 
 # Process Data & Run `tradeSeq`
@@ -90,11 +102,12 @@ ts_res_all <- foreach(i = 1:length(ts_mf_list),
                      k = k_vals, 
                      verbose = FALSE)
   k_to_use <- k_vals[which.min(colMeans(icMat))]
-  ts_gam_list <- fitGAM(t(ts_mf_list[[i]]$counts), 
-                        pseudotime = ts_pt, 
-                        cellWeights = ts_cell_weights, 
-                        nknots = k_to_use, 
-                        verbose = FALSE)
+  ts_gam <- fitGAM(t(ts_mf_list[[i]]$counts), 
+                   pseudotime = ts_pt, 
+                   cellWeights = ts_cell_weights, 
+                   nknots = k_to_use, 
+                   verbose = FALSE)
+  ts_gam
 }
 stopCluster(cl)
 names(ts_res_all) <- names(ts_mf_list)
@@ -105,7 +118,7 @@ Next we'll need to run `tradeSeq::associationTest()` on each GAM to determine wh
 ```{r}
 ts_asso_test_list <- map2(.x = ts_res_all, 
                           .y = ts_mf_list, 
-                          ~ associationTest(.x) %>% bind_cols(.y$tde_overall$differentially_expressed))
+                          ~ associationTest(.x, lineages = TRUE) %>% bind_cols(.y$tde_overall$differentially_expressed))
 ts_asso_test_df <- reduce(ts_asso_test_list, bind_rows) %>% 
                    mutate(dataset = rep(names(ts_mf_list), each = 5000)) %>% 
                    setNames(nm = c("wald_stat", "df", "pvalue", "mean_log_fc", "true_de", "dataset")) %>% 
@@ -121,3 +134,287 @@ caret::confusionMatrix(data = as.factor(ts_asso_test_df$ts_de),
                        reference = as.factor(ts_asso_test_df$true_de), 
                        positive = "TRUE")
 ```
+
+# DE Testing Over Multiple Lineages with `scLANE`
+
+This is a test case with just one dataset until I get all the functions working. 
+
+```{r}
+scl_counts_norm <- FQnorm(t(ts_mf_list[[1]]$counts))
+scl_pca <- prcomp_irlba(t(scl_counts_norm), n = 3, scale. = FALSE)
+scl_graph <- bluster::makeSNNGraph(scl_pca$x, k = 30, type = "jaccard")
+scl_cl <- igraph::cluster_louvain(graph = scl_graph)$membership
+scl_lineage <- getLineages(scl_pca$x, clusterLabels = scl_cl)
+scl_crv <- getCurves(scl_lineage)
+scl_cell_weights <- slingCurveWeights(scl_crv)
+scl_pt <- slingPseudotime(scl_crv)
+```
+
+# Development Area 
+
+```{r}
+library(scLANE)
+pt_df <- as.data.frame(scl_pt) %>% 
+         mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
+sim_counts <- ts_mf_list[[1]]$counts
+set.seed(312)
+samp_idx <- sample(1:ncol(sim_counts), 10)
+gene_stats <- testDynamic(expr.mat = sim_counts[, samp_idx], 
+                          pt = pt_df, 
+                          parallel.exec = TRUE, 
+                          n.cores = 2, 
+                          track.time = TRUE)
+```
+
+```{r}
+global_test_results <- getResultsDE(gene_stats)
+global_test_results
+```
+
+
+slope test
+
+```{r}
+slope_test_results <- testSlope(dyn.results = gene_stats)
+slope_test_results
+```
+
+plot models 
+
+```{r}
+Z <- 1.96
+gene <- "G2730"
+td_res <- gene_stats[[gene]]
+colnames(pt_df) <- paste0("Lineage_", LETTERS[1:2])
+counts_df_list <- map(pt_df, function(x) data.frame(CELL = rownames(pt_df)[!is.na(x)], 
+                                                    PT = x[!is.na(x)], 
+                                                    COUNT = sim_counts[!is.na(x), gene]))
+for (i in seq(length(counts_df_list))) { counts_df_list[[i]]$LINEAGE <- LETTERS[i] }
+counts_df_list <- map(counts_df_list, function(x) x %>% relocate(CELL, LINEAGE, COUNT, PT)) %>% 
+                  map2(.y = td_res, function(.x, .y) .x %>% mutate(RESP_MARGE = .y$MARGE_Preds$marge_link_fit, 
+                                                                   SE_MARGE = .y$MARGE_Preds$marge_link_se, 
+                                                                   PRED_MARGE = exp(RESP_MARGE),
+                                                                   CI_LL_MARGE = exp(RESP_MARGE - Z * SE_MARGE),
+                                                                   CI_UL_MARGE = exp(RESP_MARGE + Z * SE_MARGE), 
+                                                                   RESP_NULL = .y$Null_Preds$null_link_fit, 
+                                                                   SE_NULL = .y$Null_Preds$null_link_se, 
+                                                                   PRED_NULL = exp(RESP_NULL),
+                                                                   CI_LL_NULL = exp(RESP_NULL - Z * SE_NULL),
+                                                                   CI_UL_NULL = exp(RESP_NULL + Z * SE_NULL)))
+                  map(function(x) {
+                    glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
+                    glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
+                    x %<>% mutate(RESP_GLM = glm_preds$fit,
+                                  SE_GLM = glm_preds$se.fit, 
+                                  PRED_GLM = exp(RESP_GLM), 
+                                  CI_LL_GLM = exp(RESP_GLM - Z * SE_GLM),
+                                  CI_UL_GLM = exp(RESP_GLM + Z * SE_GLM))
+                    return(x)
+                  }) %>% 
+                  map(function(x) {
+                    gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT)
+                    gam_preds <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
+                    x %<>% mutate(RESP_GAM = gam_preds$fit,
+                                  SE_GAM = gam_preds$se.fit, 
+                                  PRED_GAM = exp(RESP_GAM), 
+                                  CI_LL_GAM = exp(RESP_GAM - Z * SE_GAM),
+                                  CI_UL_GAM = exp(RESP_GAM + Z * SE_GAM))
+                    return(x) 
+                  }) %>% 
+                  map(function(x) {
+                     select(x, CELL, LINEAGE, COUNT, PT) %>% 
+                     left_join((x %>% 
+                                select(CELL, LINEAGE, contains("RESP")) %>% 
+                                pivot_longer(cols = contains("RESP"), values_to = "RESPONSE", names_to = "MODEL") %>% 
+                                mutate(MODEL = gsub("RESP_", "", MODEL))), 
+                               by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE")) %>% 
+                     left_join((x %>% 
+                                select(CELL, LINEAGE, contains("SE")) %>% 
+                                pivot_longer(cols = contains("SE"), values_to = "SE", names_to = "MODEL") %>% 
+                                mutate(MODEL = gsub("SE_", "", MODEL))), 
+                               by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>% 
+                     left_join((x %>% 
+                                select(CELL, LINEAGE, contains("PRED")) %>% 
+                                pivot_longer(cols = contains("PRED"), values_to = "PRED", names_to = "MODEL") %>% 
+                                mutate(MODEL = gsub("PRED_", "", MODEL))), 
+                               by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>% 
+                     left_join((x %>% 
+                                select(CELL, LINEAGE, contains("CI_LL")) %>% 
+                                pivot_longer(cols = contains("CI_LL"), values_to = "CI_LL", names_to = "MODEL") %>% 
+                                mutate(MODEL = gsub("CI_LL_", "", MODEL))), 
+                               by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>% 
+                     left_join((x %>% 
+                                select(CELL, LINEAGE, contains("CI_UL")) %>% 
+                                pivot_longer(cols = contains("CI_UL"), values_to = "CI_UL", names_to = "MODEL") %>% 
+                                mutate(MODEL = gsub("CI_UL_", "", MODEL))), 
+                               by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL"))
+                  })
+counts_df <- counts_df_list %>% 
+             reduce(rbind) %>% 
+             mutate(MODEL = factor(case_when(MODEL == "NULL" ~ "Intercept-only", TRUE ~ MODEL), 
+                                   levels = c("Intercept-only", "GLM", "GAM", "MARGE")))
+ggplot(counts_df, aes(x = PT, y = COUNT, color = LINEAGE)) + 
+  geom_point(alpha = 0.5, size = 0.5) + 
+  geom_line(aes(x = PT, y = PRED, color = LINEAGE), size = 1) + 
+  geom_ribbon(mapping = aes(x = PT, ymin = CI_LL, ymax = CI_UL, fill = LINEAGE), alpha = 0.5, size = 0) + 
+  facet_wrap(~MODEL) + 
+  scale_y_continuous(labels = scales::comma_format()) + 
+  scale_color_manual(values = MetBrewer::met.brewer("Juarez")) + 
+  scale_fill_manual(values = MetBrewer::met.brewer("Juarez")) + 
+  labs(x = "Pseudotime", y = "Expression", color = "Lineage", fill = "Lineage", title = gene) + 
+  theme_classic(base_size = 14) + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+plotModels <- function(test.dyn.res = NULL, gene = NULL, pt = NULL, gene.counts = NULL, gg.theme = ggplot2::theme_classic(base_size = 14)) {
+  td_res <- test.dyn.res[[gene]]
+  colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
+  counts_df_list <- purrr::map(pt, function(x) data.frame(CELL = rownames(pt)[!is.na(x)], 
+                                                          PT = x[!is.na(x)], 
+                                                          COUNT = gene.counts[!is.na(x), gene]))
+  for (i in seq(length(counts_df_list))) { counts_df_list[[i]]$LINEAGE <- LETTERS[i] }
+  counts_df_list <- purrr::map(counts_df_list, function(x) x %>% dplyr::relocate(CELL, LINEAGE, COUNT, PT)) %>% 
+                    purrr::map2(.y = td_res, function(.x, .y) .x %>% dplyr::mutate(RESP_MARGE = .y$MARGE_Preds$marge_link_fit, 
+                                                                     SE_MARGE = .y$MARGE_Preds$marge_link_se, 
+                                                                     PRED_MARGE = exp(RESP_MARGE),
+                                                                     CI_LL_MARGE = exp(RESP_MARGE - Z * SE_MARGE),
+                                                                     CI_UL_MARGE = exp(RESP_MARGE + Z * SE_MARGE), 
+                                                                     RESP_NULL = .y$Null_Preds$null_link_fit, 
+                                                                     SE_NULL = .y$Null_Preds$null_link_se, 
+                                                                     PRED_NULL = exp(RESP_NULL),
+                                                                     CI_LL_NULL = exp(RESP_NULL - Z * SE_NULL),
+                                                                     CI_UL_NULL = exp(RESP_NULL + Z * SE_NULL))) %>% 
+                    purrr::map(function(x) {
+                      glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
+                      glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
+                      x %<>% dplyr::mutate(RESP_GLM = glm_preds$fit,
+                                    SE_GLM = glm_preds$se.fit, 
+                                    PRED_GLM = exp(RESP_GLM), 
+                                    CI_LL_GLM = exp(RESP_GLM - Z * SE_GLM),
+                                    CI_UL_GLM = exp(RESP_GLM + Z * SE_GLM))
+                      return(x)
+                    }) %>% 
+                    purrr::map(function(x) {
+                      gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT)
+                      gam_preds <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
+                      x %<>% dplyr::mutate(RESP_GAM = gam_preds$fit,
+                                    SE_GAM = gam_preds$se.fit, 
+                                    PRED_GAM = exp(RESP_GAM), 
+                                    CI_LL_GAM = exp(RESP_GAM - Z * SE_GAM),
+                                    CI_UL_GAM = exp(RESP_GAM + Z * SE_GAM))
+                      return(x) 
+                    }) %>% 
+                    purrr::map(function(x) {
+                       dplyr::select(x, CELL, LINEAGE, COUNT, PT) %>% 
+                       dplyr::left_join((x %>% 
+                                  dplyr::select(CELL, LINEAGE, dplyr::contains("RESP")) %>% 
+                                  tidyr::pivot_longer(cols = dplyr::contains("RESP"), values_to = "RESPONSE", names_to = "MODEL") %>% 
+                                  dplyr::mutate(MODEL = gsub("RESP_", "", MODEL))), 
+                                 by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE")) %>% 
+                       dplyr::left_join((x %>% 
+                                  dplyr::select(CELL, LINEAGE, dplyr::contains("SE")) %>% 
+                                  tidyr::pivot_longer(cols = dplyr::contains("SE"), values_to = "SE", names_to = "MODEL") %>% 
+                                  dplyr::mutate(MODEL = gsub("SE_", "", MODEL))), 
+                                 by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>% 
+                       dplyr::left_join((x %>% 
+                                  dplyr::select(CELL, LINEAGE, dplyr::contains("PRED")) %>% 
+                                  tidyr::pivot_longer(cols = dplyr::contains("PRED"), values_to = "PRED", names_to = "MODEL") %>% 
+                                  dplyr::mutate(MODEL = gsub("PRED_", "", MODEL))), 
+                                 by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>% 
+                       dplyr::left_join((x %>% 
+                                  dplyr::select(CELL, LINEAGE, dplyr::contains("CI_LL")) %>% 
+                                  tidyr::pivot_longer(cols = dplyr::contains("CI_LL"), values_to = "CI_LL", names_to = "MODEL") %>% 
+                                  dplyr::mutate(MODEL = gsub("CI_LL_", "", MODEL))), 
+                                 by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>% 
+                       dplyr::left_join((x %>% 
+                                  dplyr::select(CELL, LINEAGE, dplyr::contains("CI_UL")) %>% 
+                                  tidyr::pivot_longer(cols = dplyr::contains("CI_UL"), values_to = "CI_UL", names_to = "MODEL") %>% 
+                                  dplyr::mutate(MODEL = gsub("CI_UL_", "", MODEL))), 
+                                 by = c("CELL" = "CELL", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL"))
+                    })
+  counts_df <- counts_df_list %>% 
+               purrr::reduce(rbind) %>% 
+               dplyr::mutate(MODEL = factor(dplyr::case_when(MODEL == "NULL" ~ "Intercept-only", TRUE ~ MODEL), 
+                                     levels = c("Intercept-only", "GLM", "GAM", "MARGE")))
+  # add conditional filters here 
+  
+  # generate plot
+  p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) + 
+       ggplot2::geom_point(alpha = 0.5, size = 0.5) + 
+       ggplot2::geom_line(ggplot2::aes(x = PT, y = PRED, color = LINEAGE), size = 1) + 
+       ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL, fill = LINEAGE), alpha = 0.5, size = 0) + 
+       ggplot2::facet_wrap(~MODEL) + 
+       ggplot2::scale_y_continuous(labels = scales::comma_format()) + 
+       ggplot2::labs(x = "Pseudotime", y = "Expression", color = "Lineage", fill = "Lineage", title = gene) + 
+       gg.theme + 
+       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+  return(p)
+}
+```
+
+
+```{r}
+plotModels(test.dyn.res = gene_stats, gene = gene, pt = pt_df, gene.counts = sim_counts) + 
+  scale_color_manual(values = MetBrewer::met.brewer("Juarez")) + 
+  scale_fill_manual(values = MetBrewer::met.brewer("Juarez"))
+```
+
+
+
+# Run `scLANE` on All Ten Datasets
+
+```{r}
+scl_res_list <- vector("list", length(ts_mf_list))
+for (i in seq(ts_mf_list)) {
+  scl_counts_norm <- FQnorm(t(ts_mf_list[[i]]$counts))
+  scl_pca <- prcomp_irlba(t(scl_counts_norm), n = 3, scale. = FALSE)
+  scl_graph <- bluster::makeSNNGraph(scl_pca$x, k = 30, type = "jaccard")
+  scl_cl <- igraph::cluster_louvain(graph = scl_graph)$membership
+  scl_lineage <- getLineages(scl_pca$x, clusterLabels = scl_cl)
+  scl_crv <- getCurves(scl_lineage)
+  scl_cell_weights <- slingCurveWeights(scl_crv)
+  scl_pt <- slingPseudotime(scl_crv, na = FALSE)
+  pt_df <- as.data.frame(scl_pt) %>% 
+           setNames(nm = unlist(map(LETTERS[1:ncol(.)], function(.x) paste0("Lineage_", .x)))) %>%  # adaptively names lineage columns WITHOUT numbers
+           mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
+  gene_stats <- testDynamic(expr.mat = ts_mf_list[[i]]$counts, 
+                            pt = pt_df, 
+                            parallel.exec = TRUE, 
+                            n.cores = 6, 
+                            track.time = TRUE)
+  scl_res_list[[i]] <- gene_stats
+  rm(gene_stats)
+}
+```
+
+```{r}
+global_res_list <- map(scl_res_list, getResultsDE)
+for (i in seq(global_res_list)) { 
+  global_res_list[[i]] <- global_res_list[[i]] %>% 
+                          mutate(Dataset = names(ts_mf_list)[i]) %>% 
+                          left_join(ts_mf_list[[i]]$tde_overall, by = c("Gene" = "feature_id")) %>% 
+                          mutate(True_DE_Ind = case_when(differentially_expressed ~ 1, TRUE ~ 0))
+}
+global_res_df <- reduce(global_res_list, rbind)
+```
+
+Let's check out our overall prediction metrics. 
+
+```{r}
+global_res_de_sum <- global_res_df %>% 
+                     select(Gene, Dataset, Gene_Dynamic_Overall, True_DE_Ind) %>% 
+                     distinct()
+caret::confusionMatrix(data = as.factor(global_res_de_sum$Gene_Dynamic_Overall), 
+                       reference = as.factor(global_res_de_sum$True_DE_Ind), 
+                       positive = "1")
+```
+
+# Save Data 
+
+```{r}
+saveRDS(scl_res_list, file = "~/Desktop/multifurcating_scLANE_res.Rds")
+saveRDS()
+```
+

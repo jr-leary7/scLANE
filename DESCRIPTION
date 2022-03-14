@@ -26,7 +26,8 @@ Imports:
   mvabund, 
   bigstatsr, 
   broom, 
-  purrr
+  purrr, 
+  tidyr
 URL: https://github.com/jr-leary7/scLANE
 Suggests: 
     rmarkdown,

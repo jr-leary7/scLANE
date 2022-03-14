@@ -115,24 +115,22 @@ pt_df <- colData(panc_sim) %>%
          rename(PT = cell_time_normed)
 ```
 
-We use `testDynamic()` to fit a `marge` model to each gene with a maximum of $k = 5$ breakpoints. 
+We use `testDynamic()` to fit a `marge` model to each gene with a maximum of $k = 5$ breakpoints. Then, we'll check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 
 
 ```{r}
+start_time_scl <- Sys.time()
 gene_stats <- testDynamic(expr.mat = sim_counts, 
                           pt = pt_df, 
                           parallel.exec = TRUE, 
-                          n.cores = 2, 
+                          n.cores = 4, 
                           n.potential.basis.fns = 5, 
                           track.time = TRUE)
-```
-
-Let's check the categorization of each gene as dynamic versus the ground truth labels from `scaffold`. 
-
-```{r}
 global_test_results <- getResultsDE(gene_stats, p.adj.method = "bonferroni", fdr.cutoff = 0.01) %>% 
                        inner_join((rowData(panc_sim) %>% 
                                    as.data.frame() %>% 
                                    mutate(gene = rownames(.))), by = c("Gene" = "gene"))
+end_time_scl <- Sys.time()
+end_time_scl - start_time_scl
 ```
 
 Next we'll run another test of dynamism (?) with `testSlopes()`. 
@@ -159,6 +157,7 @@ We use `tradeSeq()` to generate a NB-GAM for each gene, i.e., the same model for
 
 ```{r}
 library(tradeSeq)
+start_time <- Sys.time()
 trade_sce <- fitGAM(counts = counts(panc_sim), 
                     pseudotime = pt_df$PT, 
                     cellWeights = rep(1, nrow(pt_df)), 
@@ -170,6 +169,8 @@ ts_asso_test <- associationTest(trade_sce) %>%
                 mutate(pvalue_adj = p.adjust(pvalue, method = "bonferroni"), 
                        Gene_Dynamic = case_when(pvalue_adj < 0.01 ~ 1, TRUE ~ 0), 
                        geneStatus = (rowData(panc_sim) %>% as.data.frame() %>% pull(geneStatus)))
+end_time <- Sys.time()
+end_time - start_time
 ```
 
 The results of `tradeSeq()` aren't incredible. The sensitivity is very low, and the accuracy is lower than the NIR. 
@@ -206,7 +207,7 @@ Lastly, let's check some performance metrics for our model. First we'll check th
 
 ```{r}
 caret::confusionMatrix(data = as.factor(ifelse(global_test_results$geneStatus == "Dynamic", 1, 0)), 
-                       reference = as.factor(global_test_results$Gene_Dynamic), 
+                       reference = as.factor(global_test_results$Gene_Dynamic_Overall), 
                        positive = "1", 
                        mode = "everything")
 ```
@@ -225,7 +226,7 @@ roc_auc <- yardstick::roc_auc((global_test_results %>% mutate(geneStatus = as.fa
 ggplot(roc_df, aes(x = 1 - specificity, y = sensitivity)) + 
   geom_line(color = "forestgreen", size = 1) + 
   geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), color = "firebrick", size = 1) + 
-  labs(x = "1 - Specificity", y = "Sensitivity", title = "testDynamic", 
+  labs(x = "1 - Specificity", y = "Sensitivity", title = "scLANE", 
        caption = paste0("AUC-ROC = ", round(roc_auc[1, 3], 3))) + 
   theme_classic(base_size = 14)
 ```
@@ -236,7 +237,7 @@ We'll generate the same confusion matrix for the results from `testSlope()`. The
 
 ```{r}
 slope_test_sum <- slope_test_results %>% 
-                  select(Gene, Gene_Dynamic, geneStatus) %>% 
+                  select(Gene, Gene_Dynamic_Overall, geneStatus) %>% 
                   distinct()
 caret::confusionMatrix(data = as.factor(ifelse(slope_test_sum$geneStatus == "Dynamic", 1, 0)), 
                        reference = as.factor(slope_test_sum$Gene_Dynamic), 
@@ -253,12 +254,8 @@ In general, it looks as though `scLANE` outperforms `tradeSeq` in terms of accur
 Here's how we can plot model results using the `plotModels()` function. 
 
 ```{r}
-plotModels(marge.preds = gene_stats$TMEM55A$MARGE_Preds,
-           null.preds = gene_stats$TMEM55A$Null_Preds, 
-           gene.counts = sim_counts[, "TMEM55A"], 
-           pt = pt_df, 
-           gene = "TMEM55A", 
-           plot.gam = TRUE)
+library(glm2)
+plotModels(test.dyn.res = gene_stats, gene = "MNX1", pt = pt_df, gene.counts = sim_counts)
 ```
 
 # Session Info

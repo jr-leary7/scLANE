@@ -7,7 +7,7 @@
 #' @importFrom purrr map reduce
 #' @importFrom dplyr arrange mutate case_when with_groups
 #' @importFrom stats p.adjust
-#' @param dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
+#' @param test.dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param p.adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".
 #' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @return A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
@@ -15,15 +15,15 @@
 #' @seealso \code{\link[stats]{p.adjust}}
 #' @export
 #' @examples
-#' \dontrun{testSlope(dyn.results = test_dyn_results)}
+#' \dontrun{testSlope(test.dyn.results = gene_stats)}
 
-testSlope <- function(dyn.results = NULL,
+testSlope <- function(test.dyn.results = NULL,
                       p.adj.method = "bonferroni",
                       fdr.cutoff = 0.01) {
   # check inputs
-  if (is.null(dyn.results)) { stop("You forgot to provide results from testDynamic() to testSlope().") }
+  if (is.null(test.dyn.results)) { stop("You forgot to provide results from testDynamic() to testSlope().") }
   # create table of results
-  slope_df <- purrr::map(gene_stats, function(x) { purrr::map(x, function(y) data.frame(y[14][[1]])) %>% purrr::reduce(rbind) }) %>%
+  slope_df <- purrr::map(test.dyn.results, function(x) { purrr::map(x, function(y) data.frame(y[14][[1]])) %>% purrr::reduce(rbind) }) %>%
               purrr::reduce(rbind) %>%
               dplyr::arrange(P_Val) %>%
               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method)) %>%

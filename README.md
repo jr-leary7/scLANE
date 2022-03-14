@@ -17,7 +17,7 @@ remotes::install_github("jr-leary7/scLANE")
 
 # Identifying Differentially Expressed Genes
 
-Say we have a matrix of integer counts (non-normalized) named `expr_mat` and a dataframe of pseudotime values named `pt_df`. We can then use those as inputs to the main test function in `scLANE`, `testDynamic()`, in order to determine which genes are differentially expressed over pseudotime. If the number of cells and/or genes is high, we'll probably want to use parallel processing to speed up the function's execution. 
+Say we have a matrix of integer counts (non-normalized) named `expr_mat` and a dataframe of pseudotime values named `pt_df`. We can then use those as inputs to the main test function in `scLANE`, `testDynamic()`, in order to determine which genes are differentially expressed over pseudotime at the per-lineage level i.e., if there are more than one pseudotime lineages, we'll generate DE test statistics per-gene, per-lineage. In addition, if the number of cells and/or genes is high, we'll want to use the built-in parallel processing to speed up the function's execution. 
 
 ```
 gene_stats <- testDynamic(expr.mat = expr_mat, 
@@ -26,13 +26,13 @@ gene_stats <- testDynamic(expr.mat = expr_mat,
                           n.cores = 5)
 ```
 
-After running `testDynamic()`, which returns a list containing model statistics, test results, & fitted values, we'll use `getResultsDE()` to format that list into a tidy table of results at the per-gene level. 
+After running `testDynamic()`, which returns a list containing model statistics, test results, & fitted values, we'll use `getResultsDE()` to format that list into a tidy table of results at the per-gene, per-lineage level. 
 
 ```
 test_results <- getResultsDE(gene_stats)
 ```
 
-Lastly, fitted values from `marge`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene AURKA. 
+Lastly, fitted values from the `MARGE`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene AURKA. 
 
 ```
 plotModels(test.dyn.res = gene_stats, 

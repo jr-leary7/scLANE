@@ -1,3 +1,5 @@
+[![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
+
 # scLANE
 
 The `scLANE` package enables users to accurately determine differential expression of genes over pseudotime or latent time, and to characterize gene's dynamics using interpretable model coefficients. `scLANE` builds upon the [`marge` modeling framework](https://github.com/JakubStats/marge) developed by Stoklosa & Warton, and applies `marge`'s negative binomial GLM spline models to scRNA-seq data. 

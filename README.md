@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![Codecov test coverage](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg)](https://codecov.io/gh/jr-leary7/scLANE?branch=main)
+[![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 

@@ -30,11 +30,10 @@ test_results <- getResultsDE(gene_stats)
 Lastly, fitted values from `marge`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene AURKA. 
 
 ```
-plotModels(marge.preds = gene_stats$AURKA$MARGE_Preds,
-           null.preds = gene_stats$AURKA$Null_Preds, 
-           gene.counts = expr_mat[, "AURKA"], 
+plotModels(test.dyn.res = gene_stats, 
+           gene = "AURKA", 
            pt = pt_df, 
-           gene = "AURKA")
+           gene.counts = sim_counts)
 ```
 
 # Contact Information 

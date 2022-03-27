@@ -50,7 +50,7 @@ plotModels <- function(test.dyn.res = NULL,
   counts_df_list <- purrr::map(pt, function(x) data.frame(CELL = rownames(pt)[!is.na(x)],
                                                           PT = x[!is.na(x)],
                                                           COUNT = gene.counts[!is.na(x), gene]))
-  for (i in seq(length(counts_df_list))) { counts_df_list[[i]]$LINEAGE <- LETTERS[i] }
+  for (i in seq_along(counts_df_list)) { counts_df_list[[i]]$LINEAGE <- LETTERS[i] }
   # create list of dataframes w/ predicted values, standard errors, CIs for null, GLM, GAM, & MARGE models
   counts_df_list <- purrr::map(counts_df_list, function(x) x %>% dplyr::relocate(CELL, LINEAGE, COUNT, PT)) %>%
                     purrr::map2(.y = td_res, function(.x, .y) .x %>% dplyr::mutate(RESP_MARGE = .y$MARGE_Preds$marge_link_fit,
@@ -74,7 +74,7 @@ plotModels <- function(test.dyn.res = NULL,
                       return(x)
                     }) %>%
                     purrr::map(function(x) {
-                      gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT)
+                      gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT, theta.init = 1)
                       gam_preds <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
                       x %<>% dplyr::mutate(RESP_GAM = gam_preds$fit,
                                            SE_GAM = gam_preds$se.fit,

@@ -25,7 +25,7 @@ nbGAM <- function(expr = NULL, pt = NULL, theta.init = NULL) {
   }
   # fit model
   if (is.null(theta.init)) {
-    nb_gam_mod <- mgcv::gam(expr ~ s(pt_vec), family = mgcv::nb(), )
+    nb_gam_mod <- mgcv::gam(expr ~ s(pt_vec), family = mgcv::negbin())
   } else {
     nb_gam_mod <- mgcv::gam(expr ~ s(pt_vec), family = mgcv::negbin(theta = theta.init))
   }

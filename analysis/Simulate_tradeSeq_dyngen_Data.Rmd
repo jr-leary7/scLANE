@@ -249,6 +249,11 @@ slope_test_results
 Plot for Figure 2 of thesis
 
 ```{r}
+marge_mod <- marge2(X_pred = pt_df[!is.na(pt_df$curve1), 1, drop = FALSE], 
+                    Y = sim_counts[!is.na(pt_df$curve1), "G2730"], 
+                    M = 5, 
+                    return.basis = TRUE)
+summary(marge_mod$final_mod)
 library(glm2)
 plotModels(test.dyn.res = gene_stats, 
            gene = "G2730", 

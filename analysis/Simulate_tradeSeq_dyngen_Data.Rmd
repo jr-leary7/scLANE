@@ -84,10 +84,11 @@ map(ts_mf_list, function(x) x$counts) %>%
   tidyr::pivot_longer(cols = everything(), values_to = "N") %>% 
   ggplot(aes(x = N)) + 
   geom_histogram(color = "black", fill = "deepskyblue4", alpha = 0.75) + 
-  scale_y_continuous(labels = scales::comma_format()) + 
+  scale_y_continuous(labels = scales::scientific_format()) + 
   scale_x_continuous(labels = scales::comma_format()) + 
   labs(x = "Expression", y = "Count") + 
-  theme_classic(base_size = 14)
+  theme_classic(base_size = 22) + 
+  theme(axis.text = element_text(size = 15))
 ```
 
 Now we'll loop through each of the 10 datasets (in parallel using `foreach`) and process them in the same way. We use `tradeSeq`'s `evaluateK()` function to adaptively determine how many knots should be used in each GAM by choosing the value of $k$ with the lowest average AIC. Then we'll need to run `tradeSeq::associationTest()` on each GAM to determine whether genes are differentially expressed. We define "differentially expressed" here as the global $p$-value being less than 0.01 after adjustment using the Bonferroni correction. 
@@ -142,6 +143,11 @@ ts_asso_test_df <- reduce(ts_asso_test_list, bind_rows) %>%
 end_time_ts <- Sys.time()
 end_time_ts - start_time_ts
 ```
+
+```{r}
+saveRDS(ts_res_all, file = "~/Desktop/multifurcating_tradeSeq_res.Rds")
+```
+
 
 Let's check out the predictive results. 
 
@@ -204,10 +210,7 @@ caret::confusionMatrix(data = as.factor(global_res_de_sum$Gene_Dynamic_Overall),
 
 ```{r}
 saveRDS(scl_res_list, file = "~/Desktop/multifurcating_scLANE_res.Rds")
-saveRDS()
 ```
-
-
 
 # Dev Area
 
@@ -222,50 +225,7 @@ scl_lineage <- getLineages(scl_pca$x, clusterLabels = scl_cl)
 scl_crv <- getCurves(scl_lineage)
 scl_cell_weights <- slingCurveWeights(scl_crv)
 scl_pt <- slingPseudotime(scl_crv)
-```
 
-```{r}
-library(glm2)
-pt_df <- data.frame(PT_A = scl_pt[!is.na(scl_pt[, 2]), 2])
-marge_mod <- scLANE::marge2(X_pred = pt_df, 
-                            Y = ts_mf_list[[1]]$counts[!is.na(scl_pt[, 2]), "G2730"],
-                            M = 5)
-init_th <- mvabund::manyglm(ts_mf_list[[1]]$counts[!is.na(scl_pt[, 2]), "G2730"] ~ pt_df[, 1], family = "negative.binomial", maxiter = 1000, maxiter2 = 100)$theta
-glm_mod <- MASS::glm.nb(ts_mf_list[[1]]$counts[!is.na(scl_pt[, 2]), "G2730"] ~ ., pt_df, init.theta = as.numeric(init_th))
-gam_mod <- scLANE::nbGAM(expr = ts_mf_list[[1]]$counts[!is.na(scl_pt[, 2]), "G2730"], pt = pt_df)
-predict(glm_mod, se.fit = TRUE) %>% 
-  as.data.frame() %>% 
-  select(-residual.scale) %>% 
-  mutate(PT = pt_df[, 1], 
-         EXP = ts_mf_list[[1]]$counts[!is.na(scl_pt[, 2]), "G2730"]) %>% 
-  ggplot(aes(x = PT, y = EXP)) + 
-  geom_point() + 
-  geom_line(aes(x = PT, y = exp(fit)), color = "red") + 
-  geom_ribbon(aes(x = PT, ymin = exp(fit + 1.96 * se.fit), ymax = exp(fit - 1.96 * se.fit)), color = "blue", fill = "blue", alpha = 0.5) + 
-  theme_classic()
-
-predict(gam_mod, se.fit = TRUE) %>% 
-  as.data.frame() %>% 
-  mutate(PT = pt_df[, 1], 
-         EXP = ts_mf_list[[1]]$counts[!is.na(scl_pt[, 1]), "G2730"]) %>% 
-  ggplot(aes(x = PT, y = EXP)) + 
-  geom_point() + 
-  geom_line(aes(x = PT, y = exp(fit)), color = "red") + 
-  geom_ribbon(aes(x = PT, ymin = exp(fit + 1.96 * se.fit), ymax = exp(fit - 1.96 * se.fit)), color = "blue", fill = "blue", alpha = 0.5)
-
-marge_mod$final_mod %>% 
-  predict(se.fit = TRUE) %>% 
-  as.data.frame() %>% 
-  bind_cols(gam_mod %>% predict(se.fit = TRUE) %>% as.data.frame()) %>% 
-  bind_cols(glm_mod %>% predict(se.fit = TRUE) %>% as.data.frame() %>% select(-residual.scale)) %>% 
-  select(-residual.scale) %>% 
-  set_names(c("MARGE_fit", "MARGE_SE", "GAM_fit", "GAM_SE", "GLM_fit", "GLM_SE")) %>% 
-  View()
-gam_mod %>% predict(se.fit = TRUE) %>% as.data.frame() %>% View()
-```
-
-
-```{r}
 library(scLANE)
 pt_df <- as.data.frame(scl_pt) %>% 
          mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
@@ -282,24 +242,23 @@ gene_stats <- testDynamic(expr.mat = sim_counts[, samp_idx],
 ```{r}
 global_test_results <- getResultsDE(gene_stats)
 global_test_results
-```
-
-
-slope test
-
-```{r}
-slope_test_results <- testSlope(dyn.results = gene_stats)
+slope_test_results <- testSlope(test.dyn.results = gene_stats)
 slope_test_results
 ```
 
+Plot for Figure 2 of thesis
 
 ```{r}
 library(glm2)
 plotModels(test.dyn.res = gene_stats, 
            gene = "G2730", 
-           pt = (as.data.frame(scl_pt) %>% 
-                 mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))), 
+           pt = pt_df, 
            gene.counts = sim_counts) + 
   ggplot2::scale_color_manual(values = MetBrewer::met.brewer("Juarez")) + 
-  ggplot2::scale_fill_manual(values = MetBrewer::met.brewer("Juarez"))
+  ggplot2::scale_fill_manual(values = MetBrewer::met.brewer("Juarez")) + 
+  scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) + 
+  theme_classic(base_size = 18) + 
+  theme(plot.title = element_text(face = "bold", hjust = 0.5), 
+        plot.title.position = "panel", 
+        axis.title = element_text(size = 22))
 ```

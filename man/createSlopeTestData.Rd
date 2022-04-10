@@ -4,12 +4,14 @@
 \alias{createSlopeTestData}
 \title{A helper function to create a dataframe of breakpoints and associated \emph{p}-values from a \code{marge} model.}
 \usage{
-createSlopeTestData(marge.model = NULL, pt = NULL)
+createSlopeTestData(marge.model = NULL, pt = NULL, is.gee = FALSE)
 }
 \arguments{
 \item{marge.model}{A \code{marge} model object, like those returned from \code{\link{marge2}}. Defaults to NULL.}
 
 \item{pt}{A data.frame containing pseudotime or latent time values. Defaults to NULL.}
+
+\item{is.gee}{Was the GEE framework used? Defaults to FALSE.}
 }
 \value{
 A data.frame containing model data.

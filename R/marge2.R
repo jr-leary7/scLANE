@@ -3,8 +3,12 @@
 #' @name marge2
 #' @description MARS fitting function for generalized linear models (GLMs).
 #' @importFrom glm2 glm.fit2
+#' @importFrom geeM geem
 #' @param X_pred A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
 #' @param Y The response variable. A vector of length n by N.
+#' @param is.gee Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.
+#' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
+#' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".
 #' @param pen A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
 #' @param tols_score The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
 #' @param M A set threshold for the number of basis functions to be used. The default is 7.
@@ -24,16 +28,23 @@
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @seealso \code{\link{mars_ls}} and \code{\link{backward_sel_WIC}}
+#' @seealso \code{\link{mars_ls}}
+#' @seealso \code{\link{backward_sel_WIC}}
+#' @seealso \code{\link[MASS]{glm.nb}}
+#' @seealso \code{\link[geeM]{geem}}
 #' @export
 #' @importFrom gamlss gamlss
-#' @importFrom MASS glm.nb
+#' @importFrom MASS glm.nb negative.binomial
 #' @importFrom stats fitted
+#' @importFrom geeM geem
 #' @examples
 #' \dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
 
 marge2 <- function(X_pred = NULL,
                    Y = NULL,
+                   is.gee = FALSE,
+                   id.vec = NULL,
+                   cor.structure = "independence",
                    pen = 2,
                    tols_score = 0.00001,
                    M = 7,
@@ -42,8 +53,15 @@ marge2 <- function(X_pred = NULL,
                    return.wic = FALSE,
                    return.GCV = FALSE) {
   # check inputs
-  if (is.null(X_pred) | is.null(Y)) stop("Some inputs to marge() are missing.")
+  if (is.null(X_pred) | is.null(Y)) { stop("Some required inputs to marge2() are missing.") }
+  if (is.gee & is.null(id.vec)) { stop("id.vec in marge2() must be non-null if is.gee = TRUE.") }
+  if (is.gee & (!cor.structure %in% c("independence", "exchangeable", "ar1", "unstructured"))) { stop("cor.structure in marge2() must be a known type if is.gee = TRUE.") }
+  if (is.gee & is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running marge2() with is.gee = TRUE.") }
   NN <- length(Y)  # Total sample size
+  if (is.gee) {
+    N <- length(unique(id.vec))
+    n_vec <- as.numeric(table(id.vec))
+  }
   q <- ncol(X_pred)  # Number of predictor variables
 
   # Algorithm 2 (forward pass) as in Friedman (1991). Uses score statistics instead of RSS, etc.
@@ -72,7 +90,7 @@ marge2 <- function(X_pred = NULL,
   ok <- TRUE
   int.count <- 0
 
-  while (ok) {
+  while (ok) {  # this is such egregiously bad code lol
     if (breakFlag) break
 
     var.mod_temp <- c()
@@ -89,12 +107,27 @@ marge2 <- function(X_pred = NULL,
     B_temp_list <- list()
 
     # Obtain/calculate the null stats here (speeds things up).
-    B_null_stats <- stat_out_score_glm_null(Y = Y, B_null = B)
-    VS.est_list <- B_null_stats$VS.est_list
-    A_list <- B_null_stats$A_list
-    B1_list <- B_null_stats$B1_list
-    mu.est <- B_null_stats$mu.est
-    V.est <- B_null_stats$V.est
+    if (is.gee) {
+      B_null_stats <- stat_out_score_gee_null(Y = Y,
+                                              B_null = B,
+                                              id.vec = id.vec,
+                                              cor.structure = cor.structure)
+      VS.est_list <- B_null_stats$VS.est_list
+      AWA.est_list <- B_null_stats$AWA.est_list
+      J2_list <- B_null_stats$J2_list
+      J11.inv <- B_null_stats$J11.inv
+      Sigma2_list <- B_null_stats$Sigma2_list
+      JSigma11 <- B_null_stats$JSigma11
+      mu.est <- B_null_stats$mu.est
+      V.est <- B_null_stats$V.est
+    } else {
+      B_null_stats <- stat_out_score_glm_null(Y = Y, B_null = B)
+      VS.est_list <- B_null_stats$VS.est_list
+      A_list <- B_null_stats$A_list
+      B1_list <- B_null_stats$B1_list
+      mu.est <- B_null_stats$mu.est
+      V.est <- B_null_stats$V.est
+    }
 
     for (v in seq(q)) {
       var_name <- colnames(X_pred)[v]
@@ -127,33 +160,62 @@ marge2 <- function(X_pred = NULL,
           B_new_both_add <- cbind(B, b1_new, b2_new)   # Additive model with both truncated functions.
           B_new_one_add <- cbind(B, b1_new)         # Additive model with one truncated function (positive part).
 
-          meas_model_both_add <- score_fun_glm(Y = Y,
-                                               VS.est_list = VS.est_list,
-                                               A_list = A_list,
-                                               B1_list = B1_list,
-                                               mu.est = mu.est,
-                                               V.est = V.est,
-                                               B1 = B_new_both_add,
-                                               XA = cbind(b1_new, b2_new))
-          meas_model_one_add <- score_fun_glm(Y = Y,
-                                              VS.est_list = VS.est_list,
-                                              A_list = A_list,
-                                              B1_list = B1_list,
-                                              mu.est = mu.est,
-                                              V.est = V.est,
-                                              B1 = B_new_one_add,
-                                              XA = b1_new)
+          if (is.gee) {
+            meas_model_both_add <- score_fun_gee(Y = Y,
+                                                 N = N,
+                                                 n_vec = n_vec,
+                                                 VS.est_list = VS.est_list,
+                                                 AWA.est_list = AWA.est_list,
+                                                 J2_list = J2_list,
+                                                 Sigma2_list = Sigma2_list,
+                                                 J11.inv = J11.inv,
+                                                 JSigma11 = JSigma11,
+                                                 mu.est = mu.est,
+                                                 V.est = V.est,
+                                                 B1 = B_new_both_add,
+                                                 XA = cbind(b1_new, b2_new))
+            meas_model_one_add <- score_fun_gee(Y = Y,
+                                                N = N,
+                                                n_vec = n_vec,
+                                                VS.est_list = VS.est_list,
+                                                AWA.est_list = AWA.est_list,
+                                                J2_list = J2_list,
+                                                Sigma2_list = Sigma2_list,
+                                                J11.inv = J11.inv,
+                                                JSigma11 = JSigma11,
+                                                mu.est = mu.est,
+                                                V.est = V.est,
+                                                B1 = B_new_one_add,
+                                                XA = b1_new)
+          } else {
+            meas_model_both_add <- score_fun_glm(Y = Y,
+                                                 VS.est_list = VS.est_list,
+                                                 A_list = A_list,
+                                                 B1_list = B1_list,
+                                                 mu.est = mu.est,
+                                                 V.est = V.est,
+                                                 B1 = B_new_both_add,
+                                                 XA = cbind(b1_new, b2_new))
+            meas_model_one_add <- score_fun_glm(Y = Y,
+                                                VS.est_list = VS.est_list,
+                                                A_list = A_list,
+                                                B1_list = B1_list,
+                                                mu.est = mu.est,
+                                                V.est = V.est,
+                                                B1 = B_new_one_add,
+                                                XA = b1_new)
+          }
 
           score_knot_both_add <- c(score_knot_both_add, meas_model_both_add$score)
           score_knot_one_add <- c(score_knot_one_add, meas_model_one_add$score)
-
           score_knot_both_int <- score_knot_one_int <- -100000  # Interaction set is impossible since there is nothing to interact with, so let the LOF measure be a huge negative number.
-        } else {
+
+          } else {
           var_name_struct <- which(((var_name != var_name_vec) * mod_struct) == 1)
           colnames(B)[1] <- c("")
           B2 <- as.matrix(B[, var_name_struct])
-          if (k != 1 & (any(!var_name_vec[-1] %in% var_name))) B2 <- as.matrix(B2[, -1])
-          if (ncol(B2) == 0) B2 <- as.matrix(B[, 1])
+          if (k != 1 & (any(!var_name_vec[-1] %in% var_name))) { B2 <- as.matrix(B2[, -1]) }
+          if (ncol(B2) == 0) { B2 <- as.matrix(B[, 1]) }
 
           for (nn in seq(ncol(B2))) {
             B2a <- matrix(rep(B2[, nn], 2), ncol = 2)
@@ -161,23 +223,51 @@ marge2 <- function(X_pred = NULL,
             B_new_both_int <- cbind(B, B2a * cbind(b1_new, b2_new))
             B_new_one_int <- cbind(B, B2b * b1_new)  # Interaction model with one truncated function (i.e., the positive part).
 
-            meas_model_both_int <- score_fun_glm(Y = Y,
-                                                 VS.est_list = VS.est_list,
-                                                 A_list = A_list,
-                                                 B1_list = B1_list,
-                                                 mu.est = mu.est,
-                                                 V.est = V.est,
-                                                 B1 = B_new_both_int,
-                                                 XA = B2a * cbind(b1_new, b2_new))
-            meas_model_one_int <- score_fun_glm(Y = Y,
-                                                VS.est_list = VS.est_list,
-                                                A_list = A_list,
-                                                B1_list = B1_list,
-                                                mu.est = mu.est,
-                                                V.est = V.est,
-                                                B1 = B_new_one_int,
-                                                XA = B2b * b1_new)
-
+            if (is.gee) {
+              meas_model_both_int <- score_fun_gee(Y = Y,
+                                                   N = N,
+                                                   n_vec = n_vec,
+                                                   VS.est_list = VS.est_list,
+                                                   AWA.est_list = AWA.est_list,
+                                                   J2_list = J2_list,
+                                                   Sigma2_list = Sigma2_list,
+                                                   J11.inv = J11.inv,
+                                                   JSigma11 = JSigma11,
+                                                   mu.est = mu.est,
+                                                   V.est = V.est,
+                                                   B1 = B_new_both_int,
+                                                   XA = B2a * cbind(b1_new, b2_new))
+              meas_model_one_int <- score_fun_gee(Y = Y,
+                                                  N = N,
+                                                  n_vec = n_vec,
+                                                  VS.est_list = VS.est_list,
+                                                  AWA.est_list = AWA.est_list,
+                                                  J2_list = J2_list,
+                                                  Sigma2_list = Sigma2_list,
+                                                  J11.inv = J11.inv,
+                                                  JSigma11 = JSigma11,
+                                                  mu.est = mu.est,
+                                                  V.est = V.est,
+                                                  B1 = B_new_one_int,
+                                                  XA = B2b * b1_new)
+            } else {
+              meas_model_both_int <- score_fun_glm(Y = Y,
+                                                   VS.est_list = VS.est_list,
+                                                   A_list = A_list,
+                                                   B1_list = B1_list,
+                                                   mu.est = mu.est,
+                                                   V.est = V.est,
+                                                   B1 = B_new_both_int,
+                                                   XA = B2a * cbind(b1_new, b2_new))
+              meas_model_one_int <- score_fun_glm(Y = Y,
+                                                  VS.est_list = VS.est_list,
+                                                  A_list = A_list,
+                                                  B1_list = B1_list,
+                                                  mu.est = mu.est,
+                                                  V.est = V.est,
+                                                  B1 = B_new_one_int,
+                                                  XA = B2b * b1_new)
+            }
             score_knot_both_int <- c(score_knot_both_int, meas_model_both_int$score)
             score_knot_one_int <- c(score_knot_one_int, meas_model_one_int$score)
           }
@@ -185,27 +275,54 @@ marge2 <- function(X_pred = NULL,
           B_new_both_add <- cbind(B, b1_new, b2_new)
           B_new_one_add <- cbind(B, b1_new)
 
-          meas_model_both_add <- score_fun_glm(Y = Y,
-                                               VS.est_list = VS.est_list,
-                                               A_list = A_list,
-                                               B1_list = B1_list,
-                                               mu.est = mu.est,
-                                               V.est = V.est,
-                                               B1 = B_new_both_add,
-                                               XA = cbind(b1_new, b2_new))
-          meas_model_one_add <- score_fun_glm(Y = Y,
-                                              VS.est_list = VS.est_list,
-                                              A_list = A_list,
-                                              B1_list = B1_list,
-                                              mu.est = mu.est,
-                                              V.est = V.est,
-                                              B1 = B_new_one_add,
-                                              XA = b1_new)
-
+          if (is.gee) {
+            meas_model_both_add <- score_fun_gee(Y = Y,
+                                                 N = N,
+                                                 n_vec = n_vec,
+                                                 VS.est_list = VS.est_list,
+                                                 AWA.est_list = AWA.est_list,
+                                                 J2_list = J2_list,
+                                                 Sigma2_list = Sigma2_list,
+                                                 J11.inv = J11.inv,
+                                                 JSigma11 = JSigma11,
+                                                 mu.est = mu.est,
+                                                 V.est = V.est,
+                                                 B1 = B_new_both_add,
+                                                 XA = cbind(b1_new, b2_new))
+            meas_model_one_add <- score_fun_gee(Y = Y,
+                                                N = N,
+                                                n_vec = n_vec,
+                                                VS.est_list = VS.est_list,
+                                                AWA.est_list = AWA.est_list,
+                                                J2_list = J2_list,
+                                                Sigma2_list = Sigma2_list,
+                                                J11.inv = J11.inv,
+                                                JSigma11 = JSigma11,
+                                                mu.est = mu.est,
+                                                V.est = V.est,
+                                                B1 = B_new_one_add,
+                                                XA = b1_new)
+          } else {
+            meas_model_both_add <- score_fun_glm(Y = Y,
+                                                 VS.est_list = VS.est_list,
+                                                 A_list = A_list,
+                                                 B1_list = B1_list,
+                                                 mu.est = mu.est,
+                                                 V.est = V.est,
+                                                 B1 = B_new_both_add,
+                                                 XA = cbind(b1_new, b2_new))
+            meas_model_one_add <- score_fun_glm(Y = Y,
+                                                VS.est_list = VS.est_list,
+                                                A_list = A_list,
+                                                B1_list = B1_list,
+                                                mu.est = mu.est,
+                                                V.est = V.est,
+                                                B1 = B_new_one_add,
+                                                XA = b1_new)
+          }
           score_knot_both_add <- c(score_knot_both_add, meas_model_both_add$score)
           score_knot_one_add <- c(score_knot_one_add, meas_model_one_add$score)
         }
-
         score_knot_both_int_mat <- rbind(score_knot_both_int_mat, score_knot_both_int)
         score_knot_both_add_mat <- rbind(score_knot_both_add_mat, score_knot_both_add)
         score_knot_one_int_mat <- rbind(score_knot_one_int_mat, score_knot_one_int)
@@ -493,17 +610,32 @@ marge2 <- function(X_pred = NULL,
         }
       }
 
-      meas_model <- score_fun_glm(Y = Y,
-                                  VS.est_list = VS.est_list,
-                                  A_list = A_list,
-                                  B1_list = B1_list,
-                                  mu.est = mu.est,
-                                  V.est = V.est,
-                                  B1 = B_temp,
-                                  XA = B_new)
+      if (is.gee) {
+        meas_model <- score_fun_gee(Y = Y,
+                                    N = N,
+                                    n_vec = n_vec,
+                                    VS.est_list = VS.est_list,
+                                    AWA.est_list = AWA.est_list,
+                                    J2_list = J2_list,
+                                    Sigma2_list = Sigma2_list,
+                                    J11.inv = J11.inv,
+                                    JSigma11 = JSigma11,
+                                    mu.est = mu.est,
+                                    V.est = V.est,
+                                    B1 = B_temp,
+                                    XA = B_new)
+      } else {
+        meas_model <- score_fun_glm(Y = Y,
+                                    VS.est_list = VS.est_list,
+                                    A_list = A_list,
+                                    B1_list = B1_list,
+                                    mu.est = mu.est,
+                                    V.est = V.est,
+                                    B1 = B_temp,
+                                    XA = B_new)
+      }
 
       score2 <- meas_model$score
-
       meas_model0 <- stat_out(Y = Y,
                               B1 = B_temp,
                               TSS = TSS,
@@ -523,9 +655,7 @@ marge2 <- function(X_pred = NULL,
         var_name_list1_temp <- c(var_name_list1_temp, list(NA))
         B_names_temp <- c(B_names_temp, list(NA))
         B_temp_list <- c(B_temp_list, list(NA))
-
         score_term_temp <- c(score_term_temp, NA)
-
         if (length(var.mod_temp) == q) {
           breakFlag <- TRUE
           break
@@ -543,16 +673,14 @@ marge2 <- function(X_pred = NULL,
       int.count1_temp <- c(int.count1_temp, int.count1)
       is.int_temp <- c(is.int_temp, int)
       trunc.type_temp <- c(trunc.type_temp, trunc.type)
-
       B_new_list_temp <- c(B_new_list_temp, list(B_new))
       var_name_list1_temp <- c(var_name_list1_temp, list(var_name_list1))
       B_names_temp <- c(B_names_temp, list(B_names))
       X_red_temp <- c(X_red_temp, list(X_red))
       B_temp_list <- c(B_temp_list, list(B_temp))
+    }  # Terminate the for loop to end v (variables) here.
 
-    }  # Terminate the for () loop to end v (variables) here.
-
-    if (breakFlag) break
+    if (breakFlag) { break }
 
     best.mod <- which.max(score_term_temp)  # Finds the best model (i.e., the max LOF) from your candidate model/basis set. This becomes the new parent.
 
@@ -561,13 +689,11 @@ marge2 <- function(X_pred = NULL,
     int.count1 <- int.count1_temp[best.mod]
     int <- is.int_temp[best.mod]
     trunc.type <- trunc.type_temp[best.mod]
-
     B_new <- B_new_list_temp[[best.mod]]
     var_name_list1 <- var_name_list1_temp[[best.mod]]
     B_names <- B_names_temp[[best.mod]]
     X_red <- X_red_temp[[best.mod]]
     B_temp <- B_temp_list[[best.mod]]
-
     score_term <- c(score_term, score2)
     min_knot_vec <- c(min_knot_vec, min_knot_vec1)
     pred.name_vec <- c(pred.name_vec, colnames(B_new)[1])
@@ -585,7 +711,6 @@ marge2 <- function(X_pred = NULL,
       } else {
         mod_struct <- c(mod_struct, rep(1, trunc.type))
       }
-
       B <- B_temp
       var_name_vec <- c(var_name_vec, colnames(B_new))
       var_name_list <- c(var_name_list, var_name_list1)
@@ -609,9 +734,7 @@ marge2 <- function(X_pred = NULL,
   # Algorithm 3 (backward pass) as in Friedman (1991) but for GLM/GEE use WIC.
 
   WIC_vec_2 <- NA
-
   full.wic <- 0
-
   B_new <- B
   ncol_Bnew <- ncol(B_new)
   ncol_B <- ncol(B)
@@ -623,19 +746,14 @@ marge2 <- function(X_pred = NULL,
   colnames(wic_mat_2)[(ncol_B  + 1)] <- "Forward pass model"
 
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
-
   wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
-
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
-
   WIC_2 <- sum(apply(wic_mat_2[1:2, ], 1, min, na.rm = TRUE)) + 2 * ncol_Bnew
-
   WIC_vec_2 <- c(WIC_vec_2, WIC_2)
 
   variable.lowest_2 <- as.numeric(which(wic1_2 == min(wic1_2, na.rm = TRUE))[1])
   var.low.vec_2 <- c(colnames(B_new)[variable.lowest_2 + 1])
   B_new_2 <- as.matrix(B_new[, -(variable.lowest_2 + 1)])
-
   cnames_2 <- c(cnames_2, list(colnames(B_new_2)))
 
   for (i in 2:(ncol_B - 1)) {
@@ -653,12 +771,22 @@ marge2 <- function(X_pred = NULL,
 
       B_new_2 <- as.matrix(B_new_2[, -(variable.lowest_2 + 1)])
     } else {
-      full.fit_2 <- gamlss::gamlss(Y ~ B_new_2 - 1, family = "NBI", trace = FALSE)
-      sink(tempfile())
-      full.wald_2 <- ((as.matrix(summary(full.fit_2))[, 3])[-c(1, nrow(as.matrix(summary(full.fit_2))))])^2
-      sink()
-
-      wic1_2 <- full.wald_2
+      if (is.gee) {
+        full.fit_2 <- geeM::geem(Y ~ B_new_2 - 1,
+                                 id = id.vec,
+                                 family = MASS::negative.binomial(1),
+                                 corstr = cor.structure)
+        full.wald_2 <- (unname(summary(full.fit_2)$wald.test[-1]))^2
+        wic1_2 <- full.wald_2
+      } else {
+        full.fit_2 <- gamlss::gamlss(Y ~ B_new_2 - 1,
+                                     family = "NBI",
+                                     trace = FALSE)
+        sink(tempfile())
+        full.wald_2 <- ((as.matrix(summary(full.fit_2))[, 3])[-c(1, nrow(as.matrix(summary(full.fit_2))))])^2
+        sink()
+        wic1_2 <- full.wald_2
+      }
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
       WIC_2 <- sum(apply(wic_mat_2[1:(ncol_B), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
       WIC_vec_2 <- c(WIC_vec_2, WIC_2)
@@ -670,22 +798,34 @@ marge2 <- function(X_pred = NULL,
 
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
-  final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1, method = "glm.fit2", init.theta = 1, y = FALSE, model = FALSE)
+  if (is.gee) {
+    final_mod <- geeM::geem(c(t(Y)) ~ B_final - 1,
+                            id = id.vec,
+                            family = MASS::negative.binomial(1),
+                            corstr = cor.structure)
+  } else {
+    final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1,
+                              method = "glm.fit2",
+                              init.theta = 1,
+                              y = FALSE,
+                              model = FALSE)
+  }
+
   p_2 <- ncol(B_final)
   df1a <- p_2 + pen * (p_2 - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
-
   RSS1 <- sum((Y - stats::fitted(final_mod))^2)
   GCV1 <- RSS1 / (NN * (1 - df1a / NN)^2)
-
   min_wic_own <- min(wic_mat_2, na.rm = TRUE)
-
-  final_mod <- stripGLM(glm.obj = final_mod)
+  if (!is.gee) {
+    final_mod <- stripGLM(glm.obj = final_mod)
+  }
 
   z <- NULL
   if (return.basis) { z$bx <- B_final }
   if (return.wic) { z$wic_mat <- wic_mat_2; z$min_wic_own <- min_wic_own; }
   if (return.GCV) { z$GCV <- GCV1 }
   z$final_mod <- final_mod
+  z$model_type <- ifelse(is.gee, "GEE", "GLM")
   class(z) <- "marge"
 
   return(z)

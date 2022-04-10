@@ -4,12 +4,24 @@
 \alias{backward_sel_WIC}
 \title{Backward selection function for MARGE - uses the Wald information criterion (WIC).}
 \usage{
-backward_sel_WIC(Y, B_new)
+backward_sel_WIC(
+  Y = NULL,
+  B_new = NULL,
+  is.gee = FALSE,
+  id.vec = NULL,
+  cor.structure = NULL
+)
 }
 \arguments{
-\item{Y}{: the response variable.}
+\item{Y}{: the response variable. Defaults to NULL.}
 
-\item{B_new}{: the model matrix.}
+\item{B_new}{: the model matrix. Defaults to NULL.}
+
+\item{is.gee}{Is the model a GEE? Defaults to FALSE.}
+
+\item{id.vec}{A vector of observation IDs that is necessary for fitting a GEE model. Defaults to NULL.}
+
+\item{cor.structure}{The specified working correlation structure of the GEE model. Must be one of "independence", "ar1", or "exchangeable". Defaults to NULL.}
 }
 \value{
 \code{backward_sel_WIC} returns the Wald statistic from the fitted model (the penalty is applied later on).

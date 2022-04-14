@@ -23,7 +23,7 @@ testSlope <- function(test.dyn.results = NULL,
   # check inputs
   if (is.null(test.dyn.results)) { stop("You forgot to provide results from testDynamic() to testSlope().") }
   # create table of results
-  slope_df <- purrr::map(test.dyn.results, function(x) { purrr::map(x, function(y) data.frame(y[14][[1]])) %>% purrr::reduce(rbind) }) %>%
+  slope_df <- purrr::map(test.dyn.results, function(x) { purrr::map(x, function(y) data.frame(y["MARGE_Slope_Data"][[1]])) %>% purrr::reduce(rbind) }) %>%
               purrr::reduce(rbind) %>%
               dplyr::arrange(P_Val) %>%
               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method)) %>%

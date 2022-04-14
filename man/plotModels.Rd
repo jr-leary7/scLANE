@@ -9,6 +9,9 @@ plotModels(
   gene = NULL,
   pt = NULL,
   gene.counts = NULL,
+  is.gee = FALSE,
+  id.vec = NULL,
+  cor.structure = "independence",
   ci.alpha = 0.05,
   plot.null = TRUE,
   plot.glm = TRUE,
@@ -26,6 +29,12 @@ plotModels(
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
 \item{gene.counts}{A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.}
+
+\item{is.gee}{Should a GEE framework be used instead of the default GLM? Defaults to FALSE.}
+
+\item{id.vec}{If the GEE framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}}. Defaults to NULL.}
+
+\item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "independence".}
 
 \item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 

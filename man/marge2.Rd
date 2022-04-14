@@ -7,6 +7,9 @@
 marge2(
   X_pred = NULL,
   Y = NULL,
+  is.gee = FALSE,
+  id.vec = NULL,
+  cor.structure = "independence",
   pen = 2,
   tols_score = 1e-05,
   M = 7,
@@ -20,6 +23,12 @@ marge2(
 \item{X_pred}{A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.}
 
 \item{Y}{The response variable. A vector of length n by N.}
+
+\item{is.gee}{Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.}
+
+\item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
+
+\item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".}
 
 \item{pen}{A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
 
@@ -67,7 +76,13 @@ Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for gener
 Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 }
 \seealso{
-\code{\link{mars_ls}} and \code{\link{backward_sel_WIC}}
+\code{\link{mars_ls}}
+
+\code{\link{backward_sel_WIC}}
+
+\code{\link[MASS]{glm.nb}}
+
+\code{\link[geeM]{geem}}
 }
 \author{
 Jakub Stoklosa and David I. Warton.

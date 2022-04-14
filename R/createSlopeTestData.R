@@ -5,16 +5,15 @@
 #' @description Creates a data.frame of \code{marge} model breakpoints, \emph{p}-values, and other info.
 #' @param marge.model A \code{marge} model object, like those returned from \code{\link{marge2}}. Defaults to NULL.
 #' @param pt A data.frame containing pseudotime or latent time values. Defaults to NULL.
+#' @param is.gee Was the GEE framework used? Defaults to FALSE.
 #' @return A data.frame containing model data.
 #' @seealso \code{\link{marge2}}
 #' @examples
 #' \dontrun{createSlopeTestData(marge_mod, pt_df)}
 
-createSlopeTestData <- function(marge.model = NULL, pt = NULL) {
+createSlopeTestData <- function(marge.model = NULL, pt = NULL, is.gee = FALSE) {
   # check inputs
-  if (is.null(marge.model) | is.null(pt)) {
-    stop("Input to createSlopeTestData() should be non-null.")
-  }
+  if (is.null(marge.model) | is.null(pt)) { stop("Input to createSlopeTestData() should be non-null.") }
   # run function
   # checks to see if marge model was set to "try-error" in testDynamic()
   if (all(class(marge.model) == "try-error")) {
@@ -36,8 +35,12 @@ createSlopeTestData <- function(marge.model = NULL, pt = NULL) {
       rounded_brkpts <- model_breakpoints_rounded$Breakpoint
       brkpt_dirs <- model_breakpoints_rounded$Direction
       brkpts <- sapply(rounded_brkpts, function(x) pt[, 1][which.min(abs(pt[, 1] - x))])
-      # extract Wald test p-values from summary.glm()
-      p_vals <- unname(summary(marge.model[[1]])$coefficients[, "Pr(>|z|)"][-1])
+      # extract Wald test p-values from summary.glm() -- drops p-value for intercept obviously
+      if (is.gee) {
+        p_vals <- summary(marge.model[[1]])$p[-1]
+      } else {
+        p_vals <- unname(summary(marge.model[[1]])$coefficients[, "Pr(>|z|)"][-1])
+      }
       mod_notes <- rep(NA_character_, length(p_vals))
     }
   }

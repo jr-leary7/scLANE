@@ -136,7 +136,7 @@ end_time_scl - start_time_scl
 Next we'll run another test of dynamism (?) with `testSlopes()`. 
 
 ```{r}
-slope_test <- testSlope(dyn.results = gene_stats, 
+slope_test <- testSlope(test.dyn.results = gene_stats, 
                         p.adj.method = "bonferroni", 
                         fdr.cutoff = 0.01)
 slope_test_results <- slope_test %>% 
@@ -196,9 +196,13 @@ roc_auc_ts <- yardstick::roc_auc((ts_asso_test %>% mutate(geneStatus = as.factor
 ggplot(roc_df_ts, aes(x = 1 - specificity, y = sensitivity)) + 
   geom_line(color = "forestgreen", size = 1) + 
   geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), color = "firebrick", size = 1) + 
-  labs(x = "1 - Specificity", y = "Sensitivity", title = "tradeSeq", 
-       caption = paste0("AUC-ROC = ", round(roc_auc_ts[1, 3], 3))) + 
-  theme_classic(base_size = 14)
+  labs(x = "1 - Specificity", 
+       y = "Sensitivity", 
+       title = "tradeSeq", 
+       caption = paste0("AUC-ROC = ", round(roc_auc_ts[1, 3], 2))) + 
+  theme_classic(base_size = 22) + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"), 
+        plot.title.position = "plot")
 ```
 
 ## `testDynamic()`
@@ -225,10 +229,16 @@ roc_auc <- yardstick::roc_auc((global_test_results %>% mutate(geneStatus = as.fa
                               event_level = "second")
 ggplot(roc_df, aes(x = 1 - specificity, y = sensitivity)) + 
   geom_line(color = "forestgreen", size = 1) + 
-  geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), color = "firebrick", size = 1) + 
-  labs(x = "1 - Specificity", y = "Sensitivity", title = "scLANE", 
-       caption = paste0("AUC-ROC = ", round(roc_auc[1, 3], 3))) + 
-  theme_classic(base_size = 14)
+  geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1), color = "firebrick", size = 1) +
+  scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) + 
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) + 
+  labs(x = "1 - Specificity", 
+       y = "Sensitivity", 
+       title = "scLANE", 
+       caption = paste0("AUC-ROC = ", round(roc_auc[1, 3], 2))) + 
+  theme_classic(base_size = 22) + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"), 
+        plot.title.position = "plot")
 ```
 
 ## `testSlope()`
@@ -255,7 +265,10 @@ Here's how we can plot model results using the `plotModels()` function.
 
 ```{r}
 library(glm2)
-plotModels(test.dyn.res = gene_stats, gene = "MNX1", pt = pt_df, gene.counts = sim_counts)
+plotModels(test.dyn.res = gene_stats, 
+           gene = "MNX1", 
+           pt = pt_df, 
+           gene.counts = sim_counts)
 ```
 
 # Session Info

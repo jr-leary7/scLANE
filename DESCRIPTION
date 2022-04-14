@@ -27,7 +27,8 @@ Imports:
   bigstatsr, 
   broom, 
   purrr, 
-  tidyr
+  tidyr, 
+  geeM
 URL: https://github.com/jr-leary7/scLANE
 Suggests: 
     rmarkdown,

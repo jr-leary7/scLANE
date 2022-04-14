@@ -14,6 +14,9 @@
 #' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object & to subset the counts matrix. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param gene.counts A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.
+#' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
+#' @param id.vec If the GEE framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}}. Defaults to NULL.
+#' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "independence".
 #' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
 #' @param plot.null (Optional) Should the fitted values from the intercept-only null model be plotted? Defaults to TRUE.
 #' @param plot.glm (Optional) Should the fitted values from an NB GLM be plotted? Defaults to TRUE.
@@ -31,6 +34,9 @@ plotModels <- function(test.dyn.res = NULL,
                        gene = NULL,
                        pt = NULL,
                        gene.counts = NULL,
+                       is.gee = FALSE,
+                       id.vec = NULL,
+                       cor.structure = "independence",
                        ci.alpha = 0.05,
                        plot.null = TRUE,
                        plot.glm = TRUE,
@@ -64,8 +70,20 @@ plotModels <- function(test.dyn.res = NULL,
                                                                                    CI_LL_NULL = exp(RESP_NULL - Z * SE_NULL),
                                                                                    CI_UL_NULL = exp(RESP_NULL + Z * SE_NULL))) %>%
                     purrr::map(function(x) {
-                      glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
-                      glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
+                      if (is.gee) {
+                        glm_mod <- geeM::geem(x$COUNT ~ x$PT,
+                                              id = id.vec,
+                                              family = MASS::negative.binomial(1),
+                                              corstr = cor.structure,
+                                              sandwich = TRUE)
+                        robust_vcov_mat <- as.matrix(glm_mod$var)
+                        glm_preds <- data.frame(fit = predict(marge_mod$final_mod),
+                                                se.fit = sqrt(apply((tcrossprod(glm_mod$X, robust_vcov_mat)) * glm_mod$X, 1, sum)))
+                      } else {
+                        glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
+                        glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
+                      }
+
                       x %<>% dplyr::mutate(RESP_GLM = glm_preds$fit,
                                            SE_GLM = glm_preds$se.fit,
                                            PRED_GLM = exp(RESP_GLM),
@@ -74,13 +92,15 @@ plotModels <- function(test.dyn.res = NULL,
                       return(x)
                     }) %>%
                     purrr::map(function(x) {
-                      gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT, theta.init = 1)
-                      gam_preds <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
-                      x %<>% dplyr::mutate(RESP_GAM = gam_preds$fit,
-                                           SE_GAM = gam_preds$se.fit,
-                                           PRED_GAM = exp(RESP_GAM),
-                                           CI_LL_GAM = exp(RESP_GAM - Z * SE_GAM),
-                                           CI_UL_GAM = exp(RESP_GAM + Z * SE_GAM))
+                      if (!is.gee) {
+                        gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT, theta.init = 1)
+                        gam_preds <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
+                        x %<>% dplyr::mutate(RESP_GAM = gam_preds$fit,
+                                             SE_GAM = gam_preds$se.fit,
+                                             PRED_GAM = exp(RESP_GAM),
+                                             CI_LL_GAM = exp(RESP_GAM - Z * SE_GAM),
+                                             CI_UL_GAM = exp(RESP_GAM + Z * SE_GAM))
+                      }
                       return(x)
                     }) %>%
                     purrr::map(function(x) {

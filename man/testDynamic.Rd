@@ -42,7 +42,7 @@ testDynamic(
 
 \item{log.file}{A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.}
 
-\item{log.iter}{If logging is enabled, how often should iterations be printed to the logfile? Defaults to 1, or every iteration.}
+\item{log.iter}{If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.}
 }
 \value{
 A list of list, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.

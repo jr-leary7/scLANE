@@ -7,6 +7,8 @@
 #' @importFrom stats qnorm predict
 #' @importFrom purrr map map2 reduce
 #' @importFrom dplyr relocate mutate select contains case_when filter
+#' @importFrom geeM geem
+#' @importFrom MASS negative.binomial
 #' @importFrom tidyr pivot_longer
 #' @importFrom scales comma_format
 #' @description This function visualizes the fitted values of several types of models over the expression and pseudotime values of each cell.

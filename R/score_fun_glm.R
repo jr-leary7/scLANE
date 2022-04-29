@@ -37,14 +37,42 @@ score_fun_glm <- function(Y = NULL,
     VS.est_i <- unlist(VS.est_list)
     A_list_i <- unlist(A_list)
     B1_list_i <- unlist(B1_list)
-    B_list_i <- B1_list_i %*% XA
-    D_list_i <- t(XA) %*% (XA * c((mu.est^2 / V.est)))
-    inv.XVX_22 <- (D_list_i - t(B_list_i) %*% A_list_i %*% B_list_i)
-    B.est <- t(((mu.est)) * VS.est_i) %*% XA
+    # B_list_i <- B1_list_i %*% XA
+    B_list_i <- eigenMapMatMult(A = B1_list_i,
+                                B = XA,
+                                n_cores = 1)
+    # D_list_i <- t(XA) %*% (XA * c((mu.est^2 / V.est)))
+    D_list_i <- eigenMapMatMult(A = t(XA),
+                                B = (XA * c((mu.est^2 / V.est))),
+                                n_cores = 1)
+    # inv.XVX_22 <- (D_list_i - t(B_list_i) %*% A_list_i %*% B_list_i)
+    temp_prod <- eigenMapMatMult(A = t(B_list_i),
+                                 B = A_list_i,
+                                 n_cores = 1)
+    temp_prod <- eigenMapMatMult(A = temp_prod,
+                                 B = B_list_i,
+                                 n_cores = 1)
+    inv.XVX_22 <- (D_list_i - temp_prod)
+    # B.est <- t(((mu.est)) * VS.est_i) %*% XA
+    B.est <- eigenMapMatMult(A = t(((mu.est)) * VS.est_i),
+                             B = XA,
+                             n_cores = 1)
     if (N < 1500) {
-      score <- (B.est) %*% MASS::ginv(inv.XVX_22) %*% t(B.est)
+      # score <- (B.est) %*% MASS::ginv(inv.XVX_22) %*% t(B.est)
+      temp_prod <- eigenMapMatMult(A = B.est,
+                                   B = MASS::ginv(inv.XVX_22),
+                                   n_cores = 1)
+      score <- eigenMapMatMult(A = temp_prod,
+                               B = t(B.est),
+                               n_cores = 1)
     } else {
-      score <- (B.est) %*% chol2inv(chol(inv.XVX_22)) %*% t(B.est)
+      # score <- (B.est) %*% chol2inv(chol(inv.XVX_22)) %*% t(B.est)
+      temp_prod <- eigenMapMatMult(A = B.est,
+                                   B = chol2inv(chol(inv.XVX_22)),
+                                   n_cores = 1)
+      score <- eigenMapMatMult(A = temp_prod,
+                               B = t(B.est),
+                               n_cores = 1)
     }
   }
   res <- list(score = score)

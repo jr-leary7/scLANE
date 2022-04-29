@@ -14,14 +14,24 @@
 
 stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   # check inputs
-  if (any(unlist(lapply(c(Y, B_null), is.null)))) stop("Some inputs to stat_out_score_glm_null() are missing.")
+  if (is.null(Y) | is.null(B_null)) stop("Some inputs to stat_out_score_glm_null() are missing.")
   # run function
   ests <- gamlss::gamlss(Y ~ B_null - 1, family = "NBI", trace = FALSE)
   mu.est <- as.matrix(stats::fitted.values(ests))
   V.est <- mu.est * (1 + mu.est * (exp(ests$sigma.coef)))
   VS.est_list <- (c(Y) - c(mu.est)) / V.est
-  A_list <- chol2inv(chol((t(B_null) %*% diag(c(mu.est^2 / V.est)) %*% B_null)))
-  B1_list <- t(B_null) %*% diag(c(mu.est^2 / V.est))
+  # A_list <- chol2inv(chol((t(B_null) %*% diag(c(mu.est^2 / V.est)) %*% B_null)))
+  temp_prod <- eigenMapMatMult(A = t(B_null),
+                               B = diag(c(mu.est^2 / V.est)),
+                               n_cores = 1)
+  temp_prod <- eigenMapMatMult(A = temp_prod,
+                               B = B_null,
+                               n_cores = 1)
+  A_list <- chol2inv(chol(temp_prod))
+  # B1_list <- t(B_null) %*% diag(c(mu.est^2 / V.est))
+  B1_list <- eigenMapMatMult(A = t(B_null),
+                             B = diag(c(mu.est^2 / V.est)),
+                             n_cores = 1)
   res <- list(VS.est_list = VS.est_list,
               A_list = A_list,
               B1_list = B1_list,

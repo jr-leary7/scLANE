@@ -57,15 +57,14 @@ marge2 <- function(X_pred = NULL,
   if (is.gee & is.null(id.vec)) { stop("id.vec in marge2() must be non-null if is.gee = TRUE.") }
   if (is.gee & (!cor.structure %in% c("independence", "exchangeable", "ar1", "unstructured"))) { stop("cor.structure in marge2() must be a known type if is.gee = TRUE.") }
   if (is.gee & is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running marge2() with is.gee = TRUE.") }
+
+  # Algorithm 2 (forward pass) as in Friedman (1991). Uses score statistics instead of RSS, etc.
   NN <- length(Y)  # Total sample size
   if (is.gee) {
     N <- length(unique(id.vec))
     n_vec <- as.numeric(table(id.vec))
   }
   q <- ncol(X_pred)  # Number of predictor variables
-
-  # Algorithm 2 (forward pass) as in Friedman (1991). Uses score statistics instead of RSS, etc.
-
   B <- as.matrix(rep(1, NN))  # Start with the intercept model.
 
   colnames(B) <- c("Intercept")
@@ -83,7 +82,6 @@ marge2 <- function(X_pred = NULL,
   GCV.null <- TSS / (NN * (1 - (1 / NN))^2)
 
   # Null model setup.
-
   m <- 1
   k <- 1
   breakFlag <- FALSE
@@ -91,7 +89,7 @@ marge2 <- function(X_pred = NULL,
   int.count <- 0
 
   while (ok) {  # this is such egregiously bad code lol
-    if (breakFlag) break
+    if (breakFlag) { break }
 
     var.mod_temp <- c()
     score_term_temp <- c()
@@ -99,7 +97,6 @@ marge2 <- function(X_pred = NULL,
     int.count1_temp <- c()
     is.int_temp <- c()
     trunc.type_temp <- c()
-
     B_new_list_temp <- list()
     var_name_list1_temp <- list()
     B_names_temp <- list()
@@ -775,7 +772,8 @@ marge2 <- function(X_pred = NULL,
         full.fit_2 <- geeM::geem(Y ~ B_new_2 - 1,
                                  id = id.vec,
                                  family = MASS::negative.binomial(1),
-                                 corstr = cor.structure)
+                                 corstr = cor.structure,
+                                 sandwich = TRUE)
         full.wald_2 <- (unname(summary(full.fit_2)$wald.test[-1]))^2
         wic1_2 <- full.wald_2
       } else {

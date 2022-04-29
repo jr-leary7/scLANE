@@ -26,11 +26,13 @@ stat_out_score_gee_null <- function(Y = NULL,
   n_vec <- as.numeric(table(id.vec))
   N <- length(unique(id.vec))
   # fit null NB GEE
-  ests <- geeM::geem(Y ~ B_null - 1,
+  ests <- geeM::geem(Y ~ 1,
                      id = id.vec,
                      corstr = cor.structure,
-                     family = MASS::negative.binomial(1))
-  ests_gam <- gamlss::gamlss(Y ~ gamlss::random(id.vec) + B_null - 1,
+                     family = MASS::negative.binomial(1),
+                     sandwich = TRUE,
+                     maxit = 1)
+  ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
                              family = "NBI",
                              trace = FALSE)
   alpha_est <- ests$alpha

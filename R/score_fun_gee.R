@@ -19,7 +19,6 @@
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats lm.fit
-#' @importFrom MASS ginv
 #' @export
 #' @seealso \code{\link{score_fun_glm}}
 
@@ -59,14 +58,61 @@ score_fun_gee <- function(Y = NULL,
       AWA.est_i <- AWA.est_list[[i]]
       J2_i <- J2_list[[i]]
       Sigma2_i <- Sigma2_list[[i]]
-      D.est_i <- diag((mu.est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]) %*% XA[(sum(n_vec1[1:i]) + 1):k, ]
-      J21 <- J21 + t(D.est_i) %*% t(J2_i)
-      Sigma21 <- Sigma21 + t(D.est_i) %*% t(Sigma2_i)
-      B.est <- B.est + t(D.est_i) %*% VS.est_i
-      Sigma22 <- Sigma22 + t(D.est_i) %*% AWA.est_i %*% (D.est_i)
+      # D.est_i <- diag((mu.est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]) %*% XA[(sum(n_vec1[1:i]) + 1):k, ]
+      D.est_i <- eigenMapMatMult(A = diag((mu.est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
+                                 B = XA[(sum(n_vec1[1:i]) + 1):k, ],
+                                 n_cores = 1)
+      # J21 <- J21 + t(D.est_i) %*% t(J2_i)
+      temp_prod <- eigenMapMatMult(A = t(D.est_i),
+                                   B = t(J2_i),
+                                   n_cores = 1)
+      J21 <- J21 + temp_prod; rm(temp_prod)
+      # Sigma21 <- Sigma21 + t(D.est_i) %*% t(Sigma2_i)
+      temp_prod <- eigenMapMatMult(A = t(D.est_i),
+                                   B = t(Sigma2_i),
+                                   n_cores = 1)
+      Sigma21 <- Sigma21 + temp_prod; rm(temp_prod)
+      # B.est <- B.est + t(D.est_i) %*% VS.est_i
+      temp_prod <- eigenMapMatMult(A = t(D.est_i),
+                                   B = VS.est_i,
+                                   n_cores = 1)
+      B.est <- B.est + temp_prod; rm(temp_prod)
+      # Sigma22 <- Sigma22 + t(D.est_i) %*% AWA.est_i %*% (D.est_i)
+      temp_prod <- eigenMapMatMult(A = t(D.est_i),
+                                   B = AWA.est_i,
+                                   n_cores = 1)
+      temp_prod <- eigenMapMatMult(A = temp_prod,
+                                   B = D.est_i,
+                                   n_cores = 1)
+      Sigma22 <- Sigma22 + temp_prod; rm(temp_prod)
     }
-    Sigma <- Sigma22 - (J21 %*% J11.inv) %*% t(Sigma21) - (Sigma21 %*% J11.inv) %*% t(J21) + J21 %*% JSigma11 %*% t(J21)
-    score <- t(B.est) %*% MASS::ginv(Sigma) %*% B.est
+    # Sigma <- Sigma22 - (J21 %*% J11.inv) %*% t(Sigma21) - (Sigma21 %*% J11.inv) %*% t(J21) + J21 %*% JSigma11 %*% t(J21)
+    temp_prod_1 <- eigenMapMatMult(A = J21,
+                                   B = J11.inv,
+                                   n_cores = 1)
+    temp_prod_1 <- eigenMapMatMult(A = temp_prod_1,
+                                   B = t(Sigma21),
+                                   n_cores = 1)
+    temp_prod_2 <- eigenMapMatMult(A = Sigma21,
+                                   B = J11.inv,
+                                   n_cores = 1)
+    temp_prod_2 <- eigenMapMatMult(A = temp_prod_2,
+                                   B = t(J21),
+                                   n_cores = 1)
+    temp_prod_3 <- eigenMapMatMult(A = J21,
+                                   B = JSigma11,
+                                   n_cores = 1)
+    temp_prod_3 <- eigenMapMatMult(A = temp_prod_3,
+                                   B = t(J21),
+                                   n_cores = 1)
+    Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3; rm(list = c("temp_prod_1", "temp_prod_2", "temp_prod_3"))
+    # score <- t(B.est) %*% MASS::ginv(Sigma) %*% B.est
+    temp_prod <- eigenMapMatMult(A = t(B.est),
+                                 B = chol2inv(chol(Sigma)),
+                                 n_cores = 1)
+    score <- eigenMapMatMult(A = temp_prod,
+                             B = B.est,
+                             n_cores = 1); rm(temp_prod)
   }
   res <- list(score = score)
   return(res)

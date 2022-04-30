@@ -79,7 +79,7 @@ plotModels <- function(test.dyn.res = NULL,
                                               corstr = cor.structure,
                                               sandwich = TRUE)
                         robust_vcov_mat <- as.matrix(glm_mod$var)
-                        glm_preds <- data.frame(fit = predict(marge_mod$final_mod),
+                        glm_preds <- data.frame(fit = predict(glm_mod),
                                                 se.fit = sqrt(apply((tcrossprod(glm_mod$X, robust_vcov_mat)) * glm_mod$X, 1, sum)))
                       } else {
                         glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)

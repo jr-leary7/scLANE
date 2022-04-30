@@ -43,16 +43,16 @@ library(SingleCellExperiment)
 
 # Data 
 
-First we'll load in the lung tumor data from Zilionis *et al* (2019), and subset to only include neutrophils. The authors found 5 continuous neutrophil subsets in their analysis, and we're interested in determining which genes drive subset-to-subset differentiation. The data were collected from 7 different patients, and thus the usage of GEE models is warranted in order to properly estimate within-patient gene expression correlations. 
+First we'll load in the lung tumor data from [Zilionis *et al* (2019)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6620049/), and subset to only include tumor neutrophils. The authors found 5 continuous tumor neutrophil subsets in their analysis, and we're interested in determining which genes drive subset-to-subset differentiation. The data were collected from 7 different patients, and thus the usage of GEE models is warranted in order to properly estimate within-patient gene expression correlations. 
 
 ```{r}
 lung <- scRNAseq::ZilionisLungData(which = "human", filter = TRUE)
-lung <- lung[, stringr::str_detect(lung$`Major cell type`, "Neutrophils")]
+lung <- lung[, stringr::str_detect(lung$`Major cell type`, "tNeutrophils")]
 ```
 
-# Analysis 
+## Preprocessing
 
-First we'll preprocess the data in the typical way. We see that the neutrophils fall into 5 clusters, and that there is one odd outlier group of cells near the top of the UMAP plot. In addition, there is a decent amount of intra- and inter-patient variability. 
+First we'll preprocess the data in the typical way. We see that the neutrophils fall into 5 clusters, and that there is one odd outlier group of cells near the top of the UMAP plot. In addition, there is a decent amount of intra- and inter-patient variability. The cluster labels are not solely reflective of the cell subtypes, and seem to be driven by both patient identity as well as cell subtype. 
 
 ```{r}
 lung <- logNormCounts(lung)
@@ -66,6 +66,7 @@ clusters <- igraph::cluster_louvain(graph = g)$membership
 colLabels(lung) <- factor(clusters)
 plotUMAP(lung, colour_by = "label")
 plotUMAP(lung, colour_by = "Patient")
+plotUMAP(lung, colour_by = "Minor subset")
 ```
 
 ## Estimating Pseudotime
@@ -81,160 +82,80 @@ pt_df <- as.data.frame(scl_pt) %>%
          mutate(across(everything(), function(x) x / max(x, na.rm = TRUE)))
 ```
 
-## Running `scLANE` 
+# Running `scLANE` 
 
-We're going to run `scLANE` solely on the top 2,000 most highly variable genes. This is for computational quickness as well as the fact that most interesting genes are almost certainly going to be classified as highly variable anyways. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
+## Global Test
+
+We're going to run `scLANE` solely on the top 10 most highly variable genes. This is for computational quickness, as otherwise the models would take a couple hours to run & this is a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
 
 ```{r}
 lung_counts <- t(lung@assays@data$counts)
 lung_counts <- as.matrix(lung_counts[, which(colSums(lung_counts) > 0)])
-# try a couple models with varying numbers of observations -- runtime increase w/ number of cells
-mod <- scLANE::marge2(X_pred = pt_df,
-                      Y = lung_counts[, "CXCL8"],
-                      is.gee = TRUE,
-                      id.vec = lung$Patient,
-                      cor.structure = "independence",
-                      M = 3)
-mod <- scLANE::marge2(X_pred = pt_df[9668:nrow(pt_df), 1, drop = FALSE],
-                      Y = lung_counts[9668:nrow(pt_df), "CXCL8"],
-                      is.gee = TRUE,
-                      id.vec = lung$Patient[9668:nrow(pt_df)],
-                      cor.structure = "independence",
-                      M = 3)
-
-# profile with profr
-mod_prof <- profr::profr(expr = {
-  mod <- scLANE::marge2(X_pred = pt_df,
-                      Y = lung_counts[, "CXCL8"],
-                      is.gee = TRUE,
-                      id.vec = lung$Patient,
-                      cor.structure = "independence",
-                      M = 3)
-})
-# profile with lineprof
-#library(lineprof)
-l <- lineprof({
-  mod <- scLANE::marge2(X_pred = pt_df,
-                      Y = lung_counts[, "CXCL8"],
-                      is.gee = TRUE,
-                      id.vec = lung$Patient,
-                      cor.structure = "independence",
-                      M = 3)
-})
-shine(l)
-
-
-l <- lineprof({
-  n_vec <- as.numeric(table(id.vec))
-  N <- length(unique(id.vec))
-  # fit null NB GEE
-  ests <- geeM::geem(Y ~ 1,
-                     id = id.vec,
-                     corstr = cor.structure,
-                     family = MASS::negative.binomial(1), 
-                     maxit = 1)
-  ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
-                             family = "NBI",
-                             trace = FALSE)
-  alpha_est <- ests$alpha
-  mu_est <- as.matrix(stats::fitted.values(ests))
-  V_est <- mu_est * (1 + mu_est * (exp(ests_gam$sigma.coefficients)))  # NB var = mu + mu^2 * sigma
-
-  p <- ncol(B_null)
-  n_vec1 <- c(0, n_vec)
-  VS_est_list <- list()
-  AWA_est_list <- list()
-  J2_list <- list()
-  Sigma2_list <- list()
-  J11 <- matrix(0, nrow = p, ncol = p)
-  Sigma11 <- matrix(0, nrow = p, ncol = p)
-
-  for (i in seq(N)) {
-    k <- sum(n_vec[1:i])
-    # set up working correlation matrix structure
-    if (cor.structure == "independence") {
-      R_alpha <- diag(1, nrow = n_vec[i], ncol = n_vec[i])
-    } else if (cor.structure == "ar1") {
-      R_alpha <- matrix(c(rep(alpha_est, n_vec[i]*n_vec[i])), ncol = n_vec[i]) + diag(c(1 - alpha_est), ncol = n_vec[i], nrow = n_vec[i])
-    } else if (cor.structure == "exchangeable") {
-      R_alpha <- alpha_est^outer(1:n_vec[i], 1:n_vec[i], function(x, y) abs(x - y))
-    } else {
-      stop("Currently unsupported correlation structure.")
-    }
-
-    V_est_i <- diag(sqrt(V_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]) %*% R_alpha %*% diag(sqrt(V_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i])
-    V_est_i_inv <- chol2inv(chol(V_est_i))
-    S_est_i <- c(t(Y))[(sum(n_vec1[1:i]) + 1):k] - mu_est[(sum(n_vec1[1:i]) + 1):k]
-    AWA_est_i <- V_est_i_inv %*% (S_est_i %*% t(S_est_i)) %*% V_est_i_inv
-    D_est_i <- diag((mu_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]) %*% B_null[(sum(n_vec1[1:i]) + 1):k, ]
-
-    J1_i <- t(D_est_i) %*% V_est_i_inv %*% D_est_i
-    J11 <- J11 + J1_i
-    J2_i <- t(D_est_i) %*% V_est_i_inv
-
-    Sigma1_i <- t(D_est_i) %*% AWA_est_i %*% (D_est_i)
-    Sigma11 <- Sigma11 + Sigma1_i
-    Sigma2_i <- t(D_est_i) %*% AWA_est_i
-
-    VS_est_list <- c(VS_est_list, list(V_est_i_inv %*% S_est_i))
-    AWA_est_list <- c(AWA_est_list, list(AWA_est_i))
-    J2_list <- c(J2_list, list(J2_i))
-    Sigma2_list <- c(Sigma2_list, list(Sigma2_i))
-  }
-  J11_inv <- chol2inv(chol(J11))
-  JSigma11 <- J11_inv %*% Sigma11 %*% J11_inv
-  res <- list(VS.est_list = VS_est_list,
-              AWA.est_list = AWA_est_list,
-              J2_list = J2_list,
-              J11.inv = J11_inv,
-              Sigma2_list = Sigma2_list,
-              JSigma11 = JSigma11,
-              mu.est = mu_est,
-              V.est = V_est)
-})
-shine(l)
-
-l <- lineprof({
-  B_null_stats <- scLANE:::stat_out_score_gee_null(Y = Y,
-                                              B_null = B,
-                                              id.vec = id.vec,
-                                              cor.structure = cor.structure)
-})
-shine(l)
-
-mod <- scLANE::marge2(X_pred = pt_df[9405:9667, 1, drop = FALSE],
-                      Y = lung_counts[9405:9667, "CXCL8"],
-                      is.gee = TRUE,
-                      id.vec = lung$Patient[9405:9667],
-                      cor.structure = "independence",
-                      M = 3)
-# try w/ GEE -- probably gonna run for a while -- fucking errored lol
-gene_stats <- testDynamic(expr.mat = lung_counts[, colnames(lung_counts) %in% top2k_hvgs[1:5]], 
-                          genes = top2k_hvgs[1:5], 
+gene_stats <- testDynamic(expr.mat = lung_counts[, colnames(lung_counts) %in% top2k_hvgs[1:10]], 
+                          genes = top2k_hvgs[1:10], 
                           pt = pt_df, 
                           is.gee = TRUE, 
                           id.vec = lung$Patient, 
-                          cor.structure = "independence", 
+                          cor.structure = "exchangeable", 
                           parallel.exec = TRUE, 
                           n.cores = 4, 
                           track.time = TRUE)
-# try w/ GLM to check runtime diff -- fucking 1.5min
-gene_stats2 <- testDynamic(expr.mat = lung_counts[, colnames(lung_counts) %in% top2k_hvgs[1:5]], 
-                           genes = top2k_hvgs[1:5], 
-                           pt = pt_df, 
-                           #is.gee = TRUE, 
-                           #id.vec = lung$Patient, 
-                           #cor.structure = "independence", 
-                           parallel.exec = TRUE, 
-                           n.cores = 2, 
-                           track.time = TRUE)
-saveRDS(gene_stats, file = "~/Desktop/GEE_vignette_td_output.Rds")
 ```
 
-Let's check out the results!
+Let's check out the results of the global differential expression test. 
 
 ```{r}
-getResultsDE(gene_stats2) 
+getResultsDE(gene_stats) %>% 
+  select(-contains("LogLik"), -contains("Dev")) %>% 
+  kableExtra::kbl(digits = 5, 
+                  align = "c", 
+                  booktabs = TRUE, 
+                  caption = "Lineage-level dynamic test", 
+                  col.names = c("Gene", "Lineage", "Test Stat.", "P-value", "Test Stat. Type", 
+                                "Model Status", "Adj. P-value", "Gene Dynamic over Lineage", "Gene Dynamic")) %>% 
+  kableExtra::kable_paper("hover", full_width = FALSE)
 ```
 
-# Conclusions 
+## Slope Test 
+
+Next we can run the slope test to identify over which pseudotime intervals gene expression changes significantly. 
+
+```{r}
+testSlope(test.dyn.results = gene_stats) %>% 
+  kableExtra::kbl(digits = 5, 
+                  align = "c", 
+                  booktabs = TRUE, 
+                  caption = "Slope-level dynamic test", 
+                  col.names = c("Gene", "Lineage", "Breakpoint", "Rounded Breakpoint", 
+                                "Direction", "P-value", "Notes", "Adj. P-value", 
+                                "Gene Dynamic over Lineage-Slope", "Gene Dynamic over Lineage", 
+                                "Gene Dynamic")) %>% 
+  kableExtra::kable_paper("hover", full_width = FALSE)
+```
+
+## Model Visualization 
+
+Lastly, we can plot the fitted model for a couple of the genes. 
+
+```{r, fig.width=4}
+plotModels(test.dyn.res = gene_stats, 
+           gene = "CXCL8", 
+           pt = pt_df, 
+           gene.counts = lung_counts, 
+           is.gee = TRUE, 
+           id.vec = lung$Patient, 
+           cor.structure = "exchangeable")
+plotModels(test.dyn.res = gene_stats, 
+           gene = "RGS2", 
+           pt = pt_df, 
+           gene.counts = lung_counts, 
+           is.gee = TRUE, 
+           id.vec = lung$Patient, 
+           cor.structure = "exchangeable")
+```
+
+# Session Info 
+
+```{r}
+sessioninfo::session_info()
+```

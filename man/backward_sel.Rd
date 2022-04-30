@@ -4,7 +4,7 @@
 \alias{backward_sel}
 \title{Backward selection function for MARS that uses the generalized cross validation criterion (GCV).}
 \usage{
-backward_sel(Y, B_new, pen = 2, GCV.null = 0.001)
+backward_sel(Y = NULL, B_new = NULL, pen = 2, GCV.null = 0.001)
 }
 \arguments{
 \item{Y}{: the response variable.}

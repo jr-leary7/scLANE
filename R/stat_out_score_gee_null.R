@@ -30,8 +30,7 @@ stat_out_score_gee_null <- function(Y = NULL,
                      id = id.vec,
                      corstr = cor.structure,
                      family = MASS::negative.binomial(1),
-                     sandwich = TRUE,
-                     maxit = 1)
+                     sandwich = TRUE)
   ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
                              family = "NBI",
                              trace = FALSE)

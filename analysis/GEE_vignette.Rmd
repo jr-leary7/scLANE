@@ -1,5 +1,5 @@
 ---
-title: "Identifying Dynamic Genes with Negative Binomial GEE Spline Models"
+title: "Identifying Dynamic Genes with Generalized Estimating Equations in `scLANE`"
 subtitle: "University of Florida - Dept. of Biostatistics - Bacher Group"
 author: "Jack Leary"
 date: "`r Sys.Date()`"
@@ -26,19 +26,17 @@ set.seed(312)  # lucky seed
 
 # Introduction 
 
-In this vignette we'll focus on one of the more complicated features of `scLANE`: the usage of GEE models to identify dynamic genes when cells are grouped by some sort of subject identity. The robust variance estimation available in GEE models allows us to make more accurate decisions about which genes are actually dynamic over pseudotime / latent time. The downsides are that GEE models are a bit harder to understand than the default GLMs, and they take a little bit longer to estimate.  
+In this vignette we'll focus on one of the more complicated features of `scLANE`: the usage of GEE models to identify dynamic genes when cells are grouped by some subject identity. The robust variance estimation available in GEE models allows us to make decisions about which genes are actually dynamic over pseudotime / latent time while accounting for intra-subject correlations between observations. The downsides are that the benefits of GEE models can be a little more difficult to explain to collaborators, and they take a little bit longer than GLMs to estimate. A refresher on what GEEs are and why they're useful can be found [here](https://www.publichealth.columbia.edu/research/population-health-methods/repeated-measures-analysis). 
 
 # Libraries
 
 ```{r}
-library(glm2)
-library(dplyr)
-library(scran)
-library(scLANE)
-library(scater)
-library(ggplot2)
-library(slingshot)
-library(SingleCellExperiment)
+library(igraph)     # graph tools
+library(dplyr)      # data manipulation
+library(scran)      # single cell tools 
+library(scLANE)     # differential expression over pseudotime
+library(scater)     # single cell tools 
+library(slingshot)  # pseudotime estimation
 ```
 
 # Data 
@@ -86,19 +84,21 @@ pt_df <- as.data.frame(scl_pt) %>%
 
 ## Global Test
 
-We're going to run `scLANE` solely on the top 10 most highly variable genes. This is for computational quickness, as otherwise the models would take a couple hours to run & this is a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
+We're going to run `scLANE` solely on a 100-gene sample of the most highly variable genes. This is for computational quickness, as this is a just a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
 
 ```{r}
 lung_counts <- t(lung@assays@data$counts)
 lung_counts <- as.matrix(lung_counts[, which(colSums(lung_counts) > 0)])
-gene_stats <- testDynamic(expr.mat = lung_counts[, colnames(lung_counts) %in% top2k_hvgs[1:10]], 
-                          genes = top2k_hvgs[1:10], 
+set.seed(312)  # lucky seed
+gene_samp <- sample(top2k_hvgs, size = 100, replace = FALSE)
+gene_stats <- testDynamic(expr.mat = lung_counts[, gene_samp], 
+                          genes = gene_samp, 
                           pt = pt_df, 
                           is.gee = TRUE, 
                           id.vec = lung$Patient, 
                           cor.structure = "exchangeable", 
                           parallel.exec = TRUE, 
-                          n.cores = 4, 
+                          n.cores = 6, 
                           track.time = TRUE)
 ```
 
@@ -106,7 +106,8 @@ Let's check out the results of the global differential expression test.
 
 ```{r}
 getResultsDE(gene_stats) %>% 
-  select(-contains("LogLik"), -contains("Dev")) %>% 
+  select(-contains("LogLik"), -contains("Dev")) %>%  # not relevant to GEEs
+  slice_head(n = 10) %>% 
   kableExtra::kbl(digits = 5, 
                   align = "c", 
                   booktabs = TRUE, 
@@ -122,6 +123,7 @@ Next we can run the slope test to identify over which pseudotime intervals gene 
 
 ```{r}
 testSlope(test.dyn.results = gene_stats) %>% 
+  slice_head(n = 10) %>% 
   kableExtra::kbl(digits = 5, 
                   align = "c", 
                   booktabs = TRUE, 
@@ -135,23 +137,70 @@ testSlope(test.dyn.results = gene_stats) %>%
 
 ## Model Visualization 
 
-Lastly, we can plot the fitted model for a couple of the genes. 
+Lastly, we can plot the fitted models for a couple of the genes. In addition to the null (intercept-only) and `MARGE` models we can also compare to a GEE GLM with pseudotime as a covariate. 
 
-```{r, fig.width=4}
+```{r, fig.width=6}
 plotModels(test.dyn.res = gene_stats, 
-           gene = "CXCL8", 
+           gene = gene_samp[1], 
            pt = pt_df, 
            gene.counts = lung_counts, 
            is.gee = TRUE, 
            id.vec = lung$Patient, 
            cor.structure = "exchangeable")
 plotModels(test.dyn.res = gene_stats, 
-           gene = "RGS2", 
+           gene = gene_samp[2], 
            pt = pt_df, 
            gene.counts = lung_counts, 
            is.gee = TRUE, 
            id.vec = lung$Patient, 
            cor.structure = "exchangeable")
+```
+
+## Gene-level Analysis 
+
+Let's cluster the genes based on their fitted values using the Louvain algorithm. 
+
+```{r}
+purrr::map(gene_stats, function(x) {
+  if (stringr::str_detect(x$Lineage_A$Model_Status, "error")) {
+    NA
+  } else {
+    x$Lineage_A$MARGE_Preds$marge_link_fit
+  }
+}) %>% 
+  purrr::reduce(cbind) %>% 
+  set_colnames(names(gene_stats)) %>% 
+  set_rownames(rownames(lung_counts)) %>% 
+  janitor::remove_empty(which = "cols") -> fitted_vals
+fitted_vals_pca <- prcomp(t(fitted_vals), center = TRUE, rank. = 10)$x
+# fitted_vals_graph <- igraph::graph.adjacency(as.matrix(dist(fitted_vals_pca)), 
+#                                              mode = "undirected", 
+#                                              weighted = TRUE, 
+#                                              diag = TRUE)
+# fitted_vals_clusts <- igraph::cluster_leiden(graph = fitted_vals_graph, resolution_parameter = 1)
+fitted_vals_clusts <- hclust(dist(fitted_vals_pca), method = "ward.D2")
+ggdendro::ggdendrogram(fitted_vals_clusts) + 
+  labs(title = "Heirarchical Clustering of Highly-Variable Genes") + 
+  theme_classic(base_size = 14) + 
+  theme(axis.text.x = element_text(angle = 90), 
+        plot.title = element_text(hjust = 0.5), 
+        axis.text.y = element_blank(), 
+        axis.title = element_blank())
+```
+
+
+```{r}
+library(biomaRt)
+head(listDatasets(useMart("ensembl")), 3)
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+head(listFilters(ensembl), 10) 
+listAttributes(ensembl)
+gene_attrs <- c("gene_biotype", "hgnc_symbol", "wikigene_description", 
+                "interpro_description", "mim_gene_description")
+res <- getBM(attributes =  gene_attrs, 
+             filters = c("hgnc_symbol"), 
+             values =  top2k_hvgs[1:5], 
+             mart = ensembl)
 ```
 
 # Session Info 

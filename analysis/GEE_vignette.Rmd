@@ -31,7 +31,7 @@ In this vignette we'll focus on one of the more complicated features of `scLANE`
 # Libraries
 
 ```{r}
-library(igraph)     # graph tools
+# library(igraph)     # graph tools
 library(dplyr)      # data manipulation
 library(scran)      # single cell tools 
 library(scLANE)     # differential expression over pseudotime
@@ -41,11 +41,12 @@ library(slingshot)  # pseudotime estimation
 
 # Data 
 
-First we'll load in the lung tumor data from [Zilionis *et al* (2019)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6620049/), and subset to only include tumor neutrophils. The authors found 5 continuous tumor neutrophil subsets in their analysis, and we're interested in determining which genes drive subset-to-subset differentiation. The data were collected from 7 different patients, and thus the usage of GEE models is warranted in order to properly estimate within-patient gene expression correlations. 
+First we'll load in the lung tumor data from [Zilionis *et al* (2019)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6620049/), and subset to only include tumor neutrophils. The authors found 5 continuous tumor neutrophil subsets in their analysis, and we're interested in determining which genes drive subset-to-subset differentiation. The data were collected from 7 different patients, and thus the usage of GEE models is warranted in order to properly estimate within-patient gene expression correlations. Lastly, we'll subset the object to only include genes that are expressed in at least 5 cells. 
 
 ```{r}
 lung <- scRNAseq::ZilionisLungData(which = "human", filter = TRUE)
 lung <- lung[, stringr::str_detect(lung$`Major cell type`, "tNeutrophils")]
+lung <- lung[which(rowSums(counts(lung) > 0) >= 5), ]
 ```
 
 ## Preprocessing
@@ -84,14 +85,11 @@ pt_df <- as.data.frame(scl_pt) %>%
 
 ## Global Test
 
-We're going to run `scLANE` solely on a 100-gene sample of the most highly variable genes. This is for computational quickness, as this is a just a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
+We're going to run `scLANE` solely on the top 100 most highly variable genes. This is for both computational quickness & in order to get interesting results (highly variable $\implies$ dynamic, usually), as this is a just a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
 
 ```{r}
-lung_counts <- t(lung@assays@data$counts)
-lung_counts <- as.matrix(lung_counts[, which(colSums(lung_counts) > 0)])
-set.seed(312)  # lucky seed
-gene_samp <- sample(top2k_hvgs, size = 100, replace = FALSE)
-gene_stats <- testDynamic(expr.mat = lung_counts[, gene_samp], 
+lung_counts <- as.matrix(t(lung@assays@data$counts))
+gene_stats <- testDynamic(expr.mat = lung_counts[, top2k_hvgs[1:100]], 
                           genes = gene_samp, 
                           pt = pt_df, 
                           is.gee = TRUE, 
@@ -112,7 +110,7 @@ getResultsDE(gene_stats) %>%
                   align = "c", 
                   booktabs = TRUE, 
                   caption = "Lineage-level dynamic test", 
-                  col.names = c("Gene", "Lineage", "Test Stat.", "P-value", "Test Stat. Type", 
+                  col.names = c("Gene", "Lineage", "Test Stat.", "P-value", "Test Stat. Type", "Test Notes", 
                                 "Model Status", "Adj. P-value", "Gene Dynamic over Lineage", "Gene Dynamic")) %>% 
   kableExtra::kable_paper("hover", full_width = FALSE)
 ```

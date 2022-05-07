@@ -119,7 +119,7 @@ testDynamic <- function(expr.mat = NULL,
           { scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
                            Y = expr.mat[lineage_cells, i],
                            is.gee = is.gee,
-                           id.vec = id.vec,
+                           id.vec = id.vec[lineage_cells],
                            cor.structure = cor.structure,
                            M = n.potential.basis.fns) },
           silent = TRUE
@@ -136,7 +136,7 @@ testDynamic <- function(expr.mat = NULL,
       if (is.gee) {
         null_mod <- try(
           { geeM::geem(expr.mat[lineage_cells, i, drop = FALSE] ~ 1,
-                       id = id.vec,
+                       id = id.vec[lineage_cells],
                        family = MASS::negative.binomial(1),
                        corstr = cor.structure) },
           silent = TRUE
@@ -156,7 +156,7 @@ testDynamic <- function(expr.mat = NULL,
       }
       # prepare results if there were errors in either null or MARGE model
       if (all(class(marge_mod) == "try-error") & all(class(null_mod) == "try-error")) {
-        mod_status <- "MARGE & null model errors"
+        mod_status <- "MARGE model error, null model error"
         # generate empty dataframe for slope test
         slope_data_error <- data.frame(Gene = genes[i],
                                        Lineage = LETTERS[j],
@@ -170,6 +170,7 @@ testDynamic <- function(expr.mat = NULL,
                                   Lineage = LETTERS[j],
                                   Test_Stat = NA_real_,
                                   Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+                                  Test_Stat_Note = NA_character_,
                                   P_Val = NA_real_,
                                   LogLik_MARGE = NA_real_,
                                   LogLik_Null = NA_real_,
@@ -221,6 +222,7 @@ testDynamic <- function(expr.mat = NULL,
                                   Lineage = LETTERS[j],
                                   Test_Stat = NA_real_,
                                   Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+                                  Test_Stat_Note = NA_character_,
                                   P_Val = NA_real_,
                                   LogLik_MARGE = NA_real_,
                                   LogLik_Null = ifelse(is.gee, NA_real_, as.numeric(stats::logLik(null_mod))),
@@ -277,6 +279,7 @@ testDynamic <- function(expr.mat = NULL,
                                   Lineage = LETTERS[j],
                                   Test_Stat = NA_real_,
                                   Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+                                  Test_Stat_Note = NA_character_,
                                   P_Val = NA_real_,
                                   LogLik_MARGE = ifelse(is.gee, NA_real_, as.numeric(stats::logLik(marge_mod$final_mod))),
                                   LogLik_Null = NA_real_,
@@ -291,7 +294,7 @@ testDynamic <- function(expr.mat = NULL,
 
       # prepare results if neither model had errors
       } else if (!all(class(marge_mod) == "try-error") & !all(class(null_mod) == "try-error")) {
-        mod_status <- "MARGE & null model OK"
+        mod_status <- "MARGE model OK, null model OK"
         # generate null model summary table & fitted values w/ standard errors (need to do so manually for GEE)
         if (is.gee) {
           null_sumy_df <- try({
@@ -305,6 +308,7 @@ testDynamic <- function(expr.mat = NULL,
           null_pred_df <- try({
             robust_vcov_mat <- as.matrix(null_mod$var)
             data.frame(null_link_fit = predict(null_mod),
+                       # can maybe replace below line with null_link_se = unname(summary(null_mod)$se.robust) for a little more speed w/ big N ?
                        null_link_se = sqrt(apply((tcrossprod(null_mod$X, robust_vcov_mat)) * null_mod$X, 1, sum)))  # wow I love math
           }, silent = TRUE)
         } else {
@@ -364,6 +368,7 @@ testDynamic <- function(expr.mat = NULL,
                                   Lineage = LETTERS[j],
                                   Test_Stat = ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat),
                                   Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+                                  Test_Stat_Note = test_res$Notes,
                                   P_Val = test_res$P_Val,
                                   LogLik_MARGE = ifelse(is.gee, NA_real_, as.numeric(stats::logLik(marge_mod$final_mod))),
                                   LogLik_Null = ifelse(is.gee, NA_real_, as.numeric(stats::logLik(null_mod))),

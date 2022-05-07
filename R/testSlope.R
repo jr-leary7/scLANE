@@ -5,7 +5,7 @@
 #' @description This function tests whether the slope of a gene's \eqn{\beta} coefficient(s) for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
 #' @import magrittr
 #' @importFrom purrr map reduce
-#' @importFrom dplyr arrange mutate if_else with_groups
+#' @importFrom dplyr arrange mutate case_when with_groups
 #' @importFrom stats p.adjust
 #' @param test.dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param p.adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".
@@ -28,8 +28,8 @@ testSlope <- function(test.dyn.results = NULL,
               dplyr::arrange(P_Val) %>%
               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method)) %>%
               dplyr::arrange(Gene, Breakpoint) %>%
-              dplyr::mutate(Gene_Dynamic_Lineage_Slope = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0)) %>%
-              dplyr::with_groups(c(Gene, Lineage), dplyr::mutate, Gene_Dynamic_Lineage = dplyr::if_else(any(Gene_Dynamic_Lineage_Slope == 1), 1, 0)) %>%
-              dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic_Overall = dplyr::if_else(any(Gene_Dynamic_Lineage == 1), 1, 0))
+              dplyr::mutate(Gene_Dynamic_Lineage_Slope = dplyr::case_when(P_Val_Adj < fdr.cutoff ~ 1, TRUE ~ 0)) %>%
+              dplyr::with_groups(c(Gene, Lineage), dplyr::mutate, Gene_Dynamic_Lineage = dplyr::case_when(any(Gene_Dynamic_Lineage_Slope == 1) ~ 1, TRUE ~ 0)) %>%
+              dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic_Overall = dplyr::case_when(any(Gene_Dynamic_Lineage == 1) ~ 1, TRUE ~ 0))
   return(slope_df)
 }

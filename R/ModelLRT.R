@@ -26,6 +26,7 @@ modelLRT <- function(mod.1 = NULL, mod.0 = NULL) {
               Null_Mod_LL = as.numeric(mod.0_ll),
               LRT_Stat = lrt_stat,
               DF = dgr_free,
-              P_Val = p_val)
+              P_Val = p_val,
+              Notes = NA_character_)
   return(res)
 }

@@ -90,7 +90,7 @@ We're going to run `scLANE` solely on the top 100 most highly variable genes. Th
 ```{r}
 lung_counts <- as.matrix(t(lung@assays@data$counts))
 gene_stats <- testDynamic(expr.mat = lung_counts[, top2k_hvgs[1:100]], 
-                          genes = gene_samp, 
+                          genes = top2k_hvgs[1:100], 
                           pt = pt_df, 
                           is.gee = TRUE, 
                           id.vec = lung$Patient, 
@@ -139,14 +139,14 @@ Lastly, we can plot the fitted models for a couple of the genes. In addition to 
 
 ```{r, fig.width=6}
 plotModels(test.dyn.res = gene_stats, 
-           gene = gene_samp[1], 
+           gene = top2k_hvgs[1], 
            pt = pt_df, 
            gene.counts = lung_counts, 
            is.gee = TRUE, 
            id.vec = lung$Patient, 
            cor.structure = "exchangeable")
 plotModels(test.dyn.res = gene_stats, 
-           gene = gene_samp[2], 
+           gene = top2k_hvgs[2], 
            pt = pt_df, 
            gene.counts = lung_counts, 
            is.gee = TRUE, 
@@ -156,7 +156,7 @@ plotModels(test.dyn.res = gene_stats,
 
 ## Gene-level Analysis 
 
-Let's cluster the genes based on their fitted values using the Louvain algorithm. 
+Let's cluster the genes based on their fitted values using heirarchical clustering with Ward's linkage. 
 
 ```{r}
 purrr::map(gene_stats, function(x) {

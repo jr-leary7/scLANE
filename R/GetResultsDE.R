@@ -8,7 +8,7 @@
 #' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @import magrittr
 #' @importFrom purrr map reduce
-#' @importFrom dplyr arrange mutate if_else with_groups relocate
+#' @importFrom dplyr arrange mutate case_when with_groups relocate
 #' @importFrom stats p.adjust
 #' @return A data.frame containing differential expression results & modeling statistics for each gene.
 #' @export
@@ -27,7 +27,7 @@ getResultsDE <- function(test.dyn.results = NULL,
                purrr::reduce(rbind) %>%
                dplyr::arrange(P_Val) %>%
                dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),
-                             Gene_Dynamic_Lineage = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0)) %>%
+                             Gene_Dynamic_Lineage = dplyr::case_when(P_Val_Adj < fdr.cutoff ~ 1, TRUE ~ 0)) %>%
                dplyr::with_groups(Gene, dplyr::mutate, Gene_Dynamic_Overall = max(Gene_Dynamic_Lineage)) %>%
                dplyr::relocate(Gene,
                                Lineage,

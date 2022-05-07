@@ -20,7 +20,8 @@ waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
     # can't calculate Wald statistic if both models are intercept-only
     res <- list(Wald_Stat = 0,
                 DF = 0,
-                P_Val = 1)
+                P_Val = 1,
+                Notes = NA_character_)
   } else {
     # generate wald statistic & p-value -- see multgee::waldts() at https://mran.microsoft.com/snapshot/2016-01-07/web/packages/multgee/vignettes/multgee.pdf
     coef_alt_mod <- names(coef(mod.1))
@@ -32,11 +33,22 @@ waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
     }
     coef_vals <- as.matrix(coef(mod.1)[coef_idx])
     vcov_mat <- as.matrix(mod.1$var)[coef_idx, coef_idx]
-    wald_test <- as.numeric(t(coef_vals) %*% solve(vcov_mat) %*% coef_vals)
-    p_value <- as.numeric(1 - stats::pchisq(wald_test, df = length(coef_diff)))
-    res <- list(Wald_Stat = wald_test,
+    wald_test <- try({
+      as.numeric(t(coef_vals) %*% solve(vcov_mat) %*% coef_vals)
+    }, silent = TRUE)
+    if (all(class(wald_test) == "try-error")) {
+      wald_res <- 0
+      p_value <- 1
+      wald_note <- wald_test[1]  # this is the error message
+    } else {
+      wald_res <- wald_test
+      p_value <- as.numeric(1 - stats::pchisq(wald_test, df = length(coef_diff)))
+      wald_note <- NA_character_
+    }
+    res <- list(Wald_Stat = wald_res,
                 DF = length(coef_diff),
-                P_Val = p_value)
+                P_Val = p_value,
+                Notes = wald_note)
   }
   return(res)
 }

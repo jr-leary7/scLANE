@@ -11,9 +11,12 @@
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 
-min_span <- function(X_red = NULL, q = NULL, minspan = NULL, alpha = 0.05) {
+min_span <- function(X_red = NULL,
+                     q = NULL,
+                     minspan = NULL,
+                     alpha = 0.05) {
   # check inputs
-  if (is.null(X_red) | is.null(q)) stop("Some inputs to min_span() are missing.")
+  if (is.null(X_red) | is.null(q)) { stop("Some inputs to min_span() are missing.") }
   N <- length(X_red)
   x <- sort(X_red)
   minspan <- ifelse(is.null(minspan), round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5)), minspan)

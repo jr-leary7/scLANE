@@ -10,7 +10,7 @@
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial
 #' @importFrom tidyr pivot_longer
-#' @importFrom scales comma_format
+#' @importFrom scales comma_format number_format
 #' @description This function visualizes the fitted values of several types of models over the expression and pseudotime values of each cell.
 #' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to NULL.
 #' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object & to subset the counts matrix. Defaults to NULL.
@@ -79,10 +79,14 @@ plotModels <- function(test.dyn.res = NULL,
                                               corstr = cor.structure,
                                               sandwich = TRUE)
                         robust_vcov_mat <- as.matrix(glm_mod$var)
-                        glm_preds <- data.frame(fit = predict(marge_mod$final_mod),
+                        glm_preds <- data.frame(fit = predict(glm_mod),
                                                 se.fit = sqrt(apply((tcrossprod(glm_mod$X, robust_vcov_mat)) * glm_mod$X, 1, sum)))
                       } else {
-                        glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT, x = FALSE, y = FALSE, method = "glm.fit2", init.theta = 1)
+                        glm_mod <- MASS::glm.nb(x$COUNT ~ x$PT,
+                                                x = FALSE,
+                                                y = FALSE,
+                                                method = "glm.fit2",
+                                                init.theta = 1)
                         glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
                       }
 
@@ -146,10 +150,11 @@ plotModels <- function(test.dyn.res = NULL,
   # generate plot
   p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
        ggplot2::geom_point(alpha = 0.5, size = 0.5) +
-       ggplot2::geom_line(ggplot2::aes(x = PT, y = PRED, color = LINEAGE), size = 1) +
-       ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL, fill = LINEAGE), alpha = 0.5, size = 0) +
+       ggplot2::geom_line(ggplot2::aes(x = PT, y = PRED), size = 1, color = "black") +
+       ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL), alpha = 0.4, size = 0, color = "grey") +
        ggplot2::facet_wrap(~MODEL) +
        ggplot2::scale_y_continuous(labels = scales::comma_format()) +
+       ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
        ggplot2::labs(x = "Pseudotime", y = "Expression", color = "Lineage", fill = "Lineage", title = gene) +
        gg.theme +
        ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))

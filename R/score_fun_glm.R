@@ -14,7 +14,6 @@
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats lm.fit
-#' @importFrom MASS ginv
 
 score_fun_glm <- function(Y = NULL,
                           VS.est_list = NULL,
@@ -33,7 +32,6 @@ score_fun_glm <- function(Y = NULL,
   } else if (any(is.na(reg$coef))) {
     score <- NA
   } else {
-    N <- length(Y)
     VS.est_i <- unlist(VS.est_list)
     A_list_i <- unlist(A_list)
     B1_list_i <- unlist(B1_list)
@@ -52,28 +50,18 @@ score_fun_glm <- function(Y = NULL,
     temp_prod <- eigenMapMatMult(A = temp_prod,
                                  B = B_list_i,
                                  n_cores = 1)
-    inv.XVX_22 <- (D_list_i - temp_prod)
+    inv.XVX_22 <- (D_list_i - temp_prod); rm(temp_prod)
     # B.est <- t(((mu.est)) * VS.est_i) %*% XA
     B.est <- eigenMapMatMult(A = t(((mu.est)) * VS.est_i),
                              B = XA,
                              n_cores = 1)
-    if (N < 1500) {
-      # score <- (B.est) %*% MASS::ginv(inv.XVX_22) %*% t(B.est)
-      temp_prod <- eigenMapMatMult(A = B.est,
-                                   B = MASS::ginv(inv.XVX_22),
-                                   n_cores = 1)
-      score <- eigenMapMatMult(A = temp_prod,
-                               B = t(B.est),
-                               n_cores = 1)
-    } else {
-      # score <- (B.est) %*% chol2inv(chol(inv.XVX_22)) %*% t(B.est)
-      temp_prod <- eigenMapMatMult(A = B.est,
-                                   B = chol2inv(chol(inv.XVX_22)),
-                                   n_cores = 1)
-      score <- eigenMapMatMult(A = temp_prod,
-                               B = t(B.est),
-                               n_cores = 1)
-    }
+    # score <- (B.est) %*% chol2inv(chol(inv.XVX_22)) %*% t(B.est)
+    temp_prod <- eigenMapMatMult(A = B.est,
+                                 B = chol2inv(chol(inv.XVX_22)),
+                                 n_cores = 1)
+    score <- eigenMapMatMult(A = temp_prod,
+                             B = t(B.est),
+                             n_cores = 1); rm(temp_prod)
   }
   res <- list(score = score)
   return(res)

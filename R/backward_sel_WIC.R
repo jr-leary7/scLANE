@@ -22,13 +22,14 @@ backward_sel_WIC <- function(Y = NULL, B_new = NULL, is.gee = FALSE, id.vec = NU
   if (is.gee & is.null(cor.structure)) { stop("GEEs require a working correlation structure in backward_sel_WIC().") }
   cor.structure <- tolower(cor.structure)
   if (is.gee) {
-    fit <- geeM::geem(Y ~ B_null - 1,
+    fit <- geeM::geem(Y ~ B_new - 1,
                       id = id.vec,
                       corstr = cor.structure,
-                      family = MASS::negative.binomial(1))
+                      family = MASS::negative.binomial(1),
+                      sandwich = TRUE)
     wald_stat <- (unname(summary(fit)$wald.test[-1]))^2
   } else {
-    fit <- gamlss::gamlss(Y ~ B_new - 1, family = "NBI", trace = FALSE)
+    fit <- gamlss::gamlss(Y ~ B_new - 1, family = "NBI", trace = FALSE, )
     sink(tempfile())
     fit_sum <- summary(fit)
     sink()

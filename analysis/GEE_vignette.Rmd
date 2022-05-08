@@ -30,8 +30,7 @@ In this vignette we'll focus on one of the more complicated features of `scLANE`
 
 # Libraries
 
-```{r}
-# library(igraph)     # graph tools
+```{r, results='hide'}
 library(dplyr)      # data manipulation
 library(scran)      # single cell tools 
 library(scLANE)     # differential expression over pseudotime
@@ -60,7 +59,7 @@ top2k_hvgs <- getTopHVGs(var_decomp, n = 2000)
 lung <- runPCA(lung, subset_row = top2k_hvgs)
 reducedDim(lung, "PCAsub") <- reducedDim(lung, "PCA")[, 1:10, drop = FALSE]
 lung <- runUMAP(lung, dimred = "PCAsub", n_dimred = 1:10)
-g <- buildSNNGraph(lung, use.dimred = "PCAsub", k = 40)
+g <- buildSNNGraph(lung, use.dimred = "PCAsub", k = 20)
 clusters <- igraph::cluster_louvain(graph = g)$membership
 colLabels(lung) <- factor(clusters)
 plotUMAP(lung, colour_by = "label")
@@ -88,13 +87,13 @@ pt_df <- as.data.frame(scl_pt) %>%
 We're going to run `scLANE` solely on the top 100 most highly variable genes. This is for both computational quickness & in order to get interesting results (highly variable $\implies$ dynamic, usually), as this is a just a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
 
 ```{r}
-lung_counts <- as.matrix(t(lung@assays@data$counts))
-gene_stats <- testDynamic(expr.mat = lung_counts[, top2k_hvgs[1:100]], 
-                          genes = top2k_hvgs[1:100], 
+lung_counts <- as.matrix(t(lung@assays@data$counts))[, top2k_hvgs[1:100]]
+gene_stats <- testDynamic(expr.mat = lung_counts, 
                           pt = pt_df, 
                           is.gee = TRUE, 
                           id.vec = lung$Patient, 
                           cor.structure = "exchangeable", 
+                          n.potential.basis.fns = 4, 
                           parallel.exec = TRUE, 
                           n.cores = 6, 
                           track.time = TRUE)
@@ -105,6 +104,7 @@ Let's check out the results of the global differential expression test.
 ```{r}
 getResultsDE(gene_stats) %>% 
   select(-contains("LogLik"), -contains("Dev")) %>%  # not relevant to GEEs
+  arrange(Gene, Lineage) %>% 
   slice_head(n = 10) %>% 
   kableExtra::kbl(digits = 5, 
                   align = "c", 
@@ -139,14 +139,14 @@ Lastly, we can plot the fitted models for a couple of the genes. In addition to 
 
 ```{r, fig.width=6}
 plotModels(test.dyn.res = gene_stats, 
-           gene = top2k_hvgs[1], 
+           gene = "CXCL8", 
            pt = pt_df, 
            gene.counts = lung_counts, 
            is.gee = TRUE, 
            id.vec = lung$Patient, 
            cor.structure = "exchangeable")
 plotModels(test.dyn.res = gene_stats, 
-           gene = top2k_hvgs[2], 
+           gene = "RGS2", 
            pt = pt_df, 
            gene.counts = lung_counts, 
            is.gee = TRUE, 
@@ -156,9 +156,9 @@ plotModels(test.dyn.res = gene_stats,
 
 ## Gene-level Analysis 
 
-Let's cluster the genes based on their fitted values using heirarchical clustering with Ward's linkage. 
+Let's cluster the genes based on their fitted values using hierarchical clustering with Ward's linkage. 
 
-```{r}
+```{r, fig.width=9}
 purrr::map(gene_stats, function(x) {
   if (stringr::str_detect(x$Lineage_A$Model_Status, "error")) {
     NA
@@ -168,37 +168,17 @@ purrr::map(gene_stats, function(x) {
 }) %>% 
   purrr::reduce(cbind) %>% 
   set_colnames(names(gene_stats)) %>% 
-  set_rownames(rownames(lung_counts)) %>% 
+  #set_rownames(rownames(lung_counts)) %>% 
   janitor::remove_empty(which = "cols") -> fitted_vals
 fitted_vals_pca <- prcomp(t(fitted_vals), center = TRUE, rank. = 10)$x
-# fitted_vals_graph <- igraph::graph.adjacency(as.matrix(dist(fitted_vals_pca)), 
-#                                              mode = "undirected", 
-#                                              weighted = TRUE, 
-#                                              diag = TRUE)
-# fitted_vals_clusts <- igraph::cluster_leiden(graph = fitted_vals_graph, resolution_parameter = 1)
 fitted_vals_clusts <- hclust(dist(fitted_vals_pca), method = "ward.D2")
 ggdendro::ggdendrogram(fitted_vals_clusts) + 
   labs(title = "Heirarchical Clustering of Highly-Variable Genes") + 
   theme_classic(base_size = 14) + 
-  theme(axis.text.x = element_text(angle = 90), 
+  theme(axis.text.x = element_text(angle = 90, size = 8), 
         plot.title = element_text(hjust = 0.5), 
         axis.text.y = element_blank(), 
         axis.title = element_blank())
-```
-
-
-```{r}
-library(biomaRt)
-head(listDatasets(useMart("ensembl")), 3)
-ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
-head(listFilters(ensembl), 10) 
-listAttributes(ensembl)
-gene_attrs <- c("gene_biotype", "hgnc_symbol", "wikigene_description", 
-                "interpro_description", "mim_gene_description")
-res <- getBM(attributes =  gene_attrs, 
-             filters = c("hgnc_symbol"), 
-             values =  top2k_hvgs[1:5], 
-             mart = ensembl)
 ```
 
 # Session Info 

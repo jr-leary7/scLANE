@@ -3,7 +3,6 @@
 #' @name plotModels
 #' @author Jack Leary
 #' @import magrittr
-#' @importFrom ggplot2 theme_classic ggplot aes geom_point geom_line geom_ribbon facet_wrap scale_y_continuous labs theme element_text
 #' @importFrom stats qnorm predict
 #' @importFrom purrr map map2 reduce
 #' @importFrom dplyr relocate mutate select contains case_when filter
@@ -11,6 +10,7 @@
 #' @importFrom MASS negative.binomial
 #' @importFrom tidyr pivot_longer
 #' @importFrom scales comma_format number_format
+#' @importFrom ggplot2 theme_classic ggplot aes geom_point geom_line geom_ribbon facet_wrap scale_y_continuous labs theme element_text guides guide_legend
 #' @description This function visualizes the fitted values of several types of models over the expression and pseudotime values of each cell.
 #' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to NULL.
 #' @param gene The name of the gene that's being analyzed. Used as the title of the \code{ggplot} object & to subset the counts matrix. Defaults to NULL.
@@ -57,10 +57,11 @@ plotModels <- function(test.dyn.res = NULL,
   # create base list w/ elements being lineage-specific dataframes
   counts_df_list <- purrr::map(pt, function(x) data.frame(CELL = rownames(pt)[!is.na(x)],
                                                           PT = x[!is.na(x)],
-                                                          COUNT = gene.counts[!is.na(x), gene]))
+                                                          COUNT = gene.counts[!is.na(x), gene],
+                                                          ID = ifelse(is.gee, id.vec[!is.na(x)], NA_character_)))
   for (i in seq_along(counts_df_list)) { counts_df_list[[i]]$LINEAGE <- LETTERS[i] }
   # create list of dataframes w/ predicted values, standard errors, CIs for null, GLM, GAM, & MARGE models
-  counts_df_list <- purrr::map(counts_df_list, function(x) x %>% dplyr::relocate(CELL, LINEAGE, COUNT, PT)) %>%
+  counts_df_list <- purrr::map(counts_df_list, function(x) x %>% dplyr::relocate(ID, CELL, LINEAGE, COUNT, PT)) %>%
                     purrr::map2(.y = td_res, function(.x, .y) .x %>% dplyr::mutate(RESP_MARGE = .y$MARGE_Preds$marge_link_fit,
                                                                                    SE_MARGE = .y$MARGE_Preds$marge_link_se,
                                                                                    PRED_MARGE = exp(RESP_MARGE),
@@ -74,7 +75,7 @@ plotModels <- function(test.dyn.res = NULL,
                     purrr::map(function(x) {
                       if (is.gee) {
                         glm_mod <- geeM::geem(x$COUNT ~ x$PT,
-                                              id = id.vec,
+                                              id = x$ID,
                                               family = MASS::negative.binomial(1),
                                               corstr = cor.structure,
                                               sandwich = TRUE)
@@ -149,14 +150,15 @@ plotModels <- function(test.dyn.res = NULL,
   if (!is.null(filter.lineage)) { counts_df %<>% dplyr::filter(!LINEAGE %in% filter.lineage) }
   # generate plot
   p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
-       ggplot2::geom_point(alpha = 0.5, size = 0.5) +
+       ggplot2::geom_point(alpha = 0.4, size = 0.5) +
+       ggplot2::facet_wrap(~LINEAGE + MODEL) +
        ggplot2::geom_line(ggplot2::aes(x = PT, y = PRED), size = 1, color = "black") +
        ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL), alpha = 0.4, size = 0, color = "grey") +
-       ggplot2::facet_wrap(~MODEL) +
        ggplot2::scale_y_continuous(labels = scales::comma_format()) +
        ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
        ggplot2::labs(x = "Pseudotime", y = "Expression", color = "Lineage", fill = "Lineage", title = gene) +
        gg.theme +
-       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
+       ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 2, alpha = 1)))
   return(p)
 }

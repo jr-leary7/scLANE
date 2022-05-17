@@ -1,0 +1,109 @@
+---
+title: "Simulating Grouped Negative Binomial Counts with `scaffold`"
+subtitle: "University of Florida - Dept. of Biostatistics - Bacher Group"
+author: "Jack Leary"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: journal
+    highlight: tango
+    code_folding: show
+    code_download: true
+    toc: true
+    toc_float:
+      collpased: false
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      comment = NA, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      fig.align = "center")
+set.seed(312)  # lucky seed
+```
+
+# Libraries
+
+```{r}
+library(glm2)
+library(dplyr)
+library(scran)
+library(scLANE)
+library(scater)
+library(ggplot2)
+library(scaffold)
+library(kableExtra)
+library(SingleCellExperiment)
+```
+
+# Data 
+
+```{r}
+ref.dataset <- scRNAseq::BaronPancreasData()
+perc.dyn.genes <- .1
+n.cells <- 200
+n_dyn_genes <- ceiling(perc.dyn.genes * nrow(ref.dataset))
+gene_knots <- matrix(runif(2 * n_dyn_genes, 0, 1), ncol = 2, nrow = n_dyn_genes)
+theta_1 <- matrix(rnorm(5, 5, 5), ncol = 5, nrow = n_dyn_genes)
+theta_2 <- matrix(rnorm(5, 5, 3), ncol = 5, nrow = n_dyn_genes)
+dynamic_params_1 <- list(propGenes = perc.dyn.genes,
+                         degree = 2,
+                         knots = gene_knots,
+                         theta = theta_1)
+dynamic_params_2 <- list(propGenes = perc.dyn.genes,
+                         degree = 2,
+                         knots = gene_knots,
+                         theta = theta_2)
+# simulate 10X dataset
+scaffold_params_1 <- estimateScaffoldParameters(sce = ref.dataset,
+                                                sceUMI = TRUE,
+                                                useUMI = TRUE,
+                                                protocol = "droplet",
+                                                numCells = n.cells,
+                                                popHet = c(1, 1),
+                                                useDynamic = dynamic_params_1)
+scaffold_params_2 <- estimateScaffoldParameters(sce = ref.dataset,
+                                                sceUMI = TRUE,
+                                                useUMI = TRUE,
+                                                protocol = "droplet",
+                                                numCells = n.cells,
+                                                popHet = c(1, 1),
+                                                useDynamic = dynamic_params_2)
+sim_list <- list(P1 = simulateScaffold(scaffoldParams = scaffold_params_1, originalSCE = ref.dataset), 
+                 P2 = simulateScaffold(scaffoldParams = scaffold_params_1, originalSCE = ref.dataset))
+
+counts_mat <- as.matrix(cbind(counts(sim_list[[1]]), counts(sim_list[[2]])))
+col_names <- c(paste0("P1_", colnames(sim_list[[1]])), 
+               paste0("P2_", colnames(sim_list[[1]])))
+row_names <- rownames(sim_list[[1]])
+rownames(counts_mat) <- row_names
+colnames(counts_mat) <- col_names
+row_data <- cbind(rowData(sim_list[[1]]), rowData(sim_list[[2]])) %>% as.data.frame()
+colnames(row_data) <- paste0("geneStatus_", c("P1", "P2"))
+row_data <- DataFrame(row_data)
+col_data <- rbind(colData(sim_list[[1]]), colData(sim_list[[2]])) %>% as.data.frame()
+rownames(col_data) <- col_names
+col_data <- DataFrame(col_data)
+
+sce <- SingleCellExperiment(list(counts = counts_mat))
+colData(sce) <- col_data
+rowData(sce) <- row_data
+
+sce <- logNormCounts(sce)
+var_decomp <- modelGeneVar(sce)
+top2k_hvgs <- getTopHVGs(var_decomp, n = 2000)
+sce <- runPCA(sce, subset_row = top2k_hvgs)
+reducedDim(sce, "PCAsub") <- reducedDim(sce, "PCA")[, 1:10, drop = FALSE]
+sce <- runUMAP(sce, dimred = "PCAsub", n_dimred = 1:10)
+g <- buildSNNGraph(sce, use.dimred = "PCAsub", k = 30)
+clusters <- igraph::cluster_louvain(graph = g)$membership
+colLabels(sce) <- factor(clusters)
+plotUMAP(sce, colour_by = "label")
+plotUMAP(sce, colour_by = "subject")
+```
+
+# Analysis 
+
+# Conclusions 

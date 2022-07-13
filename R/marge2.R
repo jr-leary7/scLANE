@@ -1,9 +1,13 @@
-#' \code{marge2} models for negative binomial data.
+#' Fit \code{MARGE} models of single cell counts.
 #'
 #' @name marge2
+#' @author Jakub Stoklosa and David I. Warton.
 #' @description MARS fitting function for generalized linear models (GLMs).
-#' @importFrom glm2 glm.fit2
+#' @import glm2
 #' @importFrom geeM geem
+#' @importFrom gamlss gamlss
+#' @importFrom MASS glm.nb negative.binomial
+#' @importFrom stats fitted
 #' @param X_pred A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
 #' @param Y The response variable. A vector of length n by N.
 #' @param is.gee Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.
@@ -24,7 +28,6 @@
 #' @return \code{GCV} The GCV for the final selected model.
 #' @return \code{y_pred} The fitted values from the final selected model (with both penalties).
 #' @return \code{final_mod} The final selected (with both penalties) model matrix.
-#' @author Jakub Stoklosa and David I. Warton.
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
@@ -33,10 +36,6 @@
 #' @seealso \code{\link[MASS]{glm.nb}}
 #' @seealso \code{\link[geeM]{geem}}
 #' @export
-#' @importFrom gamlss gamlss
-#' @importFrom MASS glm.nb negative.binomial
-#' @importFrom stats fitted
-#' @importFrom geeM geem
 #' @examples
 #' \dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
 

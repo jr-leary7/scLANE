@@ -2,7 +2,7 @@
 % Please edit documentation in R/marge2.R
 \name{marge2}
 \alias{marge2}
-\title{\code{marge2} models for negative binomial data.}
+\title{Fit \code{MARGE} models of single cell counts.}
 \usage{
 marge2(
   X_pred = NULL,

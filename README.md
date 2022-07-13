@@ -76,15 +76,15 @@ plotModels(test.dyn.res = gene_stats,
 In addition, we can cluster the fitted values from each model, in effect clustering the patterns exhibited across different types of genes, as follows. Three different clustering algorithms are currently supported: hierarchical clustering, *k*-means, and graph-based clustering with the Leiden algorithm. All three methods have built-in parameter tuning using clustering quality metrics such as the silhouette score. 
 
 ```
-gene_clusters <- clusterGenes(test.dyn.results = scLANE_models, clust.algo = "leiden")
+gene_clusters <- clusterGenes(test.dyn.results = gene_stats, clust.algo = "leiden")
 ```
 
 Now we can prepare the data for visualization using `plotClusteredGenes()`, which we then feed into `ggplot2` to obtain the below plot: 
 
 ```
-plot_data <- plotClusteredGenes(test.dyn.results = scLANE_models, 
+plot_data <- plotClusteredGenes(test.dyn.results = gene_stats, 
                                 gene.clusters = gene_clusters, 
-                                pt = data.frame(scl_pt))
+                                pt = pt_df)
 ggplot(plot_data, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
   facet_wrap(~paste0("Lineage ", LINEAGE) + CLUSTER) + 
   geom_line() + 

@@ -16,7 +16,10 @@
 #' @seealso
 #' @export
 #' @examples
-#' \dontrun{}
+#' \dontrun{plotClusteredGenes(test.dyn.results = gene_stats, gene.clusters = gene_clusters, pt = pt_df) %>%
+#'          ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE) +
+#'          geom_line() +
+#'          facet_wrap(~LINEAGE))}
 
 plotClusteredGenes <- function(test.dyn.results = NULL,
                                gene.clusters = NULL,

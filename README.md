@@ -52,7 +52,7 @@ slope_test_results <- testSlope(test.dyn.results = gene_stats,
                                 fdr.cutoff = 0.01)
 ```
 
-Lastly, fitted values from the `marge`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene AURKA. 
+Next, fitted values from the `marge`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene AURKA. 
 
 ```
 plotModels(test.dyn.res = gene_stats, 
@@ -72,6 +72,33 @@ plotModels(test.dyn.res = gene_stats,
            id.vec = subject_IDs, 
            cor.structure = "exchangeable")
 ```
+
+In addition, we can cluster the fitted values from each model, in effect clustering the patterns exhibited across different types of genes, as follows. Three different clustering algorithms are currently supported: hierarchical clustering, *k*-means, and graph-based clustering with the Leiden algorithm. All three methods have built-in parameter tuning using clustering quality metrics such as the silhouette score. 
+
+```
+gene_clusters <- clusterGenes(test.dyn.results = scLANE_models, clust.algo = "leiden")
+```
+
+Now we can prepare the data for visualization using `plotClusteredGenes()`, which we then feed into `ggplot2` to obtain the below plot: 
+
+```
+plot_data <- plotClusteredGenes(test.dyn.results = scLANE_models, 
+                                gene.clusters = gene_clusters, 
+                                pt = data.frame(scl_pt))
+ggplot(plot_data, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
+  facet_wrap(~paste0("Lineage ", LINEAGE) + CLUSTER) + 
+  geom_line() + 
+  scale_color_manual(values = c("firebrick", "forestgreen", "steelblue3")) + 
+  labs(x = "Pseudotime", 
+       y = "Fitted Values", 
+       color = "Leiden\nCluster", 
+       title = "Unsupervised Clustering of Gene Patterns") + 
+  theme_classic(base_size = 14) + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  guides(color = guide_legend(override.aes = list(size = 2)))
+```
+
+![Clustered genes](./vignettes/scLANE_clustered_genes.png)
 
 # Contact Information 
 

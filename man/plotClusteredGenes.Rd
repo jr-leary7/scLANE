@@ -30,7 +30,10 @@ plotClusteredGenes(
 Plot per-lineage, per-cluster fitted values from \code{scLANE}.
 }
 \examples{
-\dontrun{}
+\dontrun{plotClusteredGenes(test.dyn.results = gene_stats, gene.clusters = gene_clusters, pt = pt_df) \%>\%
+         ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE) +
+         geom_line() +
+         facet_wrap(~LINEAGE))}
 }
 \seealso{
 

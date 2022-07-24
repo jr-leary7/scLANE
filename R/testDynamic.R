@@ -3,6 +3,8 @@
 #' @name testDynamic
 #' @author Jack Leary
 #' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
+#' @importFrom BiocGenerics counts
+#' @importFrom slingshot slingPseudotime
 #' @importFrom bigstatsr as_FBM
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doParallel registerDoParallel
@@ -13,24 +15,25 @@
 #' @importFrom broom tidy
 #' @importFrom stats deviance
 #' @importFrom geeM geem
-#' @param expr.mat A dense matrix of integer-valued counts. Defaults to NULL.
-#' @param pt A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.
+#' @param expr.mat Either a \code{SingleCellExperiment} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.
+#' @param pt Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.
 #' @param genes A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param id.vec If the GEE framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}}. Defaults to NULL.
-#' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "independence".
+#' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "exchangeable".
 #' @param parallel.exec A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
-#' @param n.potential.basis.fns The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
-#' @param track.time A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
-#' @param log.file A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.
-#' @param log.iter If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.
-#' @return A list of list, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
+#' @param n.potential.basis.fns (Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
+#' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
+#' @param log.file (Optional) A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.
+#' @param log.iter (Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.
+#' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
 #' @seealso \code{\link{testSlope}}
 #' @export
 #' @examples
 #' \dontrun{testDynamic(expr.mat = raw_counts, pt = pseudotime_df, parallel.exec = false)}
+#' \dontrun{testDynamic(expr.mat = sce_obj, pt = slingshot_obj, genes = rownames(sce_obj)[1:100])}
 #' \dontrun{testDynamic(expr.mat = raw_counts,
 #'                      pt = pseudotime_df,
 #'                      parallel.exec = TRUE,
@@ -40,7 +43,7 @@
 #'                      pt = pseudotime_df,
 #'                      is.gee = TRUE,
 #'                      id.vec = my_subject_ids,
-#'                      cor.structure = "exchangeable",
+#'                      cor.structure = "independence",
 #'                      parallel.exec = TRUE,
 #'                      n.cores = 8,
 #'                      n.potential.basis.fns = 7)}
@@ -50,7 +53,7 @@ testDynamic <- function(expr.mat = NULL,
                         genes = NULL,
                         is.gee = FALSE,
                         id.vec = NULL,
-                        cor.structure = "independence",
+                        cor.structure = "exchangeable",
                         parallel.exec = FALSE,
                         n.cores = 2,
                         n.potential.basis.fns = 5,
@@ -59,7 +62,13 @@ testDynamic <- function(expr.mat = NULL,
                         log.iter = 1) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
+  if (class(expr.mat) == "SingleCellExperiment") {
+    expr.mat <- as.matrix(t(BiocGenerics::counts(expr.mat)))
+  }
   if (any(class(expr.mat) != c("matrix", "array"))) { stop("Input expr.mat must be a matrix of integer counts.") }
+  if (class(pt) == "SlingshotDataSet") {
+    pt <- as.data.frame(slingshot::slingPseudotime(pt))
+  }
   if (class(pt) != "data.frame") { stop("pt must be of class data.frame.") }
   if (is.gee && is.null(id.vec)) { stop("You must provide a vector of IDs if you're using the GEE framework.") }
   if (is.gee && is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running testDynamic() with is.gee = TRUE.") }

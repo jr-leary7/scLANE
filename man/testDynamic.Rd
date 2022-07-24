@@ -10,7 +10,7 @@ testDynamic(
   genes = NULL,
   is.gee = FALSE,
   id.vec = NULL,
-  cor.structure = "independence",
+  cor.structure = "exchangeable",
   parallel.exec = FALSE,
   n.cores = 2,
   n.potential.basis.fns = 5,
@@ -20,9 +20,9 @@ testDynamic(
 )
 }
 \arguments{
-\item{expr.mat}{A dense matrix of integer-valued counts. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.}
 
-\item{pt}{A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.}
+\item{pt}{Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.}
 
 \item{genes}{A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.}
 
@@ -30,28 +30,29 @@ testDynamic(
 
 \item{id.vec}{If the GEE framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}}. Defaults to NULL.}
 
-\item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "independence".}
+\item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "exchangeable".}
 
 \item{parallel.exec}{A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
 
-\item{n.potential.basis.fns}{The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
+\item{n.potential.basis.fns}{(Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
 
-\item{track.time}{A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
+\item{track.time}{(Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
 
-\item{log.file}{A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.}
+\item{log.file}{(Optional) A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.}
 
-\item{log.iter}{If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.}
+\item{log.iter}{(Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.}
 }
 \value{
-A list of list, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
+A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 }
 \description{
 This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 }
 \examples{
 \dontrun{testDynamic(expr.mat = raw_counts, pt = pseudotime_df, parallel.exec = false)}
+\dontrun{testDynamic(expr.mat = sce_obj, pt = slingshot_obj, genes = rownames(sce_obj)[1:100])}
 \dontrun{testDynamic(expr.mat = raw_counts,
                      pt = pseudotime_df,
                      parallel.exec = TRUE,
@@ -61,7 +62,7 @@ This function tests whether a NB \code{marge} model is better than a null (inter
                      pt = pseudotime_df,
                      is.gee = TRUE,
                      id.vec = my_subject_ids,
-                     cor.structure = "exchangeable",
+                     cor.structure = "independence",
                      parallel.exec = TRUE,
                      n.cores = 8,
                      n.potential.basis.fns = 7)}

@@ -28,7 +28,6 @@ enrichDynamicGenes <- function(scLANE.de.res = NULL,
   if (is.null(scLANE.de.res) | is.null(gene.set.cat)) { stop("Arguments to enrichDynamicGenes() are missing.") }
   species <- tolower(species)
   if (!species %in% c("hs", "mm")) { stop("species must be one of 'hs' or 'mm' at this time.") }
-  all_genes <- unique(scLANE.de.res$Gene)
   if (!is.null(lineage)) {
     scLANE.de.res <- dplyr::filter(scLANE.de.res,
                                    Lineage %in% lineage,
@@ -51,7 +50,7 @@ enrichDynamicGenes <- function(scLANE.de.res = NULL,
   term_to_gene <- gene_sets %>% dplyr::distinct(gs_name, gene_symbol)
   gsea_res <- clusterProfiler::enricher(gene = genes,
                                         TERM2GENE = term_to_gene,
-                                        universe = all_genes,
+                                        universe = unique(term_to_gene$gene_symbol),
                                         qvalueCutoff = 0.05)
   return(gsea_res)
 }

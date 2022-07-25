@@ -73,6 +73,8 @@ plotModels(test.dyn.res = gene_stats,
            cor.structure = "exchangeable")
 ```
 
+![Clustered genes](./vignettes/scLANE_plotModels_Output_GEE_RGS2.png)
+
 In addition, we can cluster the fitted values from each model, in effect clustering the patterns exhibited across different types of genes, as follows. Three different clustering algorithms are currently supported: hierarchical clustering, *k*-means, and graph-based clustering with the Leiden algorithm. All three methods have built-in parameter tuning using clustering quality metrics such as the silhouette score. 
 
 ```

@@ -84,7 +84,7 @@ pt_df <- as.data.frame(scl_pt) %>%
 
 ## Global Test
 
-We're going to run `scLANE` solely on the top 100 most highly variable genes. This is for both computational quickness & in order to get interesting results (highly variable $\implies$ dynamic, usually), as this is a just a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
+We're going to run `scLANE` solely on the top 100 most highly variable genes. This is for both computational quickness & in order to get interesting results (highly variable oftentimes $\implies$ dynamic), as this is a just a tutorial. Note that we need to provide a (sorted) vector of subject IDs as well as a working correlation structure. In this case we opt for the default exchangeable (AKA compound symmetry) structure, as it stands to reason that within-subject cells will have similar correlations. 
 
 ```{r}
 lung_counts <- as.matrix(t(lung@assays@data$counts))[, top2k_hvgs[1:100]]
@@ -103,7 +103,7 @@ Let's check out the results of the global differential expression test.
 
 ```{r}
 getResultsDE(gene_stats) %>% 
-  select(-contains("LogLik"), -contains("Dev")) %>%  # not relevant to GEEs
+  select(-contains("LogLik"), -contains("Dev")) %>%  # log-likelihood & deviance not computed for GEEs
   arrange(Gene, Lineage) %>% 
   slice_head(n = 10) %>% 
   kableExtra::kbl(digits = 5, 
@@ -128,7 +128,7 @@ testSlope(test.dyn.results = gene_stats) %>%
                   caption = "Slope-level dynamic test", 
                   col.names = c("Gene", "Lineage", "Breakpoint", "Rounded Breakpoint", 
                                 "Direction", "P-value", "Notes", "Adj. P-value", 
-                                "Gene Dynamic over Lineage-Slope", "Gene Dynamic over Lineage", 
+                                "Gene Dynamic over Lineage/Interval", "Gene Dynamic over Lineage", 
                                 "Gene Dynamic")) %>% 
   kableExtra::kable_paper("hover", full_width = FALSE)
 ```
@@ -137,7 +137,7 @@ testSlope(test.dyn.results = gene_stats) %>%
 
 Lastly, we can plot the fitted models for a couple of the genes. In addition to the null (intercept-only) and `MARGE` models we can also compare to a GEE GLM with pseudotime as a covariate. 
 
-```{r, fig.width=6}
+```{r, fig.width=4}
 plotModels(test.dyn.res = gene_stats, 
            gene = "CXCL8", 
            pt = pt_df, 
@@ -159,26 +159,26 @@ plotModels(test.dyn.res = gene_stats,
 Let's cluster the genes based on their fitted values using hierarchical clustering with Ward's linkage. 
 
 ```{r, fig.width=9}
-purrr::map(gene_stats, function(x) {
-  if (stringr::str_detect(x$Lineage_A$Model_Status, "error")) {
-    NA
-  } else {
-    x$Lineage_A$MARGE_Preds$marge_link_fit
-  }
-}) %>% 
-  purrr::reduce(cbind) %>% 
-  set_colnames(names(gene_stats)) %>% 
-  #set_rownames(rownames(lung_counts)) %>% 
-  janitor::remove_empty(which = "cols") -> fitted_vals
-fitted_vals_pca <- prcomp(t(fitted_vals), center = TRUE, rank. = 10)$x
-fitted_vals_clusts <- hclust(dist(fitted_vals_pca), method = "ward.D2")
-ggdendro::ggdendrogram(fitted_vals_clusts) + 
-  labs(title = "Heirarchical Clustering of Highly-Variable Genes") + 
+gene_clusters <- clusterGenes(gene_stats, clust.algo = "hclust")
+plot_data <- plotClusteredGenes(test.dyn.results = gene_stats, 
+                                gene.clusters = gene_clusters, 
+                                pt = pt_df)
+```
+
+We'll plot the gene cluster data using `ggplot2`:
+
+```{r, fig.width=9}
+ggplot(plot_data, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
+  facet_wrap(~paste0("Lineage ", LINEAGE) + paste0("Cluster ", CLUSTER)) + 
+  geom_line() + 
+  scale_color_manual(values = c("firebrick", "forestgreen", "steelblue3")) + 
+  labs(x = "Pseudotime", 
+       y = "Fitted Values", 
+       color = "Leiden\nCluster", 
+       title = "Unsupervised Clustering of Gene Patterns") + 
   theme_classic(base_size = 14) + 
-  theme(axis.text.x = element_text(angle = 90, size = 8), 
-        plot.title = element_text(hjust = 0.5), 
-        axis.text.y = element_blank(), 
-        axis.title = element_blank())
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  guides(color = guide_legend(override.aes = list(size = 2)))
 ```
 
 # Session Info 

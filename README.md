@@ -65,7 +65,7 @@ We can also plot the results for GEE-based `marge` models and compare them to an
 
 ```
 plotModels(test.dyn.res = gene_stats, 
-           gene = "AURKA", 
+           gene = "RGS2", 
            pt = pt_df, 
            gene.counts = sim_counts
            is.gee = TRUE, 

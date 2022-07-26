@@ -95,7 +95,7 @@ gene_stats <- testDynamic(expr.mat = lung_counts,
                           cor.structure = "exchangeable", 
                           n.potential.basis.fns = 4, 
                           parallel.exec = TRUE, 
-                          n.cores = 6, 
+                          n.cores = 5, 
                           track.time = TRUE)
 ```
 

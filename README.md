@@ -52,14 +52,16 @@ slope_test_results <- testSlope(test.dyn.results = gene_stats,
                                 fdr.cutoff = 0.01)
 ```
 
-Next, fitted values from the `marge`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene AURKA. 
+Next, fitted values from the `marge`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene CXCL8. We omit the intercept-only model in this case using `plot.null = FALSE` as it makes the plot cleaner. 
 
 ```
 plotModels(test.dyn.res = gene_stats, 
-           gene = "AURKA", 
+           gene = "CXCL8", 
            pt = pt_df, 
-           gene.counts = sim_counts)
+           gene.counts = sim_counts, 
+           plot.null = FALSE)
 ```
+![GLM Framework Model Output](./vignettes/scLANE_plotModels_Output_GLM_CXCL8.png)
 
 We can also plot the results for GEE-based `marge` models and compare them to an intercept-only NB GEE and an NB GEE with pseudotime as a covariate. Note that the GEE-specific arguments are the same as are used in `testDynamic()`, so hopefully it isn't too confusing to use. 
 
@@ -73,7 +75,7 @@ plotModels(test.dyn.res = gene_stats,
            cor.structure = "exchangeable")
 ```
 
-![Clustered genes](./vignettes/scLANE_plotModels_Output_GEE_RGS2.png)
+![GEE Framework Model Output](./vignettes/scLANE_plotModels_Output_GEE_RGS2.png)
 
 In addition, we can cluster the fitted values from each model, in effect clustering the patterns exhibited across different types of genes, as follows. Three different clustering algorithms are currently supported: hierarchical clustering, *k*-means, and graph-based clustering with the Leiden algorithm. All three methods have built-in parameter tuning using clustering quality metrics such as the silhouette score. 
 

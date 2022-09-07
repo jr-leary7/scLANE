@@ -2,7 +2,7 @@
 #'
 #' @name getResultsDE
 #' @author Jack Leary
-#' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
+#' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy \code{data.frame}.
 #' @param test.dyn.results The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
 #' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "bonferroni".
 #' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.

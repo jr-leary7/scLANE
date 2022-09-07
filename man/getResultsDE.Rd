@@ -21,7 +21,7 @@ getResultsDE(
 A data.frame containing differential expression results & modeling statistics for each gene.
 }
 \description{
-This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame, minus the \code{ggplot} objects.
+This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy \code{data.frame}.
 }
 \examples{
 \dontrun{GetResultsDE(test.dyn.results = gene_stats)}

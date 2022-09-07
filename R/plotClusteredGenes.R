@@ -12,13 +12,13 @@
 #' @param pt A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param parallel.exec Should \code{furrr} be used to speed up execution at the cost of increased memory usage? Defaults to TRUE.
 #' @param n.cores If parallel execution is desired, how many cores should be utilized? Defaults to 2.
-#' @return
-#' @seealso
+#' @return A \code{data.frame} object with ready-to-plot tidy data.
+#' @seealso \code{\link{clusterGenes}}
 #' @export
 #' @examples
 #' \dontrun{plotClusteredGenes(test.dyn.results = gene_stats,
-#'                                gene.clusters = gene_clusters,
-#'                                pt = pt_df) %>%
+#'                             gene.clusters = gene_clusters,
+#'                             pt = pt_df) %>%
 #'             ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE) +
 #'             geom_line() +
 #'             facet_wrap(~LINEAGE))}

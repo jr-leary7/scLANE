@@ -8,7 +8,7 @@ Description: This package uses MARGE spline GLM models to build flexible, interp
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Depends: 
   magrittr, 
   glm2

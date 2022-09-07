@@ -11,9 +11,10 @@
 #' @param species One of "hs" or "mm", specifying whether the gene sets are human or murine in origin.
 #' @param gene.set.cat Corresponds to the \code{category} parameter of \code{\link[msigdbr]{msigdbr}}. Defaults to NULL.
 #' @param gene.set.subcat Corresponds to the \code{subcategory} parameter of \code{\link[msigdbr]{msigdbr}}. Defaults to NULL.
-#' @return
+#' @return The output from \code{\link[clusterProfiler]{enricher}}.
 #' @seealso \code{\link[msigdbr]{msigdbr}}
 #' @seealso \code{\link[msigdbr]{msigdbr_collections}}
+#' @seealso \code{\link[clusterProfiler]{enricher}}
 #' @export
 #' @examples
 #' \dontrun{enrichDynamicGenes(scLANE.de.res = de_stats, lineage = "A", gene.set.cat = "C1", gene.set.subcat = "CGP")}

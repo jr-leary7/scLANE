@@ -24,7 +24,7 @@ enrichDynamicGenes(
 \item{gene.set.subcat}{Corresponds to the \code{subcategory} parameter of \code{\link[msigdbr]{msigdbr}}. Defaults to NULL.}
 }
 \value{
-
+The output from \code{\link[clusterProfiler]{enricher}}.
 }
 \description{
 This function uses the \code{msigdbr} and \code{clusterProfiler} packages to perform GSEA on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
@@ -37,6 +37,8 @@ This function uses the \code{msigdbr} and \code{clusterProfiler} packages to per
 \code{\link[msigdbr]{msigdbr}}
 
 \code{\link[msigdbr]{msigdbr_collections}}
+
+\code{\link[clusterProfiler]{enricher}}
 }
 \author{
 Jack Leary

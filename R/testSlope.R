@@ -1,4 +1,4 @@
-#' Test whether a gene's expression is increasing or decreasing over a window of pseudotime.
+#' Test whether a gene's expression is changing over a window of pseudotime.
 #'
 #' @name testSlope
 #' @author Jack Leary

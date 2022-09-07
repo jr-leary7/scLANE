@@ -2,7 +2,7 @@
 % Please edit documentation in R/testSlope.R
 \name{testSlope}
 \alias{testSlope}
-\title{Test whether a gene's expression is increasing or decreasing over a window of pseudotime.}
+\title{Test whether a gene's expression is changing over a window of pseudotime.}
 \usage{
 testSlope(
   test.dyn.results = NULL,

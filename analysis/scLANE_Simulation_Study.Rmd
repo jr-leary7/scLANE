@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 library(dplyr)
 library(scran)
 library(scater)
-library(scLANE)
+#library(scLANE)
 library(ggplot2)
 library(scaffold)
 library(slingshot)
@@ -53,10 +53,13 @@ panc <- scRNAseq::BaronPancreasData()  # uses inDrop, a droplet-based tech
 And now let's run `scaffold`. We want to generate a UMI-based 10X dataset with 3,000 cells, and `r ceiling(.15 * nrow(panc))` dynamic genes - 15% of the `r nrow(panc)` total genes in the Baron pancreas dataset.
 
 ```{r}
-n_dyn_genes <- ceiling(.15 * nrow(panc))
+n_dyn_genes <- 2400
+possible_dyn_genes <- sample(rownames(panc), size = 3000, replace = FALSE)
+dyn_genes <- sample(possible_dyn_genes, n_dyn_genes, replace = FALSE)
 myknots <- matrix(runif(2 * n_dyn_genes, 0, 1), ncol = 2, nrow = n_dyn_genes)
 mytheta <- matrix(rnorm(5, 5, 5), ncol = 5, nrow = n_dyn_genes)
-dynamic_params <- list(propGenes = 0.15,
+dynamic_params <- list(propGenes = n_dyn_genes / nrow(panc),
+                       dynGenes = dyn_genes, 
                        degree = 2,
                        knots = myknots,
                        theta = mytheta)
@@ -64,7 +67,7 @@ scaffold_params <- estimateScaffoldParameters(sce = panc,
                                               sceUMI = TRUE,
                                               useUMI = TRUE,
                                               protocol = "droplet",
-                                              numCells = 3000,
+                                              numCells = 100,
                                               popHet = c(1, 1),
                                               useDynamic = dynamic_params)
 panc_sim <- simulateScaffold(scaffoldParams = scaffold_params, originalSCE = panc)

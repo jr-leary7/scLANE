@@ -62,7 +62,7 @@ testDynamic <- function(expr.mat = NULL,
                         log.iter = 1) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
-  if (class(expr.mat) == "SingleCellExperiment") {
+  if (any(class(expr.mat) == "SingleCellExperiment")) {
     expr.mat <- as.matrix(t(BiocGenerics::counts(expr.mat)))
   }
   if (any(class(expr.mat) != c("matrix", "array"))) { stop("Input expr.mat must be a matrix of integer counts.") }

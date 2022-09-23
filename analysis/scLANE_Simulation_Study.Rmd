@@ -50,11 +50,14 @@ Let's load in some data. We're going to base our simulation on the data from [Ba
 panc <- scRNAseq::BaronPancreasData()  # uses inDrop, a droplet-based tech
 ```
 
-And now let's run `scaffold`. We want to generate a UMI-based 10X dataset with 3,000 cells, and `r ceiling(.15 * nrow(panc))` dynamic genes - 15% of the `r nrow(panc)` total genes in the Baron pancreas dataset.
+And now let's run `scaffold`. We want to generate a UMI-based 10X dataset with 3,000 cells, and 2,400 dynamic genes.
 
 ```{r}
 n_dyn_genes <- 2400
-possible_dyn_genes <- sample(rownames(panc), size = 3000, replace = FALSE)
+Q3 <- quantile(rowMeans(counts(panc)), 0.75)
+possible_dyn_genes <- sample(rownames(panc)[rowMeans(counts(panc)) > Q3], 
+                             size = 3000, 
+                             replace = FALSE)
 dyn_genes <- sample(possible_dyn_genes, n_dyn_genes, replace = FALSE)
 myknots <- matrix(runif(2 * n_dyn_genes, 0, 1), ncol = 2, nrow = n_dyn_genes)
 mytheta <- matrix(rnorm(5, 5, 5), ncol = 5, nrow = n_dyn_genes)
@@ -71,6 +74,21 @@ scaffold_params <- estimateScaffoldParameters(sce = panc,
                                               popHet = c(1, 1),
                                               useDynamic = dynamic_params)
 panc_sim <- simulateScaffold(scaffoldParams = scaffold_params, originalSCE = panc)
+
+rowData(panc_sim) %>% 
+  as.data.frame() %>% 
+  mutate(gene = rownames(panc_sim)) %>% 
+  left_join((counts(panc_sim) %>% 
+             rowSums() %>% 
+             as.data.frame() %>% 
+             setNames(c("total_counts")) %>% 
+             mutate(gene = rownames(panc_sim))), 
+            by = "gene") %>% 
+  with_groups(geneStatus, 
+              summarise, 
+              S = sum(total_counts), 
+              N = n()) %>% 
+  mutate(mean_exp = (S / N) / ncol(panc_sim))
 ```
 
 ```{r, echo=FALSE, results='hide'}

@@ -4,6 +4,7 @@
 #' @author Jakub Stoklosa and David I. Warton.
 #' @description MARS fitting function for generalized linear models (GLMs).
 #' @import glm2
+#' @importFrom dplyr mutate group_by sample_frac
 #' @importFrom geeM geem
 #' @importFrom gamlss gamlss
 #' @importFrom MASS glm.nb negative.binomial
@@ -13,6 +14,7 @@
 #' @param is.gee Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
 #' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".
+#' @param approx.knot Should the space of possibke knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
 #' @param pen A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
 #' @param tols_score The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
 #' @param M A set threshold for the number of basis functions to be used. The default is 7.
@@ -44,6 +46,7 @@ marge2 <- function(X_pred = NULL,
                    is.gee = FALSE,
                    id.vec = NULL,
                    cor.structure = "independence",
+                   approx.knot = TRUE,
                    pen = 2,
                    tols_score = 0.00001,
                    M = 7,
@@ -127,12 +130,26 @@ marge2 <- function(X_pred = NULL,
 
     for (v in seq(q)) {
       var_name <- colnames(X_pred)[v]
-      X <- round(X_pred[, v], 4)
-
-      X_red1 <- min_span(X_red = X, q = q, minspan = minspan)  # Reduce the space between knots.
-      X_red2 <- max_span(X_pred = X, q = q)  # Truncate the ends of data to avoid extreme values.
-
-      X_red <- intersect(X_red1, X_red2)
+      if (approx.knot) {
+        X <- round(X_pred[, v], 2)
+        X_red1 <- min_span(X_red = X, q = q, minspan = minspan)  # reduce the space between knots
+        X_red2 <- max_span(X_pred = X, q = q)  # truncate the ends of data to avoid extreme values
+        X_red <- intersect(X_red1, X_red2)
+        # further subsample by quantile to make things EVEN FASTER (& less accurate ...)
+        if (length(X_red) > 100) {
+          set.seed(312)  # lucky seed
+          X_df_samp <- data.frame(X = X_red) %>%
+                       dplyr::mutate(QR = dplyr::ntile(X, 10)) %>%
+                       dplyr::group_by(QR) %>%
+                       dplyr::sample_frac(size = 0.8)
+          X_red <- X_df_samp$X
+        }
+      } else {
+        X <- round(X_pred[, v], 4)
+        X_red1 <- min_span(X_red = X, q = q, minspan = minspan)  # reduce the space between knots
+        X_red2 <- max_span(X_pred = X, q = q)  # truncate the ends of data to avoid extreme values
+        X_red <- intersect(X_red1, X_red2)
+      }
 
       score_knot_both_int_mat <- c()
       score_knot_both_add_mat <- c()

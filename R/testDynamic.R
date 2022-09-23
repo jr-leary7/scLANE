@@ -24,6 +24,7 @@
 #' @param parallel.exec A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
 #' @param n.potential.basis.fns (Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
+#' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
 #' @param log.file (Optional) A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.
 #' @param log.iter (Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.
@@ -57,6 +58,7 @@ testDynamic <- function(expr.mat = NULL,
                         parallel.exec = FALSE,
                         n.cores = 2,
                         n.potential.basis.fns = 5,
+                        approx.knot = TRUE,
                         track.time = FALSE,
                         log.file = FALSE,
                         log.iter = 1) {
@@ -130,14 +132,16 @@ testDynamic <- function(expr.mat = NULL,
                            is.gee = is.gee,
                            id.vec = id.vec[lineage_cells],
                            cor.structure = cor.structure,
-                           M = n.potential.basis.fns) },
+                           M = n.potential.basis.fns,
+                           approx.knot = approx.knot) },
           silent = TRUE
         )
       } else {
         marge_mod <- try(
           { scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
                            Y = expr.mat[lineage_cells, i, drop = FALSE],
-                           M = n.potential.basis.fns) },
+                           M = n.potential.basis.fns,
+                           approx.knot = approx.knot) },
           silent = TRUE
         )
       }

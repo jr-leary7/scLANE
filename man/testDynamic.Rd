@@ -14,6 +14,7 @@ testDynamic(
   parallel.exec = FALSE,
   n.cores = 2,
   n.potential.basis.fns = 5,
+  approx.knot = TRUE,
   track.time = FALSE,
   log.file = FALSE,
   log.iter = 1
@@ -37,6 +38,8 @@ testDynamic(
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
 
 \item{n.potential.basis.fns}{(Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
+
+\item{approx.knot}{(Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.}
 
 \item{track.time}{(Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
 

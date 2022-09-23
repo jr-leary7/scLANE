@@ -10,6 +10,7 @@ marge2(
   is.gee = FALSE,
   id.vec = NULL,
   cor.structure = "independence",
+  approx.knot = TRUE,
   pen = 2,
   tols_score = 1e-05,
   M = 7,
@@ -29,6 +30,8 @@ marge2(
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
 
 \item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".}
+
+\item{approx.knot}{Should the space of possibke knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
 
 \item{pen}{A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
 

@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 library(dplyr)
 library(scran)
 library(scater)
-#library(scLANE)
+library(scLANE)
 library(ggplot2)
 library(scaffold)
 library(slingshot)
@@ -140,7 +140,7 @@ We use `testDynamic()` to fit a `marge` model to each gene with a maximum of $k 
 
 ```{r}
 start_time_scl <- Sys.time()
-gene_stats <- testDynamic(expr.mat = sim_counts, 
+gene_stats <- testDynamic(expr.mat = sim_counts[, 1:5], 
                           pt = pt_df, 
                           parallel.exec = TRUE, 
                           n.cores = 4, 

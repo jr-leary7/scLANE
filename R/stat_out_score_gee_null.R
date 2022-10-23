@@ -28,10 +28,13 @@ stat_out_score_gee_null <- function(Y = NULL,
   # fit null NB GEE
   ests <- geeM::geem(Y ~ 1,
                      id = id.vec,
+                     data = NULL,
                      corstr = cor.structure,
                      family = MASS::negative.binomial(1),
                      sandwich = TRUE)
   ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
+                             sigma.formula = ~ 1,
+                             data = NULL,
                              family = "NBI",
                              trace = FALSE)
   alpha_est <- ests$alpha
@@ -54,7 +57,7 @@ stat_out_score_gee_null <- function(Y = NULL,
     } else if (cor.structure == "ar1") {
       R_alpha <- matrix(c(rep(alpha_est, n_vec[i] * n_vec[i])), ncol = n_vec[i]) + diag(c(1 - alpha_est), ncol = n_vec[i], nrow = n_vec[i])
     } else if (cor.structure == "exchangeable") {
-      R_alpha <- alpha_est^outer(1:n_vec[i], 1:n_vec[i], function(x, y) abs(x - y))
+      R_alpha <- alpha_est^outer(1:n_vec[i], 1:n_vec[i], function(x, y) { abs(x - y) })
     } else {
       stop("Currently unsupported correlation structure.")
     }
@@ -66,7 +69,7 @@ stat_out_score_gee_null <- function(Y = NULL,
                                B = diag(sqrt(V_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
                                n_cores = 1); rm(temp_prod)
     V_est_i_inv <- chol2inv(chol(V_est_i))
-    S_est_i <- c(t(Y))[(sum(n_vec1[1:i]) + 1):k] - mu_est[(sum(n_vec1[1:i]) + 1):k]
+    S_est_i <- t(Y)[(sum(n_vec1[1:i]) + 1):k] - mu_est[(sum(n_vec1[1:i]) + 1):k]
     # AWA_est_i <- V_est_i_inv %*% (S_est_i %*% t(S_est_i)) %*% V_est_i_inv
     temp_prod <- eigenMapMatMult(A = S_est_i,
                                  B = t(S_est_i),
@@ -81,7 +84,7 @@ stat_out_score_gee_null <- function(Y = NULL,
     D_est_i <- eigenMapMatMult(A = diag((mu_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
                                B = B_null[(sum(n_vec1[1:i]) + 1):k, ],
                                n_cores = 1)
-    #J1_i <- t(D_est_i) %*% V_est_i_inv %*% D_est_i
+    # J1_i <- t(D_est_i) %*% V_est_i_inv %*% D_est_i
     temp_prod <- eigenMapMatMult(A = t(D_est_i),
                                  B = V_est_i_inv,
                                  n_cores = 1)
@@ -114,7 +117,11 @@ stat_out_score_gee_null <- function(Y = NULL,
     J2_list <- c(J2_list, list(J2_i))
     Sigma2_list <- c(Sigma2_list, list(Sigma2_i))
   }
-  J11_inv <- chol2inv(chol(J11))
+  if (nrow(J11) == 1 && ncol(J11) == 1) {
+    J11_inv <- 1 / J11
+  } else {
+    J11_inv <- chol2inv(chol(J11))
+  }
   # JSigma11 <- J11_inv %*% Sigma11 %*% J11_inv
   temp_prod <- eigenMapMatMult(A = J11_inv,
                                B = Sigma11,

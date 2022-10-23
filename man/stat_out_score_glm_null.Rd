@@ -4,7 +4,7 @@
 \alias{stat_out_score_glm_null}
 \title{Calculate part of the score statistic for a GLM.}
 \usage{
-stat_out_score_glm_null(Y = NULL, B_null = NULL)
+stat_out_score_glm_null(Y = NULL, B_null = NULL, fast = TRUE)
 }
 \arguments{
 \item{Y}{: the response variable.}

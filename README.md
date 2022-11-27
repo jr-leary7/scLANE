@@ -9,7 +9,7 @@ The `scLANE` package enables users to accurately determine differential expressi
 
 # Installation 
 
-You can install `scLANE` (once the repository becomes public) as follows:
+You can install `scLANE` as follows:
 
 ```
 remotes::install_github("jr-leary7/scLANE")

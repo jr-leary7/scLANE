@@ -14,7 +14,7 @@
 
 stat_out_score_glm_null <- function(Y = NULL, B_null = NULL, fast = TRUE) {
   # check inputs
-  if (is.null(Y) | is.null(B_null)) stop("Some inputs to stat_out_score_glm_null() are missing.")
+  if (is.null(Y) | is.null(B_null)) { stop("Some inputs to stat_out_score_glm_null() are missing.") }
   # run function
   ests <- gamlss::gamlss(Y ~ 1,
                          family = "NBI",
@@ -31,7 +31,7 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL, fast = TRUE) {
   A_list_inv <- eigenMapMatMult(A = temp_prod,
                                 B = B_null,
                                 n_cores = 1)
-  if (dim(A_list_inv) == c(1, 1)) {
+  if (ncol(A_list_inv) == 1 && nrow(A_list_inv) == 1) {
     A_list <- 1 / A_list_inv
   } else {
     A_list <- chol2inv(chol(A_list_inv))

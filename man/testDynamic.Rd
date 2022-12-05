@@ -8,12 +8,14 @@ testDynamic(
   expr.mat = NULL,
   pt = NULL,
   genes = NULL,
+  n.potential.basis.fns = 5,
   is.gee = FALSE,
-  id.vec = NULL,
   cor.structure = "exchangeable",
+  is.glmm = FALSE,
+  glmm.adaptive = FALSE,
+  id.vec = NULL,
   parallel.exec = FALSE,
   n.cores = 2,
-  n.potential.basis.fns = 5,
   approx.knot = TRUE,
   track.time = FALSE,
   log.file = FALSE,
@@ -27,17 +29,21 @@ testDynamic(
 
 \item{genes}{A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.}
 
+\item{n.potential.basis.fns}{(Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
+
 \item{is.gee}{Should a GEE framework be used instead of the default GLM? Defaults to FALSE.}
 
-\item{id.vec}{If the GEE framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}}. Defaults to NULL.}
-
 \item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "exchangeable".}
+
+\item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
+
+\item{glmm.adaptive}{(Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.}
+
+\item{id.vec}{If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
 
 \item{parallel.exec}{A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
-
-\item{n.potential.basis.fns}{(Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
 
 \item{approx.knot}{(Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.}
 
@@ -54,26 +60,36 @@ A list of lists, where each element is a gene and each gene contains sublists fo
 This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 }
 \examples{
-\dontrun{testDynamic(expr.mat = raw_counts, pt = pseudotime_df, parallel.exec = false)}
-\dontrun{testDynamic(expr.mat = sce_obj, pt = slingshot_obj, genes = rownames(sce_obj)[1:100])}
-\dontrun{testDynamic(expr.mat = raw_counts,
-                     pt = pseudotime_df,
-                     parallel.exec = TRUE,
-                     n.cores = 8,
-                     n.potential.basis.fns = 7)}
-\dontrun{testDynamic(expr.mat = raw_counts,
-                     pt = pseudotime_df,
-                     is.gee = TRUE,
-                     id.vec = my_subject_ids,
-                     cor.structure = "independence",
-                     parallel.exec = TRUE,
-                     n.cores = 8,
-                     n.potential.basis.fns = 7)}
+\dontrun{
+testDynamic(expr.mat = raw_counts,
+            pt = pseudotime_df,
+            parallel.exec = false)
+testDynamic(expr.mat = sce_obj,
+            pt = slingshot_obj,
+            genes = rownames(sce_obj)[1:100])
+testDynamic(expr.mat = raw_counts,
+            pt = pseudotime_df,
+            parallel.exec = TRUE,
+            n.cores = 8,
+            n.potential.basis.fns = 7)
+testDynamic(expr.mat = raw_counts,
+            pt = pseudotime_df,
+            is.gee = TRUE,
+            id.vec = my_subject_ids,
+            cor.structure = "independence",
+            parallel.exec = TRUE,
+            n.cores = 8,
+            n.potential.basis.fns = 7)
+}
 }
 \seealso{
 \code{\link{getResultsDE}}
 
 \code{\link{testSlope}}
+
+\code{\link[geeM]{geem}}
+
+\code{\link[glmmTMB]{glmmTMB}}
 }
 \author{
 Jack Leary

@@ -15,10 +15,12 @@ extractBreakpoints(model = NULL, directions = TRUE)
 A data.frame of breakpoints & their directions.
 }
 \description{
-Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" or "PT" would be fine but "pseudotime1" would not. If multiple lineages exist, use letters to denote lineages instead of numbers e.g., "Lineage_A" and "Lineage_B".
+Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" or "PT" would be fine but "pseudotime1" would not. If multiple lineages exist, use letters to denote lineages instead of numbers e.g., "Lineage_A" and "Lineage_B". This is currently handled automatically in \code{\link{testDynamic}}, so don't change anything.
 }
 \examples{
-\dontrun{extractBreakpoints(model = marge_mod)}
+\dontrun{
+extractBreakpoints(model = marge_mod)
+}
 }
 \author{
 Jack Leary

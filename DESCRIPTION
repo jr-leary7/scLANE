@@ -1,10 +1,10 @@
 Package: scLANE
 Type: Package
-Title: Model gene expression over pseudotime with spline-based NB GLMs & GEEs
-Version: 0.4.2
+Title: Model gene expression over pseudotime with spline-based NB GLMs, GEEs, & GLMMs
+Version: 0.5.0
 Author: Jack Leary [aut]
 Maintainer: Jack Leary <j.leary@ufl.edu>
-Description: This package uses MARGE spline GLM models to build flexible, interpretable models of single cell gene expression over pseudotime / latent time. 
+Description: This package uses MARGE trunacted power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime / latent time. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -29,6 +29,8 @@ Imports:
     purrr,
     tidyr,
     geeM,
+    glmmTMB, 
+    broom.mixed, 
     Rcpp (>= 1.0.7)
 URL: https://github.com/jr-leary7/scLANE
 Suggests: 

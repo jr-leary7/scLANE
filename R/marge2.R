@@ -4,52 +4,56 @@
 #' @author Jakub Stoklosa and David I. Warton.
 #' @description MARS fitting function for generalized linear models (GLMs).
 #' @import glm2
-#' @importFrom dplyr mutate group_by sample_frac
+#' @import magrittr
+#' @importFrom dplyr mutate ntile group_by sample_frac
 #' @importFrom geeM geem
 #' @importFrom gamlss gamlss
 #' @importFrom MASS glm.nb negative.binomial
-#' @importFrom stats fitted
+#' @importFrom stats fitted coef
 #' @param X_pred A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
 #' @param Y The response variable. A vector of length n by N.
+#' @param M A set threshold for the number of basis functions to be used. Defaults to 5.
 #' @param is.gee Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
 #' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".
 #' @param approx.knot Should the space of possibke knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
-#' @param pen A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
-#' @param tols_score The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
-#' @param M A set threshold for the number of basis functions to be used. The default is 7.
+#' @param pen (Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
+#' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
 #' @param minspan A set minimum span value. The default is \code{minspan = NULL}.
-#' @param return.basis Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the mdoel object much larger than necessary.
-#' @param return.wic Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE because I don't ever use them.
-#' @param return.GCV Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE because I never use it.
-#' @details For further details please look at the \code{mars_ls} function - there are more details on the general MARS algorithm. MARGE will produce output for two penalties: 2 and log(N). A figure is automatically generated plotting WIC against the no. of parameters.
-#' @return \code{marge} returns a list of calculated values consisting of:
-#' @return \code{B_final}Tthe basis model matrix for the final model fit.
-#' @return \code{wic_mat} A matrix of WIC values (with both penalties) for MARGE models given by the forward pass.
-#' @return \code{min_wic} The WIC (with both penalties) for the final MARGE model.
-#' @return \code{GCV} The GCV for the final selected model.
-#' @return \code{y_pred} The fitted values from the final selected model (with both penalties).
-#' @return \code{final_mod} The final selected (with both penalties) model matrix.
+#' @param return.basis (Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the model object much larger than necessary.
+#' @param return.wic (Optional) Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE.
+#' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
+#' @return An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @seealso \code{\link{mars_ls}}
 #' @seealso \code{\link{backward_sel_WIC}}
+#' @seealso \code{\link{testDynamic}}
 #' @seealso \code{\link[MASS]{glm.nb}}
 #' @seealso \code{\link[geeM]{geem}}
 #' @export
 #' @examples
-#' \dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
+#' \dontrun{
+#'   marge2(X_pred = pseudotime_df,
+#'          Y = expr_vec,
+#'          M = 3)
+#'   marge2(X_pred = pseudotime_df,
+#'          Y = expr_vec,
+#'          is.gee = TRUE,
+#'          id.vec = subject_vec,
+#'          cor.structure = "exchangeable")
+#' }
 
 marge2 <- function(X_pred = NULL,
                    Y = NULL,
+                   M = 5,
                    is.gee = FALSE,
                    id.vec = NULL,
                    cor.structure = "independence",
                    approx.knot = TRUE,
                    pen = 2,
                    tols_score = 0.00001,
-                   M = 7,
                    minspan = NULL,
                    return.basis = FALSE,
                    return.wic = FALSE,
@@ -824,23 +828,32 @@ marge2 <- function(X_pred = NULL,
                               y = FALSE,
                               model = FALSE)
   }
-
-  p_2 <- ncol(B_final)
-  df1a <- p_2 + pen * (p_2 - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
-  RSS1 <- sum((Y - stats::fitted(final_mod))^2)
-  GCV1 <- RSS1 / (NN * (1 - df1a / NN)^2)
-  min_wic_own <- min(wic_mat_2, na.rm = TRUE)
+  # format results
   if (!is.gee) {
     final_mod <- stripGLM(glm.obj = final_mod)
   }
-
-  z <- NULL
-  if (return.basis) { z$bx <- B_final }
-  if (return.wic) { z$wic_mat <- wic_mat_2; z$min_wic_own <- min_wic_own; }
-  if (return.GCV) { z$GCV <- GCV1 }
-  z$final_mod <- final_mod
-  z$model_type <- ifelse(is.gee, "GEE", "GLM")
-  class(z) <- "marge"
-
-  return(z)
+  res <- list(final_mod = final_mod,
+              bx = NULL,
+              wic_mat = NULL,
+              min_wic_own = NULL,
+              GCV = NULL,
+              model_type = ifelse(is.gee, "GEE", "GLM"),
+              marge_coef_names = names(stats::coef(final_mod)))
+  if (return.basis) {
+    res$bx <- B_final
+  }
+  if (return.GCV) {
+    p_2 <- ncol(B_final)
+    df1a <- p_2 + pen * (p_2 - 1) / 2  # This matches the {earth} package, SAS and Friedman (1991) penalty
+    RSS1 <- sum((Y - stats::fitted(final_mod))^2)
+    GCV1 <- RSS1 / (NN * (1 - df1a / NN)^2)
+    res$GCV <- GCV1
+  }
+  if (return.wic) {
+    min_wic_own <- min(wic_mat_2, na.rm = TRUE)
+    res$wic_mat <- wic_mat_2
+    res$min_wic_own <- min_wic_own
+  }
+  class(res) <- "marge"
+  return(res)
 }

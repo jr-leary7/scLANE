@@ -7,13 +7,13 @@
 marge2(
   X_pred = NULL,
   Y = NULL,
+  M = 5,
   is.gee = FALSE,
   id.vec = NULL,
   cor.structure = "independence",
   approx.knot = TRUE,
   pen = 2,
   tols_score = 1e-05,
-  M = 7,
   minspan = NULL,
   return.basis = FALSE,
   return.wic = FALSE,
@@ -25,6 +25,8 @@ marge2(
 
 \item{Y}{The response variable. A vector of length n by N.}
 
+\item{M}{A set threshold for the number of basis functions to be used. Defaults to 5.}
+
 \item{is.gee}{Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.}
 
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
@@ -33,43 +35,35 @@ marge2(
 
 \item{approx.knot}{Should the space of possibke knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
 
-\item{pen}{A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
+\item{pen}{(Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
 
-\item{tols_score}{The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001}
-
-\item{M}{A set threshold for the number of basis functions to be used. The default is 7.}
+\item{tols_score}{(Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001}
 
 \item{minspan}{A set minimum span value. The default is \code{minspan = NULL}.}
 
-\item{return.basis}{Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the mdoel object much larger than necessary.}
+\item{return.basis}{(Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the model object much larger than necessary.}
 
-\item{return.wic}{Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE because I don't ever use them.}
+\item{return.wic}{(Optional) Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 
-\item{return.GCV}{Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE because I never use it.}
+\item{return.GCV}{(Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 }
 \value{
-\code{marge} returns a list of calculated values consisting of:
-
-\code{B_final}Tthe basis model matrix for the final model fit.
-
-\code{wic_mat} A matrix of WIC values (with both penalties) for MARGE models given by the forward pass.
-
-\code{min_wic} The WIC (with both penalties) for the final MARGE model.
-
-\code{GCV} The GCV for the final selected model.
-
-\code{y_pred} The fitted values from the final selected model (with both penalties).
-
-\code{final_mod} The final selected (with both penalties) model matrix.
+An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 }
 \description{
 MARS fitting function for generalized linear models (GLMs).
 }
-\details{
-For further details please look at the \code{mars_ls} function - there are more details on the general MARS algorithm. MARGE will produce output for two penalties: 2 and log(N). A figure is automatically generated plotting WIC against the no. of parameters.
-}
 \examples{
-\dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
+\dontrun{
+  marge2(X_pred = pseudotime_df,
+         Y = expr_vec,
+         M = 3)
+  marge2(X_pred = pseudotime_df,
+         Y = expr_vec,
+         is.gee = TRUE,
+         id.vec = subject_vec,
+         cor.structure = "exchangeable")
+}
 }
 \references{
 Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
@@ -82,6 +76,8 @@ Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach
 \code{\link{mars_ls}}
 
 \code{\link{backward_sel_WIC}}
+
+\code{\link{testDynamic}}
 
 \code{\link[MASS]{glm.nb}}
 

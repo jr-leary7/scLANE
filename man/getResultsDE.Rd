@@ -15,7 +15,7 @@ getResultsDE(
 
 \item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "bonferroni".}
 
-\item{fdr.cutoff}{The FDR threshold for determining statistical significance. Defaults to 0.01.}
+\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }
 \value{
 A data.frame containing differential expression results & modeling statistics for each gene.

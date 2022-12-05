@@ -11,6 +11,7 @@ plotModels(
   pt = NULL,
   gene.counts = NULL,
   is.gee = FALSE,
+  is.glmm = FALSE,
   id.vec = NULL,
   cor.structure = "independence",
   ci.alpha = 0.05,
@@ -35,7 +36,9 @@ summarizeModel(marge.model = NULL)
 
 \item{is.gee}{Should a GEE framework be used instead of the default GLM? Defaults to FALSE.}
 
-\item{id.vec}{If the GEE framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}}. Defaults to NULL.}
+\item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
+
+\item{id.vec}{If the GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
 
 \item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "independence".}
 
@@ -43,7 +46,7 @@ summarizeModel(marge.model = NULL)
 
 \item{plot.null}{(Optional) Should the fitted values from the intercept-only null model be plotted? Defaults to TRUE.}
 
-\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be plotted? Defaults to TRUE.}
+\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be plotted? If the data are multi-subject, the "GLM" model can be a GEE or GLMM depending on the desired framework. See Examples for more detail. Defaults to TRUE.}
 
 \item{plot.gam}{(Optional) Should the fitted values from an NB GAM be plotted? Defaults to TRUE.}
 
@@ -66,8 +69,27 @@ This function visualizes the fitted values of several types of models over the e
 This function converts a \code{marge} model from using truncated power basis functions to a more interpretable series of piecewise linear equations over a set of empirically chosen cutpoint intervals. Note that the function assumes that pseudotime has been normalized to exist over \eqn{[0, 1]}.
 }
 \examples{
-\dontrun{PlotMARGE(gene_stats, gene = "AURKA", pt = pt_df, gene.counts = count_mat)}
-\dontrun{PlotMARGE(gene_stats, gene = "BRCA2", pt = pt_df, gene.counts = count_mat, ci.alpha = 0.1, filter.lineage = c("A", "C"))}
+\dontrun{
+plotModels(gene_stats,
+           gene = "AURKA",
+           pt = pt_df,
+           gene.counts = count_mat)
+plotModels(gene_stats,
+           gene = "BRCA2",
+           pt = pt_df,
+           gene.counts = count_mat,
+           ci.alpha = 0.1,
+           filter.lineage = c("A", "C"))
+# the next model uses an NB GLMM for plot.glm and an NB GAM with random effects for plot.gam because is.glmm = TRUE
+plotModels(gene_stats,
+           gene = "CD14",
+           pt = pt_df,
+           is.glmm = TRUE,
+           id.vec = subject_ids,
+           plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes for pseudotime
+           plot.gam = TRUE,  # plots an NB GLMM with random effects per-subject
+           gg.theme = ggplot2::theme_minimal())
+}
 \dontrun{
 summarizeModel(marge.model = marge_mod)
 }

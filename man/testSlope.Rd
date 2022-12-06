@@ -24,7 +24,10 @@ A dataframe containing the genes, breakpoints, and slope \emph{p}-values from ea
 This function tests whether the slope of a gene's \eqn{\beta} coefficient(s) for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
 }
 \examples{
-\dontrun{testSlope(test.dyn.results = gene_stats)}
+\dontrun{
+testSlope(test.dyn.results = gene_stats)
+testSlope(test.dyn.results = gene_stats, method = "BH")
+}
 }
 \seealso{
 \code{\link{testDynamic}}

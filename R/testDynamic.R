@@ -254,7 +254,7 @@ testDynamic <- function(expr.mat = NULL,
         mod_status <- "MARGE model error, null model OK"
         # generate empty dataframe for slope test
         slope_data_error <- data.frame(Gene = genes[i],
-                                       Lineage = j,
+                                       Lineage = LETTERS[j],
                                        Breakpoint = NA_real_,
                                        Rounded_Breakpoint = NA_real_,
                                        Direction = NA_character_,
@@ -433,7 +433,7 @@ testDynamic <- function(expr.mat = NULL,
           }, silent = TRUE)
         } else {
           null_sumy_df <- try({
-            broom::tidy(null_mod) %>% as.data.frame()  # saves a few bytes by converting from tibble
+            as.data.frame(broom::tidy(null_mod)) # saves a few bytes by converting from tibble
           }, silent = TRUE)
           null_pred_df <- try({
             data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%

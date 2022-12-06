@@ -71,7 +71,6 @@ plotModels(gene_stats,
            gene.counts = count_mat,
            ci.alpha = 0.1,
            filter.lineage = c("A", "C"))
-# the next model uses an NB GLMM for plot.glm and an NB GAM with random effects for plot.gam because is.glmm = TRUE
 plotModels(gene_stats,
            gene = "CD14",
            pt = pt_df,

@@ -1,13 +1,11 @@
 Package: scLANE
 Type: Package
-Title: What the Package Does in One 'Title Case'
-     Line
-Version: 1.0
+Title: Model gene expression over pseudotime with spline-based NB GLMs, GEEs, & GLMMs
+Version: 0.5.1
 Date: 2022-04-29
-Author: Your Name
-Maintainer: Your Name <your@email.com>
-Description: One paragraph description of what the
-     package does as one or more full sentences.
-License: GPL (>= 2)
+Author: Jack Leary
+Maintainer: Jack Leary <j.leary@ufl.edu>
+Description: This package uses MARGE trunacted power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime / latent time. 
+License: MIT + file LICENSE
 Imports: Rcpp (>= 1.0.7)
 LinkingTo: Rcpp

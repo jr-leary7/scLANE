@@ -43,7 +43,6 @@
 #'            gene.counts = count_mat,
 #'            ci.alpha = 0.1,
 #'            filter.lineage = c("A", "C"))
-#' # the next model uses an NB GLMM for plot.glm and an NB GAM with random effects for plot.gam because is.glmm = TRUE
 #' plotModels(gene_stats,
 #'            gene = "CD14",
 #'            pt = pt_df,
@@ -141,16 +140,13 @@ plotModels <- function(test.dyn.res = NULL,
                     }) %>%
                     purrr::map(function(x) {
                       if (is.glmm) {
-                        mod_df <- data.frame(COUNT = x$COUNT,
-                                             PT = x$PT,
-                                             ID = as.factor(x$ID))
-                        gam_mod <- gamlss::gamlss(COUNT ~ PT + random(ID),
-                                                  data = mod_df,
-                                                  family = "NBI")
+                        gam_mod <- nbGAM(expr = x$COUNT,
+                                         pt = x$PT,
+                                         id.vec = x$ID)
                       } else {
-                        gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT, theta.init = 1)
+                        gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT)
                       }
-                      gam_preds <- data.frame(stats::predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
+                      gam_preds <- data.frame(predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
                       x %<>% dplyr::mutate(RESP_GAM = gam_preds$fit,
                                            SE_GAM = gam_preds$se.fit,
                                            PRED_GAM = exp(RESP_GAM),
@@ -163,27 +159,27 @@ plotModels <- function(test.dyn.res = NULL,
                       dplyr::left_join((dplyr::select(x, CELL, ID, LINEAGE, dplyr::contains("RESP")) %>%
                                         tidyr::pivot_longer(cols = dplyr::contains("RESP"), values_to = "RESPONSE", names_to = "MODEL") %>%
                                         dplyr::mutate(MODEL = gsub("RESP_", "", MODEL))),
-                                       by = c("CELL" = "CELL", "ID", "LINEAGE" = "LINEAGE")) %>%
+                                       by = c("CELL" = "CELL", "ID" = "ID", "LINEAGE" = "LINEAGE")) %>%
                       dplyr::left_join((dplyr::select(x, CELL, ID, LINEAGE, dplyr::contains("SE")) %>%
                                         tidyr::pivot_longer(cols = dplyr::contains("SE"), values_to = "SE", names_to = "MODEL") %>%
                                         dplyr::mutate(MODEL = gsub("SE_", "", MODEL))),
-                                       by = c("CELL" = "CELL", "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
+                                       by = c("CELL" = "CELL", "ID" = "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
                       dplyr::left_join((dplyr::select(x, CELL, ID, LINEAGE, dplyr::contains("PRED")) %>%
                                         tidyr::pivot_longer(cols = dplyr::contains("PRED"), values_to = "PRED", names_to = "MODEL") %>%
                                         dplyr::mutate(MODEL = gsub("PRED_", "", MODEL))),
-                                       by = c("CELL" = "CELL", "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
+                                       by = c("CELL" = "CELL", "ID" = "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
                       dplyr::left_join((dplyr::select(x, CELL, ID, LINEAGE, dplyr::contains("CI_LL")) %>%
                                         tidyr::pivot_longer(cols = dplyr::contains("CI_LL"), values_to = "CI_LL", names_to = "MODEL") %>%
                                         dplyr::mutate(MODEL = gsub("CI_LL_", "", MODEL))),
-                                       by = c("CELL" = "CELL", "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
+                                       by = c("CELL" = "CELL", "ID" = "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL")) %>%
                       dplyr::left_join((dplyr::select(x, CELL, ID, LINEAGE, dplyr::contains("CI_UL")) %>%
                                         tidyr::pivot_longer(cols = dplyr::contains("CI_UL"), values_to = "CI_UL", names_to = "MODEL") %>%
                                         dplyr::mutate(MODEL = gsub("CI_UL_", "", MODEL))),
-                                       by = c("CELL" = "CELL", "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL"))
+                                       by = c("CELL" = "CELL", "ID" = "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL"))
     })
   counts_df <- purrr::reduce(counts_df_list, rbind) %>%
                dplyr::mutate(MODEL = factor(dplyr::case_when(MODEL == "NULL" ~ "Intercept-only", TRUE ~ MODEL),
-                                           levels = c("Intercept-only", "GLM", "GAM", "MARGE")))
+                                            levels = c("Intercept-only", "GLM", "GAM", "MARGE")))
   # add conditional filters here
   if (!plot.null) { counts_df %<>% dplyr::filter(MODEL != "Intercept-only") }
   if (!plot.glm) { counts_df %<>% dplyr::filter(MODEL != "GLM") }
@@ -195,14 +191,18 @@ plotModels <- function(test.dyn.res = NULL,
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = ID, fill = ID)) +
          ggplot2::geom_point(alpha = 0.4, size = 0.5, show.legend = FALSE) +
          ggplot2::facet_wrap(~LINEAGE + MODEL) +
-         ggplot2::geom_line(ggplot2::aes(x = PT, y = PRED, group = ID), size = 1) +
+         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED, group = ID), size = 1) +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
                               alpha = 0.4,
                               size = 0,
                               show.legend = FALSE) +
          ggplot2::scale_y_continuous(labels = scales::comma_format()) +
          ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
-         ggplot2::labs(x = "Pseudotime", y = "Expression", color = "Subject", fill = "Subject", title = gene) +
+         ggplot2::labs(x = "Pseudotime",
+                       y = "Expression",
+                       color = "Subject",
+                       fill = "Subject",
+                       title = gene) +
          gg.theme +
          ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 2, alpha = 1)))
@@ -210,11 +210,18 @@ plotModels <- function(test.dyn.res = NULL,
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
          ggplot2::geom_point(alpha = 0.4, size = 0.5) +
          ggplot2::facet_wrap(~LINEAGE + MODEL) +
-         ggplot2::geom_line(ggplot2::aes(x = PT, y = PRED), size = 1, color = "black") +
-         ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL), alpha = 0.4, size = 0, color = "grey") +
+         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED), size = 1, color = "black") +
+         ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
+                              alpha = 0.4,
+                              size = 0,
+                              color = "grey") +
          ggplot2::scale_y_continuous(labels = scales::comma_format()) +
          ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
-         ggplot2::labs(x = "Pseudotime", y = "Expression", color = "Lineage", fill = "Lineage", title = gene) +
+         ggplot2::labs(x = "Pseudotime",
+                       y = "Expression",
+                       color = "Lineage",
+                       fill = "Lineage",
+                       title = gene) +
          gg.theme +
          ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 2, alpha = 1)))

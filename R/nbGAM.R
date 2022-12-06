@@ -2,20 +2,26 @@
 #'
 #' @name nbGAM
 #' @author Jack Leary
-#' @description Fits a negative-binomial family GAM (glorified wrapper function).
-#' @importFrom mgcv gam nb negbin
+#' @description Fits a negative-binomial family GAM using a b-spline on pseudotime.
+#' @importFrom gamlss gamlss random
 #' @param expr A vector of integer counts. Defaults to NULL.
 #' @param pt A dataframe or vector of pesudotime values. Defaults to NULL.
-#' @param theta.init (Optional) If you have a numeric value for \eqn{\theta} you'd like to use provide it here, else it can be estimated internally. Defaults to NULL.
-#' @return An object of class \code{gam}
+#' @param id.vec (Optional) A vector of subject IDs to be used in creating random intercepts in the GAM. Useful for comparing GAMs to GLMMs. Defaults to NULL.
+#' @return An object of class \code{gamlss}
+#' @seealso \code{\link[gamlss]{gamlss}}
+#' @seealso \code{\link[gamlss]{random}}
 #' @export
 #' @examples
-#' \dontrun{nbGAM(expr_vec, pt_df)}
-#' \dontrun{nbGAM(expr_vec, pt_vec, theta.init = 2.5)}
+#' \dontrun{
+#' nbGAM(expr_vec, pt = pt_df)
+#' nbGAM(expr_vec, pt = pt_df, id.vec = subject_ids)
+#' }
 
-nbGAM <- function(expr = NULL, pt = NULL, theta.init = NULL) {
+nbGAM <- function(expr = NULL,
+                  pt = NULL,
+                  id.vec = NULL) {
   # check inputs
-  if (is.null(expr) || is.null(pt)) stop("Inputs to nbGAM() are missing.")
+  if (is.null(expr) || is.null(pt)) { stop("Required inputs to nbGAM() are missing.") }
   if (class(pt) == "data.frame") {
     pt_vec <- pt[, 1]
   } else if (class(pt) == "numeric") {
@@ -24,10 +30,19 @@ nbGAM <- function(expr = NULL, pt = NULL, theta.init = NULL) {
     stop("Unsupported class for argument pt to nbGAM().")
   }
   # fit model
-  if (is.null(theta.init)) {
-    nb_gam_mod <- mgcv::gam(expr ~ s(pt_vec), family = mgcv::negbin())
+  if (!is.null(id.vec)) {
+    mod_df <- data.frame(COUNT = expr,
+                         PT = pt_vec,
+                         ID = as.factor(id.vec))
+    nb_gam_mod <- gamlss::gamlss(COUNT ~ bs(PT) + random(ID, df = length(unique(ID))),
+                                 data = mod_df,
+                                 family = "NBI")
   } else {
-    nb_gam_mod <- mgcv::gam(expr ~ s(pt_vec), family = mgcv::negbin(theta = theta.init))
+    mod_df <- data.frame(COUNT = expr,
+                         PT = pt_vec)
+    nb_gam_mod <- gamlss::gamlss(COUNT ~ bs(PT),
+                                 data = mod_df,
+                                 family = "NBI")
   }
   return(nb_gam_mod)
 }

@@ -4,24 +4,31 @@
 \alias{nbGAM}
 \title{Fit a negative-binomial GAM.}
 \usage{
-nbGAM(expr = NULL, pt = NULL, theta.init = NULL)
+nbGAM(expr = NULL, pt = NULL, id.vec = NULL)
 }
 \arguments{
 \item{expr}{A vector of integer counts. Defaults to NULL.}
 
 \item{pt}{A dataframe or vector of pesudotime values. Defaults to NULL.}
 
-\item{theta.init}{(Optional) If you have a numeric value for \eqn{\theta} you'd like to use provide it here, else it can be estimated internally. Defaults to NULL.}
+\item{id.vec}{(Optional) A vector of subject IDs to be used in creating random intercepts in the GAM. Useful for comparing GAMs to GLMMs. Defaults to NULL.}
 }
 \value{
-An object of class \code{gam}
+An object of class \code{gamlss}
 }
 \description{
-Fits a negative-binomial family GAM (glorified wrapper function).
+Fits a negative-binomial family GAM using a b-spline on pseudotime.
 }
 \examples{
-\dontrun{nbGAM(expr_vec, pt_df)}
-\dontrun{nbGAM(expr_vec, pt_vec, theta.init = 2.5)}
+\dontrun{
+nbGAM(expr_vec, pt = pt_df)
+nbGAM(expr_vec, pt = pt_df, id.vec = subject_ids)
+}
+}
+\seealso{
+\code{\link[gamlss]{gamlss}}
+
+\code{\link[gamlss]{random}}
 }
 \author{
 Jack Leary

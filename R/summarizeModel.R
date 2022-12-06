@@ -1,6 +1,6 @@
 #' Represent a \code{marge} model as a series of piecewise equations.
 #'
-#' @name plotModels
+#' @name summarizeModel
 #' @author Jack Leary
 #' @import magrittr
 #' @importFrom dplyr mutate case_when arrange lead lag rowwise ungroup select

@@ -13,7 +13,7 @@ getResultsDE(
 \arguments{
 \item{test.dyn.results}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
 
-\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for MHT. Defaults to "bonferroni".}
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "bonferroni".}
 
 \item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }
@@ -24,11 +24,17 @@ A data.frame containing differential expression results & modeling statistics fo
 This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy \code{data.frame}.
 }
 \examples{
-\dontrun{GetResultsDE(test.dyn.results = gene_stats)}
-#' \dontrun{GetResultsDE(test.dyn.results = gene_stats, p.adj.method = "BH")}
+\dontrun{
+getResultsDE(test.dyn.results = gene_stats)
+getResultsDE(test.dyn.results = gene_stats,
+             p.adj.method = "BH",
+             fdr.cutoff = 5e-3)
+}
 }
 \seealso{
-\code{\link{testDynamic}} \code{\link{p.adjust}}
+\code{\link{testDynamic}}
+
+\code{\link[stats]{p.adjust}}
 }
 \author{
 Jack Leary

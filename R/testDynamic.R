@@ -376,6 +376,8 @@ testDynamic <- function(expr.mat = NULL,
         if (is.glmm) {
           if (!marge_mod$final_mod$sdr$pdHess) {
             marge_fit_notes <- "Non-positive definite Hessian in GLMM, probably due to shallow log-likelihood. Be careful!"
+          } else {
+            marge_fit_notes <- NA_character_
           }
         } else {
           marge_fit_notes <- NA_character_
@@ -498,6 +500,8 @@ testDynamic <- function(expr.mat = NULL,
         if (is.glmm) {
           if (!marge_mod$final_mod$sdr$pdHess) {
             marge_fit_notes <- "Non-positive definite Hessian in GLMM, probably due to shallow log-likelihood. Be careful!"
+          } else {
+            marge_fit_notes <- NA_character_
           }
         } else {
           marge_fit_notes <- NA_character_

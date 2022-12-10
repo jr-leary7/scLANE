@@ -30,9 +30,14 @@ A data.frame of with three columns: \code{Gene}, \code{Lineage}, and \code{Clust
 This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms.
 }
 \examples{
-\dontrun{clusterGenes(test.dyn.results = gene_stats, clust.algo = "leiden")}
-\dontrun{clusterGenes(test.dyn.results = gene_stats, use.PCA = TRUE, n.PC = 10, lineages = "B")}
-\dontrun{clusterGenes(test.dyn.results = gene_stats, lineages = c("A", "C"))}
+\dontrun{
+clusterGenes(test.dyn.results = gene_stats, clust.algo = "leiden")
+clusterGenes(test.dyn.results = gene_stats,
+             use.PCA = TRUE,
+             n.PC = 10,
+             lineages = "B")
+clusterGenes(test.dyn.results = gene_stats, lineages = c("A", "C"))
+}
 }
 \seealso{
 \code{\link{testDynamic}}

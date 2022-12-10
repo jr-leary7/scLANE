@@ -13,7 +13,9 @@
 #' @seealso \code{\link{modelLRT}}
 #' @export
 #' @examples
-#' \dontrun{waldTestGEE(mod.1 = full_model, mod.0 = null_model)}
+#' \dontrun{
+#' waldTestGEE(mod.1 = full_model, mod.0 = null_model)
+#' }
 
 waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
   # check inputs

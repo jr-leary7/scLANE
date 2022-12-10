@@ -27,7 +27,9 @@
 #' @importFrom glm2 glm.fit2
 #' @importFrom stats fitted predict
 #' @examples
-#' \dontrun{marge(X_pred = pseudotime_df, Y = expr_vec)}
+#' \dontrun{
+#' marge(X_pred = pseudotime_df, Y = expr_vec)
+#' }
 
 marge <- function(X_pred = NULL,
                   Y = NULL,

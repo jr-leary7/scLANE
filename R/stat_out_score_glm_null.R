@@ -10,7 +10,8 @@
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats fitted.values
 #' @importFrom gamlss gamlss
-#' @seealso \code{\link{stat_out}} and \code{\link{stat_out_score_gee_null}}
+#' @seealso \code{\link{stat_out}}
+#' @seealso \code{\link{stat_out_score_gee_null}}
 
 stat_out_score_glm_null <- function(Y = NULL, B_null = NULL, fast = TRUE) {
   # check inputs

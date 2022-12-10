@@ -17,8 +17,16 @@
 #' @seealso \code{\link[clusterProfiler]{enricher}}
 #' @export
 #' @examples
-#' \dontrun{enrichDynamicGenes(scLANE.de.res = de_stats, lineage = "A", gene.set.cat = "C1", gene.set.subcat = "CGP")}
-#' \dontrun{enrichDynamicGenes(scLANE.de.res = de_stats, species = "mm", gene.set.cat = "C2", gene.set.subcat = "CP:REACTOME")}
+#' \dontrun{
+#' enrichDynamicGenes(scLANE.de.res = de_stats,
+#'                    lineage = "A",
+#'                    gene.set.cat = "C1",
+#'                    gene.set.subcat = "CGP")
+#' enrichDynamicGenes(scLANE.de.res = de_stats,
+#'                    species = "mm",
+#'                    gene.set.cat = "C2",
+#'                    gene.set.subcat = "CP:REACTOME")
+#' }
 
 enrichDynamicGenes <- function(scLANE.de.res = NULL,
                                lineage = NULL,

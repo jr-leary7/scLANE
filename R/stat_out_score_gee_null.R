@@ -14,7 +14,8 @@
 #' @importFrom MASS negative.binomial
 #' @importFrom gamlss gamlss random
 #' @importFrom stats fitted.values
-#' @seealso \code{\link{stat_out}} and \code{\link{stat_out_score_glm_null}}
+#' @seealso \code{\link{stat_out}}
+#' @seealso \code{\link{stat_out_score_glm_null}}
 
 stat_out_score_gee_null <- function(Y = NULL,
                                     B_null = NULL,

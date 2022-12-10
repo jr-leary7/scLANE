@@ -30,8 +30,16 @@ The output from \code{\link[clusterProfiler]{enricher}}.
 This function uses the \code{msigdbr} and \code{clusterProfiler} packages to perform GSEA on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
 }
 \examples{
-\dontrun{enrichDynamicGenes(scLANE.de.res = de_stats, lineage = "A", gene.set.cat = "C1", gene.set.subcat = "CGP")}
-\dontrun{enrichDynamicGenes(scLANE.de.res = de_stats, species = "mm", gene.set.cat = "C2", gene.set.subcat = "CP:REACTOME")}
+\dontrun{
+enrichDynamicGenes(scLANE.de.res = de_stats,
+                   lineage = "A",
+                   gene.set.cat = "C1",
+                   gene.set.subcat = "CGP")
+enrichDynamicGenes(scLANE.de.res = de_stats,
+                   species = "mm",
+                   gene.set.cat = "C2",
+                   gene.set.subcat = "CP:REACTOME")
+}
 }
 \seealso{
 \code{\link[msigdbr]{msigdbr}}

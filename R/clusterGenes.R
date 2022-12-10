@@ -4,6 +4,7 @@
 #' @author Jack Leary
 #' @description This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms.
 #' @importFrom purrr map discard map2 reduce
+#' @importFrom stats hclust cutree kmeans
 #' @importFrom rlang is_na
 #' @importFrom magrittr set_rownames
 #' @importFrom irlba prcomp_irlba
@@ -21,9 +22,14 @@
 #' @seealso \code{\link{plotClusteredGenes}}
 #' @export
 #' @examples
-#' \dontrun{clusterGenes(test.dyn.results = gene_stats, clust.algo = "leiden")}
-#' \dontrun{clusterGenes(test.dyn.results = gene_stats, use.PCA = TRUE, n.PC = 10, lineages = "B")}
-#' \dontrun{clusterGenes(test.dyn.results = gene_stats, lineages = c("A", "C"))}
+#' \dontrun{
+#' clusterGenes(test.dyn.results = gene_stats, clust.algo = "leiden")
+#' clusterGenes(test.dyn.results = gene_stats,
+#'              use.PCA = TRUE,
+#'              n.PC = 10,
+#'              lineages = "B")
+#' clusterGenes(test.dyn.results = gene_stats, lineages = c("A", "C"))
+#' }
 
 clusterGenes <- function(test.dyn.results = NULL,
                          clust.algo = "leiden",
@@ -59,14 +65,14 @@ clusterGenes <- function(test.dyn.results = NULL,
     # hierarchical clustering routine w/ Ward's linkage
     if (clust.algo  == "hclust") {
       if (use.pca) {
-        hclust_tree <- hclust(dist(fitted_vals_pca$x), method = "ward.D2")
+        hclust_tree <- stats::hclust(dist(fitted_vals_pca$x), method = "ward.D2")
       } else {
-        hclust_tree <- hclust(dist(fitted_vals_mat), method = "ward.D2")
+        hclust_tree <- stats::hclust(dist(fitted_vals_mat), method = "ward.D2")
       }
       k_vals <- c(2:10)
       sil_vals <- vector("numeric", 9L)
       for (k in seq_along(k_vals)) {
-        clust_res <- cutree(hclust_tree, k = k_vals[k])
+        clust_res <- stats::cutree(hclust_tree, k = k_vals[k])
         if (use.pca) {
           sil_res <- cluster::silhouette(clust_res, dist(fitted_vals_pca$x))
         } else {
@@ -75,7 +81,7 @@ clusterGenes <- function(test.dyn.results = NULL,
         sil_vals[k] <- mean(sil_res[, 3])  # silhouette widths stored in third column
       }
       k_to_use <- k_vals[which.max(sil_vals)]
-      clust_res <- cutree(hclust_tree, k = k_to_use)
+      clust_res <- stats::cutree(hclust_tree, k = k_to_use)
       gene_clusters <- data.frame(Gene = rownames(fitted_vals_mat),
                                   Lineage = lineages[l],
                                   Cluster = clust_res)
@@ -85,31 +91,31 @@ clusterGenes <- function(test.dyn.results = NULL,
       sil_vals <- vector("numeric", 9L)
       for (k in seq_along(k_vals)) {
         if (use.pca) {
-          clust_res <- kmeans(fitted_vals_pca$x,
-                              centers = k_vals[k],
-                              nstart = 5,
-                              algorithm = "Hartigan-Wong")
+          clust_res <- stats::kmeans(fitted_vals_pca$x,
+                                     centers = k_vals[k],
+                                     nstart = 5,
+                                     algorithm = "Hartigan-Wong")
           sil_res <- cluster::silhouette(clust_res$cluster, dist(fitted_vals_pca$x))
         } else {
-          clust_res <- kmeans(fitted_vals_mat,
-                              centers = k_vals[k],
-                              nstart = 5,
-                              algorithm = "Hartigan-Wong")
+          clust_res <- stats::kmeans(fitted_vals_mat,
+                                     centers = k_vals[k],
+                                     nstart = 5,
+                                     algorithm = "Hartigan-Wong")
           sil_res <- cluster::silhouette(clust_res$cluster, dist(fitted_vals_mat))
         }
         sil_vals[k] <- mean(sil_res[, 3])  # silhouette widths stored in third column
       }
       k_to_use <- k_vals[which.max(sil_vals)]
       if (use.pca) {
-        clust_res <- kmeans(fitted_vals_pca$x,
-                            centers = k_to_use,
-                            nstart = 5,
-                            algorithm = "Hartigan-Wong")
+        clust_res <- stats::kmeans(fitted_vals_pca$x,
+                                   centers = k_to_use,
+                                   nstart = 5,
+                                   algorithm = "Hartigan-Wong")
       } else {
-        clust_res <- kmeans(fitted_vals_mat,
-                            centers = k_to_use,
-                            nstart = 5,
-                            algorithm = "Hartigan-Wong")
+        clust_res <- stats::kmeans(fitted_vals_mat,
+                                   centers = k_to_use,
+                                   nstart = 5,
+                                   algorithm = "Hartigan-Wong")
       }
       gene_clusters <- data.frame(Gene = rownames(fitted_vals_mat),
                                   Lineage = lineages[l],

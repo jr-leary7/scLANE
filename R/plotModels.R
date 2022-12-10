@@ -3,6 +3,7 @@
 #' @name plotModels
 #' @author Jack Leary
 #' @import magrittr
+#' @import glm2
 #' @importFrom stats qnorm predict
 #' @importFrom purrr map map2 reduce
 #' @importFrom dplyr relocate mutate select contains case_when filter

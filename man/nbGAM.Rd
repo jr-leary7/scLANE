@@ -22,7 +22,9 @@ Fits a negative-binomial family GAM using a b-spline on pseudotime.
 \examples{
 \dontrun{
 nbGAM(expr_vec, pt = pt_df)
-nbGAM(expr_vec, pt = pt_df, id.vec = subject_ids)
+nbGAM(expr_vec,
+      pt = pt_df,
+      id.vec = subject_ids)
 }
 }
 \seealso{

@@ -21,7 +21,10 @@ This function compares two models using a likelihood ratio test (LRT) under the 
 }
 \examples{
 \dontrun{
-  modelLRT(mod.1 = marge_mod, mod.0 = null_mod)
+modelLRT(mod.1 = marge_mod, mod.0 = null_mod)
+modelLRT(mod.1 = marge_mod,
+         mod.0 = null_mod,
+         is.glmm = TRUE)
 }
 }
 \author{

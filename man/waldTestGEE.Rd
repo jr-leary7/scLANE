@@ -18,7 +18,9 @@ A list containing the Wald test statistic, a \emph{p}-value, and the degrees of 
 Performs a basic Wald test to determine whether an alternate model is significantly better than a nested null model. This is the GEE equivalent (kind of) of \code{\link{modelLRT}}. Be careful with small sample sizes.
 }
 \examples{
-\dontrun{waldTestGEE(mod.1 = full_model, mod.0 = null_model)}
+\dontrun{
+waldTestGEE(mod.1 = full_model, mod.0 = null_model)
+}
 }
 \seealso{
 \code{\link[multgee]{waldts}}

@@ -32,7 +32,9 @@ Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for gener
 Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 }
 \seealso{
-\code{\link{stat_out}} and \code{\link{stat_out_score_glm_null}}
+\code{\link{stat_out}}
+
+\code{\link{stat_out_score_glm_null}}
 }
 \author{
 Jakub Stoklosa and David I. Warton.

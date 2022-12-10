@@ -14,7 +14,9 @@
 #' @examples
 #' \dontrun{
 #' nbGAM(expr_vec, pt = pt_df)
-#' nbGAM(expr_vec, pt = pt_df, id.vec = subject_ids)
+#' nbGAM(expr_vec,
+#'       pt = pt_df,
+#'       id.vec = subject_ids)
 #' }
 
 nbGAM <- function(expr = NULL,

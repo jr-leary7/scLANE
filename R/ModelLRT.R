@@ -11,7 +11,10 @@
 #' @export
 #' @examples
 #' \dontrun{
-#'   modelLRT(mod.1 = marge_mod, mod.0 = null_mod)
+#' modelLRT(mod.1 = marge_mod, mod.0 = null_mod)
+#' modelLRT(mod.1 = marge_mod,
+#'          mod.0 = null_mod,
+#'          is.glmm = TRUE)
 #' }
 
 modelLRT <- function(mod.1 = NULL,

@@ -7,7 +7,9 @@
 #' @return A slimmed-down \code{glm} object.
 #' @export
 #' @examples
-#' \dontrun{stripGLM(marge_model)}
+#' \dontrun{
+#' stripGLM(marge_model)
+#' }
 
 stripGLM <- function(glm.obj = NULL) {
   # check inputs

@@ -8,7 +8,7 @@
 #' @importFrom dplyr mutate ntile group_by sample_frac
 #' @importFrom geeM geem
 #' @importFrom gamlss gamlss
-#' @importFrom MASS glm.nb negative.binomial
+#' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom stats fitted coef
 #' @param X_pred A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
 #' @param Y The response variable. A vector of length n by N.
@@ -16,7 +16,8 @@
 #' @param is.gee Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
 #' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".
-#' @param approx.knot Should the space of possibke knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
+#' @param approx.knot Should the space of possible knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
+#' @param n.knot.max The maximum number of candidate knots to consider. Uses quantiles to set this number of unique values from the reduced set of all candidate knots.
 #' @param pen (Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
 #' @param minspan A set minimum span value. The default is \code{minspan = NULL}.
@@ -43,6 +44,12 @@
 #'          is.gee = TRUE,
 #'          id.vec = subject_vec,
 #'          cor.structure = "exchangeable")
+#'   marge2(X_pred = pseudotime_df,
+#'          Y = expr_vec,
+#'          is.gee = TRUE,
+#'          id.vec = subject_vec,
+#'          cor.structure = "independence",
+#'          n.knot.max = 10)
 #' }
 
 marge2 <- function(X_pred = NULL,
@@ -52,6 +59,7 @@ marge2 <- function(X_pred = NULL,
                    id.vec = NULL,
                    cor.structure = "independence",
                    approx.knot = TRUE,
+                   n.knot.max = 15,
                    pen = 2,
                    tols_score = 0.00001,
                    minspan = NULL,
@@ -59,7 +67,7 @@ marge2 <- function(X_pred = NULL,
                    return.wic = FALSE,
                    return.GCV = FALSE) {
   # check inputs
-  if (is.null(X_pred) | is.null(Y)) { stop("Some required inputs to marge2() are missing.") }
+  if (is.null(X_pred) || is.null(Y)) { stop("Some required inputs to marge2() are missing.") }
   if (is.gee & is.null(id.vec)) { stop("id.vec in marge2() must be non-null if is.gee = TRUE.") }
   if (is.gee & (!cor.structure %in% c("independence", "exchangeable", "ar1", "unstructured"))) { stop("cor.structure in marge2() must be a known type if is.gee = TRUE.") }
   if (is.gee & is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running marge2() with is.gee = TRUE.") }
@@ -72,6 +80,12 @@ marge2 <- function(X_pred = NULL,
   }
   q <- ncol(X_pred)  # Number of predictor variables
   B <- as.matrix(rep(1, NN))  # Start with the intercept model.
+  # estimate "known" theta for GEE models
+  if (is.gee) {
+    theta_hat <- MASS::theta.mm(y = Y,
+                                mu = mean(Y),
+                                dfr = NN - 1)
+  }
 
   colnames(B) <- c("Intercept")
   var_name_vec <- c("Intercept")
@@ -114,7 +128,8 @@ marge2 <- function(X_pred = NULL,
       B_null_stats <- stat_out_score_gee_null(Y = Y,
                                               B_null = B,
                                               id.vec = id.vec,
-                                              cor.structure = cor.structure)
+                                              cor.structure = cor.structure,
+                                              theta.hat = theta_hat)
       VS.est_list <- B_null_stats$VS.est_list
       AWA.est_list <- B_null_stats$AWA.est_list
       J2_list <- B_null_stats$J2_list
@@ -139,14 +154,9 @@ marge2 <- function(X_pred = NULL,
         X_red1 <- min_span(X_red = X, q = q, minspan = minspan)  # reduce the space between knots
         X_red2 <- max_span(X_pred = X, q = q)  # truncate the ends of data to avoid extreme values
         X_red <- intersect(X_red1, X_red2)
-        # further subsample by quantile to make things EVEN FASTER (& less accurate ...)
-        if (length(X_red) > 100) {
-          set.seed(312)  # lucky seed
-          X_df_samp <- data.frame(X = X_red) %>%
-                       dplyr::mutate(QR = dplyr::ntile(X, 10)) %>%
-                       dplyr::group_by(QR) %>%
-                       dplyr::sample_frac(size = 0.8)
-          X_red <- X_df_samp$X
+        # further subsample by quantile to make things EVEN FASTER
+        if (length(X_red) > n.knot.max) {
+          X_red <- seq(min(X_red), max(X_red), length.out = n.knot.max)
         }
       } else {
         X <- round(X_pred[, v], 4)
@@ -791,7 +801,7 @@ marge2 <- function(X_pred = NULL,
       if (is.gee) {
         full.fit_2 <- geeM::geem(Y ~ B_new_2 - 1,
                                  id = id.vec,
-                                 family = MASS::negative.binomial(1),
+                                 family = MASS::negative.binomial(theta_hat),
                                  corstr = cor.structure,
                                  sandwich = TRUE)
         full.wald_2 <- (unname(summary(full.fit_2)$wald.test[-1]))^2
@@ -817,13 +827,15 @@ marge2 <- function(X_pred = NULL,
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
   if (is.gee) {
-    final_mod <- geeM::geem(c(t(Y)) ~ B_final - 1,
+    final_mod <- geeM::geem(Y ~ B_final - 1,
                             id = id.vec,
-                            family = MASS::negative.binomial(1),
-                            corstr = cor.structure)
+                            family = MASS::negative.binomial(theta_hat),
+                            corstr = cor.structure,
+                            sandwich = TRUE)
   } else {
-    final_mod <- MASS::glm.nb(c(t(Y)) ~ B_final - 1,
+    final_mod <- MASS::glm.nb(Y ~ B_final - 1,
                               method = "glm.fit2",
+                              link = log,
                               init.theta = 1,
                               y = FALSE,
                               model = FALSE)

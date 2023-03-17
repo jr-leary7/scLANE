@@ -71,7 +71,7 @@ fitGLMM <- function(X_pred = NULL,
     # build formula automatically
     mod_formula <- as.formula(paste0("Y ~ ",
                                      paste(colnames(glmm_basis_df), collapse = " + "),
-                                     "(1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
+                                     " + (1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
                                      " | subject)"))
     glmm_basis_df <- dplyr::mutate(glmm_basis_df,
                                    Y = Y,

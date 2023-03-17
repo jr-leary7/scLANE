@@ -8,7 +8,8 @@ stat_out_score_gee_null(
   Y = NULL,
   B_null = NULL,
   id.vec = NULL,
-  cor.structure = NULL
+  cor.structure = NULL,
+  theta.hat = NULL
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ stat_out_score_gee_null(
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Defaults to NULL.}
 
 \item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to NULL.}
+
+\item{theta.hat}{Estimated value to be treated as the "known" theta when passing the negative binomial family to \code{\link[geeM]{geeM}}. Defaults to NULL.}
 }
 \value{
 \code{stat_out_score_glm_null} returns a list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).

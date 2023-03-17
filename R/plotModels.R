@@ -9,10 +9,10 @@
 #' @importFrom dplyr relocate mutate select contains case_when filter
 #' @importFrom geeM geem
 #' @importFrom glmmTMB glmmTMB nbinom1
-#' @importFrom MASS negative.binomial
+#' @importFrom MASS negative.binomial theta.mm
 #' @importFrom gamlss gamlss re
 #' @importFrom tidyr pivot_longer
-#' @importFrom scales comma_format number_format
+#' @importFrom scales label_comma label_number
 #' @importFrom ggplot2 theme_classic ggplot aes geom_point geom_line geom_ribbon facet_wrap scale_y_continuous labs theme element_text guides guide_legend
 #' @description This function visualizes the fitted values of several types of models over the expression and pseudotime values of each cell.
 #' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to NULL.
@@ -106,9 +106,12 @@ plotModels <- function(test.dyn.res = NULL,
                                                                      CI_UL_NULL = exp(RESP_NULL + Z * SE_NULL))) %>%
                     purrr::map(function(x) {
                       if (is.gee) {
+                        theta_hat <- MASS::theta.mm(y = x$COUNT,
+                                                    mu = mean(x$COUNT),
+                                                    dfr = nrow(x) - 1)
                         glm_mod <- geeM::geem(x$COUNT ~ x$PT,
                                               id = x$ID,
-                                              family = MASS::negative.binomial(1),
+                                              family = MASS::negative.binomial(theta_hat),
                                               corstr = cor.structure,
                                               sandwich = TRUE)
                         robust_vcov_mat <- as.matrix(glm_mod$var)
@@ -197,8 +200,8 @@ plotModels <- function(test.dyn.res = NULL,
                               alpha = 0.4,
                               size = 0,
                               show.legend = FALSE) +
-         ggplot2::scale_y_continuous(labels = scales::comma_format()) +
-         ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
+         ggplot2::scale_y_continuous(labels = scales::label_comma()) +
+         ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) +
          ggplot2::labs(x = "Pseudotime",
                        y = "Expression",
                        color = "Subject",
@@ -216,8 +219,8 @@ plotModels <- function(test.dyn.res = NULL,
                               alpha = 0.4,
                               size = 0,
                               color = "grey") +
-         ggplot2::scale_y_continuous(labels = scales::comma_format()) +
-         ggplot2::scale_x_continuous(labels = scales::number_format(accuracy = 0.1)) +
+         ggplot2::scale_y_continuous(labels = scales::label_comma()) +
+         ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) +
          ggplot2::labs(x = "Pseudotime",
                        y = "Expression",
                        color = "Lineage",

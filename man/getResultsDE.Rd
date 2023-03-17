@@ -4,16 +4,12 @@
 \alias{getResultsDE}
 \title{Tidy the results of \code{\link{testDynamic}}.}
 \usage{
-getResultsDE(
-  test.dyn.results = NULL,
-  p.adj.method = "bonferroni",
-  fdr.cutoff = 0.01
-)
+getResultsDE(test.dyn.results = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
 }
 \arguments{
 \item{test.dyn.results}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
 
-\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "bonferroni".}
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".}
 
 \item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }

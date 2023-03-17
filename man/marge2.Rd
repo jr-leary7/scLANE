@@ -12,6 +12,7 @@ marge2(
   id.vec = NULL,
   cor.structure = "independence",
   approx.knot = TRUE,
+  n.knot.max = 15,
   pen = 2,
   tols_score = 1e-05,
   minspan = NULL,
@@ -33,7 +34,9 @@ marge2(
 
 \item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".}
 
-\item{approx.knot}{Should the space of possibke knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
+\item{approx.knot}{Should the space of possible knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
+
+\item{n.knot.max}{The maximum number of candidate knots to consider. Uses quantiles to set this number of unique values from the reduced set of all candidate knots.}
 
 \item{pen}{(Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
 
@@ -63,6 +66,12 @@ MARS fitting function for generalized linear models (GLMs).
          is.gee = TRUE,
          id.vec = subject_vec,
          cor.structure = "exchangeable")
+  marge2(X_pred = pseudotime_df,
+         Y = expr_vec,
+         is.gee = TRUE,
+         id.vec = subject_vec,
+         cor.structure = "independence",
+         n.knot.max = 10)
 }
 }
 \references{

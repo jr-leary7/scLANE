@@ -6,6 +6,7 @@
 #' @param B_null : model matrix under the null model.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Defaults to NULL.
 #' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to NULL.
+#' @param theta.hat Estimated value to be treated as the "known" theta when passing the negative binomial family to \code{\link[geeM]{geeM}}. Defaults to NULL.
 #' @return \code{stat_out_score_glm_null} returns a list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
 #' @author Jakub Stoklosa and David I. Warton.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
@@ -20,9 +21,10 @@
 stat_out_score_gee_null <- function(Y = NULL,
                                     B_null = NULL,
                                     id.vec = NULL,
-                                    cor.structure = NULL) {
+                                    cor.structure = NULL,
+                                    theta.hat = NULL) {
   # check inputs
-  if (is.null(Y) | is.null(B_null) | is.null(id.vec) | is.null(cor.structure)) { stop("All arguments to stat_out_score_gee_null() must be non-NULL.") }
+  if (is.null(Y) || is.null(B_null) || is.null(id.vec) || is.null(cor.structure) || is.null(theta.hat)) { stop("All arguments to stat_out_score_gee_null() must be non-NULL.") }
   cor.structure <- tolower(cor.structure)
   if (!cor.structure %in% c("independence", "exchangeable", "ar1")) { stop("cor.structure in stat_out_score_gee_null() must be a known type.") }
   n_vec <- as.numeric(table(id.vec))
@@ -32,10 +34,10 @@ stat_out_score_gee_null <- function(Y = NULL,
                      id = id.vec,
                      data = NULL,
                      corstr = cor.structure,
-                     family = MASS::negative.binomial(1),
+                     family = MASS::negative.binomial(theta.hat),
                      sandwich = TRUE)
   ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
-                             sigma.formula = ~ 1,
+                             sigma.formula = ~1,
                              data = NULL,
                              family = "NBI",
                              trace = FALSE)

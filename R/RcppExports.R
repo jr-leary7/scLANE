@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 eigenMapMatMult <- function(A, B, n_cores) {
-    .Call('_scLANE_eigenMapMatMult', PACKAGE = 'scLANE', A, B, n_cores)
+    .Call(`_scLANE_eigenMapMatMult`, A, B, n_cores)
 }
 

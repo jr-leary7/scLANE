@@ -11,7 +11,7 @@
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel makeCluster detectCores stopCluster clusterEvalQ clusterExport
-#' @importFrom MASS glm.nb negative.binomial
+#' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom dplyr rename mutate relocate
 #' @importFrom broom tidy
 #' @importFrom broom.mixed tidy
@@ -190,10 +190,13 @@ testDynamic <- function(expr.mat = NULL,
       }
       # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm() if not using a GEE model
       if (is.gee) {
+        theta_hat <- MASS::theta.mm(y = expr.mat[lineage_cells, i],
+                                    mu = mean(expr.mat[lineage_cells, i]),
+                                    dfr = length(id.vec[lineage_cells]) - 1)
         null_mod <- try(
           { geeM::geem(expr.mat[lineage_cells, i, drop = FALSE] ~ 1,
                        id = id.vec[lineage_cells],
-                       family = MASS::negative.binomial(1),
+                       family = MASS::negative.binomial(theta_hat),
                        corstr = cor.structure) },
           silent = TRUE
         )

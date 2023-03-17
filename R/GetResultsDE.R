@@ -9,7 +9,7 @@
 #' @importFrom tidyselect everything
 #' @importFrom stats p.adjust p.adjust.methods
 #' @param test.dyn.results The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
-#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "bonferroni".
+#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
 #' @param fdr.cutoff (Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @return A data.frame containing differential expression results & modeling statistics for each gene.
 #' @export
@@ -24,7 +24,7 @@
 #' }
 
 getResultsDE <- function(test.dyn.results = NULL,
-                         p.adj.method = "bonferroni",
+                         p.adj.method = "holm",
                          fdr.cutoff = 0.01) {
   # check inputs
   if (is.null(test.dyn.results)) { stop("Please provide a result list.") }

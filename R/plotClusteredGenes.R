@@ -43,11 +43,11 @@ plotClusteredGenes <- function(test.dyn.results = NULL,
           fitted_vals_mat <- NULL
         } else {
           fitted_vals_mat <- data.frame(GENE = y,
-                                        LINEAGE = LETTERS[l],
-                                        CELL = rownames(pt[!is.na(pt[, l]), ]),
+                                        LINEAGE = lineage_name,
+                                        CELL = rownames(pt)[!is.na(pt[, l])],
                                         FITTED_LINK = x[[lineage_name]]$MARGE_Preds$marge_link_fit,
                                         FITTED = exp(x[[lineage_name]]$MARGE_Preds$marge_link_fit),
-                                        # EXP = gene.counts[!is.na(pt[, l]), y],  -- maybe bring this back in later, but not needed rightt norw
+                                        # EXP = gene.counts[!is.na(pt[, l]), y],  -- maybe bring this back in later, but not needed right now
                                         PT = pt[!is.na(pt[, l]), l])
         }
         df_list[[l]] <- fitted_vals_mat
@@ -64,11 +64,11 @@ plotClusteredGenes <- function(test.dyn.results = NULL,
           fitted_vals_mat <- NULL
         } else {
           fitted_vals_mat <- data.frame(GENE = y,
-                                        LINEAGE = LETTERS[l],
-                                        CELL = rownames(pt[!is.na(pt[, l]), ]),
+                                        LINEAGE = lineage_name,
+                                        CELL = rownames(pt)[!is.na(pt[, l])],
                                         FITTED_LINK = x[[lineage_name]]$MARGE_Preds$marge_link_fit,
                                         FITTED = exp(x[[lineage_name]]$MARGE_Preds$marge_link_fit),
-                                        # EXP = gene.counts[!is.na(pt[, l]), y],  -- maybe bring this back in later, but not needed rightt norw
+                                        # EXP = gene.counts[!is.na(pt[, l]), y],  -- maybe bring this back in later, but not needed right now
                                         PT = pt[!is.na(pt[, l]), l])
         }
         df_list[[l]] <- fitted_vals_mat
@@ -79,7 +79,7 @@ plotClusteredGenes <- function(test.dyn.results = NULL,
   }
   all_genes %>%
     purrr::reduce(rbind) %>%
-    dplyr::inner_join(gene.clusters, c("GENE" = "Gene", "LINEAGE" = "Lineage")) %>%
+    dplyr::inner_join(gene.clusters, by = c("GENE" = "Gene", "LINEAGE" = "Lineage")) %>%
     dplyr::rename(CLUSTER = Cluster) %>%
     dplyr::mutate(CLUSTER = as.factor(CLUSTER)) -> res
   return(res)

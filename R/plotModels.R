@@ -10,7 +10,6 @@
 #' @importFrom geeM geem
 #' @importFrom glmmTMB glmmTMB nbinom1
 #' @importFrom MASS negative.binomial theta.mm
-#' @importFrom gamlss gamlss re
 #' @importFrom tidyr pivot_longer
 #' @importFrom scales label_comma label_number
 #' @importFrom ggplot2 theme_classic ggplot aes geom_point geom_line geom_ribbon facet_wrap scale_y_continuous labs theme element_text guides guide_legend
@@ -78,7 +77,8 @@ plotModels <- function(test.dyn.res = NULL,
   # make sure lineages are named nicely
   colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
   # create base list w/ elements being lineage-specific dataframes
-  counts_df_list <- purrr::map2(pt, LETTERS[1:ncol(pt)],
+  counts_df_list <- purrr::map2(pt,
+                                LETTERS[1:ncol(pt)],
                                 \(x, y) {
                                   mod_df <- data.frame(CELL = rownames(pt)[!is.na(x)],
                                                        LINEAGE = y,
@@ -182,13 +182,15 @@ plotModels <- function(test.dyn.res = NULL,
                                        by = c("CELL" = "CELL", "ID" = "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL"))
     })
   counts_df <- purrr::reduce(counts_df_list, rbind) %>%
-               dplyr::mutate(MODEL = factor(dplyr::case_when(MODEL == "NULL" ~ "Intercept-only", TRUE ~ MODEL),
-                                            levels = c("Intercept-only", "GLM", "GAM", "MARGE")))
+               dplyr::mutate(MODEL = factor(dplyr::case_when(MODEL == "NULL" ~ "Intercept-only",
+                                                             MODEL == "MARGE" ~ "scLANE",
+                                                             TRUE ~ MODEL),
+                                            levels = c("Intercept-only", "GLM", "GAM", "scLANE")))
   # add conditional filters here
   if (!plot.null) { counts_df %<>% dplyr::filter(MODEL != "Intercept-only") }
   if (!plot.glm) { counts_df %<>% dplyr::filter(MODEL != "GLM") }
   if (!plot.gam) { counts_df %<>% dplyr::filter(MODEL != "GAM") }
-  if (!plot.marge) { counts_df %<>% dplyr::filter(MODEL != "MARGE") }
+  if (!plot.marge) { counts_df %<>% dplyr::filter(MODEL != "scLANE") }
   if (!is.null(filter.lineage)) { counts_df %<>% dplyr::filter(!LINEAGE %in% filter.lineage) }
   # generate plot
   if (is.glmm) {

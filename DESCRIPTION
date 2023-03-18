@@ -1,10 +1,10 @@
 Package: scLANE
 Type: Package
 Title: Model gene expression over pseudotime with spline-based NB GLMs, GEEs, & GLMMs
-Version: 0.5.2
+Version: 0.6
 Author: Jack Leary [aut]
 Maintainer: Jack Leary <j.leary@ufl.edu>
-Description: This package uses trunacted power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime / latent time. Currently supports negative-binomial GLMs, GEEs, & GLMMs. 
+Description: This package uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime / latent time. Currently supports negative binomial GLMs, GEEs, & GLMMs. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -23,7 +23,7 @@ Imports:
     gamlss,
     mgcv,
     scales,
-    mvabund,
+    splines, 
     bigstatsr,
     broom,
     purrr,

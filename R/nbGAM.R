@@ -11,6 +11,7 @@
 #' @return An object of class \code{gamlss}
 #' @seealso \code{\link[gamlss]{gamlss}}
 #' @seealso \code{\link[gamlss]{random}}
+#' @seealso \code{\link[gamlss.dist]{NBI}}
 #' @export
 #' @examples
 #' \dontrun{

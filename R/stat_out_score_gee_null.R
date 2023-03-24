@@ -13,7 +13,6 @@
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial
-#' @importFrom gamlss gamlss random
 #' @importFrom stats fitted.values
 #' @seealso \code{\link{stat_out}}
 #' @seealso \code{\link{stat_out_score_glm_null}}
@@ -36,14 +35,20 @@ stat_out_score_gee_null <- function(Y = NULL,
                      corstr = cor.structure,
                      family = MASS::negative.binomial(theta.hat),
                      sandwich = TRUE)
-  ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
-                             sigma.formula = ~1,
-                             data = NULL,
-                             family = "NBI",
-                             trace = FALSE)
+  # old version -- slower
+  # ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
+  #                            sigma.formula = ~1,
+  #                            data = NULL,
+  #                            family = "NBI",
+  #                            trace = FALSE)
   alpha_est <- ests$alpha
-  mu_est <- as.matrix(stats::fitted.values(ests))
-  V_est <- mu_est * (1 + mu_est * (exp(ests_gam$sigma.coefficients)))  # NB var = mu + mu^2 * sigma
+  # mu_est <- as.matrix(stats::fitted.values(ests))
+  len_Y <- length(Y)
+  mean_Y <- mean(Y)
+  mu_est <- as.matrix(rep(mean_Y, len_Y))
+  # V_est <- mu_est * (1 + mu_est * (exp(ests_gam$sigma.coefficients)))  # NB (type I) var = mu + mu^2 * sigma = mu (1 + mu * sigma)
+  # alternate naive estimate -- faster than GAM-based method
+  V_est <- mu_est * (1 + mu_est * (1 / theta.hat))
   p <- ncol(B_null)
   n_vec1 <- c(0, n_vec)
   VS_est_list <- list()

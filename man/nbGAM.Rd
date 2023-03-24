@@ -31,6 +31,8 @@ nbGAM(expr_vec,
 \code{\link[gamlss]{gamlss}}
 
 \code{\link[gamlss]{random}}
+
+\code{\link[gamlss.dist]{NBI}}
 }
 \author{
 Jack Leary

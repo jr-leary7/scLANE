@@ -9,22 +9,26 @@
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @importFrom stats fitted.values
-#' @importFrom gamlss gamlss
+#' @importFrom MASS theta.mm
 #' @seealso \code{\link{stat_out}}
 #' @seealso \code{\link{stat_out_score_gee_null}}
 
 stat_out_score_glm_null <- function(Y = NULL, B_null = NULL, fast = TRUE) {
   # check inputs
-  if (is.null(Y) | is.null(B_null)) { stop("Some inputs to stat_out_score_glm_null() are missing.") }
-  # run function
-  ests <- gamlss::gamlss(Y ~ 1,
-                         family = "NBI",
-                         trace = FALSE,
-                         data = NULL)
+  if (is.null(Y) || is.null(B_null)) { stop("Some inputs to stat_out_score_glm_null() are missing.") }
+  # old version of dispersion estimate
+  # ests <- gamlss::gamlss(Y ~ 1,
+  #                        family = "NBI",
+  #                        trace = FALSE,
+  #                        data = NULL)
   len_Y <- length(Y)
   mean_Y <- mean(Y)
   mu.est <- as.matrix(rep(mean_Y, len_Y))  # faster than calling stats::fitted.values() actually
-  V.est <- mu.est * (1 + mu.est * (exp(ests$sigma.coef)))
+  # V.est <- mu.est * (1 + mu.est * (exp(ests$sigma.coef)))
+  theta_hat <- MASS::theta.mm(y = Y,
+                              mu = mean(Y),
+                              dfr = length(Y) - 1)
+  V.est <- mu.est * (1 + mu.est * (1 / theta_hat))  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
   VS.est_list <- (Y - mu.est) / V.est
   temp_prod <- eigenMapMatMult(A = t(B_null),
                                B = diag(c(mu.est^2 / V.est)),

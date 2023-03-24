@@ -42,7 +42,7 @@ marge2(
 
 \item{tols_score}{(Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001}
 
-\item{minspan}{A set minimum span value. The default is \code{minspan = NULL}.}
+\item{minspan}{(Optional) A set minimum span value. The default is \code{minspan = NULL}.}
 
 \item{return.basis}{(Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the model object much larger than necessary.}
 
@@ -82,8 +82,6 @@ Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for gener
 Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 }
 \seealso{
-\code{\link{mars_ls}}
-
 \code{\link{backward_sel_WIC}}
 
 \code{\link{testDynamic}}

@@ -27,7 +27,7 @@ score_fun_glm <- function(Y = NULL,
   if (is.null(Y) | is.null(VS.est_list) | is.null(A_list) | is.null(B1_list) | is.null(mu.est) | is.null(V.est) | is.null(B1) | is.null(XA)) { stop("Some inputs to score_fun_glm() are missing.") }
   # generate score statistic
   reg <- try(stats::lm.fit(B1, Y), silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
-  if (class(reg)[1] == "try-error") {
+  if (inherits(reg, "try-error")) {
     score <- NA
   } else if (any(is.na(reg$coef))) {
     score <- NA

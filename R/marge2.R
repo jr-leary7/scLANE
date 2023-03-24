@@ -20,7 +20,7 @@
 #' @param n.knot.max The maximum number of candidate knots to consider. Uses quantiles to set this number of unique values from the reduced set of all candidate knots.
 #' @param pen (Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
-#' @param minspan A set minimum span value. The default is \code{minspan = NULL}.
+#' @param minspan (Optional) A set minimum span value. The default is \code{minspan = NULL}.
 #' @param return.basis (Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the model object much larger than necessary.
 #' @param return.wic (Optional) Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
@@ -28,7 +28,6 @@
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @seealso \code{\link{mars_ls}}
 #' @seealso \code{\link{backward_sel_WIC}}
 #' @seealso \code{\link{testDynamic}}
 #' @seealso \code{\link[MASS]{glm.nb}}

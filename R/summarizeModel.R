@@ -15,7 +15,7 @@
 summarizeModel <- function(marge.model = NULL) {
   # check inputs
   if (is.null(marge.model)) { stop("Please provide a non-NULL input to summarizeModel().") }
-  if (class(marge.model) != "marge") { stop("Input to summarizeModel() must be of class marge.") }
+  if (!inherits(marge.model, "marge")) { stop("Input to summarizeModel() must be of class marge.") }
 
   # extract model equation & slopes
   coef_df <- data.frame(coef_name = names(coef(marge.model$final_mod)),

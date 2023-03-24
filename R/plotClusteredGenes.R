@@ -31,19 +31,25 @@ plotClusteredGenes <- function(test.dyn.results = NULL,
                                parallel.exec = TRUE,
                                n.cores = 2) {
   # check inputs
-  if (is.null(test.dyn.results) | is.null(gene.clusters) | is.null(pt)) { stop("Arguments to plotClusteredGenes() are missing.") }
+  if (is.null(test.dyn.results) || is.null(gene.clusters) || is.null(pt)) { stop("Arguments to plotClusteredGenes() are missing.") }
   colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
   if (parallel.exec) {
     future::plan(future::multisession, workers = n.cores)
-    furrr::future_map2(test.dyn.results, names(test.dyn.results), function(x, y) {
+    furrr::future_imap(test.dyn.results, function(x, y) {
       df_list <- vector("list", ncol(pt))
       for (l in seq(ncol(pt))) {
         lineage_name <- colnames(pt)[l]
         if (grepl("MARGE model error", x[[lineage_name]]$Model_Status)) {
-          fitted_vals_mat <- NULL
+          fitted_vals_mat <- data.frame(GENE = character(),
+                                        LINEAGE = character(),
+                                        CELL = character(),
+                                        FITTED_LINK = numeric(),
+                                        FITTED = numeric(),
+                                        # EXP = numeric(),
+                                        PT = numeric())
         } else {
           fitted_vals_mat <- data.frame(GENE = y,
-                                        LINEAGE = lineage_name,
+                                        LINEAGE = LETTERS[l],
                                         CELL = rownames(pt)[!is.na(pt[, l])],
                                         FITTED_LINK = x[[lineage_name]]$MARGE_Preds$marge_link_fit,
                                         FITTED = exp(x[[lineage_name]]$MARGE_Preds$marge_link_fit),
@@ -52,19 +58,25 @@ plotClusteredGenes <- function(test.dyn.results = NULL,
         }
         df_list[[l]] <- fitted_vals_mat
       }
-      df_list %>% purrr::reduce(rbind) -> df_temp
+      df_temp <- purrr::reduce(df_list, rbind)
       return(df_temp)
     }) -> all_genes
   } else {
-    purrr::map2(test.dyn.results, names(test.dyn.results), function(x, y) {
+    purrr::imap(test.dyn.results, function(x, y) {
       df_list <- vector("list", ncol(pt))
       for (l in seq(ncol(pt))) {
         lineage_name <- colnames(pt)[l]
         if (grepl("MARGE model error", x[[lineage_name]]$Model_Status)) {
-          fitted_vals_mat <- NULL
+          fitted_vals_mat <- data.frame(GENE = character(),
+                                        LINEAGE = character(),
+                                        CELL = character(),
+                                        FITTED_LINK = numeric(),
+                                        FITTED = numeric(),
+                                        # EXP = numeric(),
+                                        PT = numeric())
         } else {
           fitted_vals_mat <- data.frame(GENE = y,
-                                        LINEAGE = lineage_name,
+                                        LINEAGE = LETTERS[l],
                                         CELL = rownames(pt)[!is.na(pt[, l])],
                                         FITTED_LINK = x[[lineage_name]]$MARGE_Preds$marge_link_fit,
                                         FITTED = exp(x[[lineage_name]]$MARGE_Preds$marge_link_fit),
@@ -73,14 +85,13 @@ plotClusteredGenes <- function(test.dyn.results = NULL,
         }
         df_list[[l]] <- fitted_vals_mat
       }
-      df_list %>% purrr::reduce(rbind) -> df_temp
+      df_temp <- purrr::reduce(df_list, rbind)
       return(df_temp)
     }) -> all_genes
   }
-  all_genes %>%
-    purrr::reduce(rbind) %>%
-    dplyr::inner_join(gene.clusters, by = c("GENE" = "Gene", "LINEAGE" = "Lineage")) %>%
-    dplyr::rename(CLUSTER = Cluster) %>%
-    dplyr::mutate(CLUSTER = as.factor(CLUSTER)) -> res
-  return(res)
+  gene_res <- purrr::reduce(all_genes, rbind) %>%
+              dplyr::inner_join(gene.clusters, by = c("GENE" = "Gene", "LINEAGE" = "Lineage")) %>%
+              dplyr::rename(CLUSTER = Cluster) %>%
+              dplyr::mutate(CLUSTER = as.factor(CLUSTER))
+  return(gene_res)
 }

@@ -28,7 +28,6 @@
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @seealso \code{\link{mars_ls}}
 #' @seealso \code{\link{backward_sel_WIC}}
 #' @seealso \code{\link{testDynamic}}
 #' @seealso \code{\link[MASS]{glm.nb}}

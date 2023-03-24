@@ -4,16 +4,12 @@
 \alias{testSlope}
 \title{Test whether a gene's expression is changing over a window of pseudotime.}
 \usage{
-testSlope(
-  test.dyn.results = NULL,
-  p.adj.method = "bonferroni",
-  fdr.cutoff = 0.01
-)
+testSlope(test.dyn.results = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
 }
 \arguments{
 \item{test.dyn.results}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
 
-\item{p.adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "bonferroni".}
+\item{p.adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "holm".}
 
 \item{fdr.cutoff}{The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }

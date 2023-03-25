@@ -2,7 +2,7 @@
 % Please edit documentation in R/stat_out_score_gee_null.R
 \name{stat_out_score_gee_null}
 \alias{stat_out_score_gee_null}
-\title{Calculate part of the score statistic for a GEE}
+\title{Calculate part of the score statistic for a GEE.}
 \usage{
 stat_out_score_gee_null(
   Y = NULL,
@@ -13,18 +13,18 @@ stat_out_score_gee_null(
 )
 }
 \arguments{
-\item{Y}{: the response variable.}
+\item{Y}{The response variable Defaults to NULL.}
 
-\item{B_null}{: model matrix under the null model.}
+\item{B_null}{The design matrix matrix under the null model Defaults to NULL.}
 
-\item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Defaults to NULL.}
+\item{id.vec}{A vector of ID values for the observations. Defaults to NULL.}
 
-\item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to NULL.}
+\item{cor.structure}{A string specifying the desired correlation structure for the NB GEE. Defaults to NULL.}
 
 \item{theta.hat}{Estimated value to be treated as the "known" theta when passing the negative binomial family to \code{\link[geeM]{geeM}}. Defaults to NULL.}
 }
 \value{
-\code{stat_out_score_glm_null} returns a list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
+A list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
 }
 \description{
 A function that calculates parts of the score statistic for GEEs only (it is used for the full path for forward selection).
@@ -40,5 +40,9 @@ Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach
 \code{\link{stat_out_score_glm_null}}
 }
 \author{
-Jakub Stoklosa and David I. Warton.
+Jakub Stoklosa
+
+David I. Warton
+
+Jack Leary
 }

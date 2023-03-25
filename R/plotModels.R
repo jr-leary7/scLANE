@@ -8,7 +8,7 @@
 #' @importFrom purrr map map2 reduce
 #' @importFrom dplyr relocate mutate select contains case_when filter
 #' @importFrom geeM geem
-#' @importFrom glmmTMB glmmTMB nbinom1
+#' @importFrom glmmTMB glmmTMB nbinom2
 #' @importFrom MASS negative.binomial theta.mm
 #' @importFrom tidyr pivot_longer
 #' @importFrom scales label_comma label_number
@@ -21,7 +21,7 @@
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param id.vec If the GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
-#' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "independence".
+#' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "exchangeable".
 #' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
 #' @param plot.null (Optional) Should the fitted values from the intercept-only null model be plotted? Defaults to TRUE.
 #' @param plot.glm (Optional) Should the fitted values from an NB GLM be plotted? If the data are multi-subject, the "GLM" model can be a GEE or GLMM depending on the desired framework. See Examples for more detail. Defaults to TRUE.
@@ -60,7 +60,7 @@ plotModels <- function(test.dyn.res = NULL,
                        is.gee = FALSE,
                        is.glmm = FALSE,
                        id.vec = NULL,
-                       cor.structure = "independence",
+                       cor.structure = "exchangeable",
                        ci.alpha = 0.05,
                        plot.null = TRUE,
                        plot.glm = TRUE,
@@ -123,7 +123,7 @@ plotModels <- function(test.dyn.res = NULL,
                                              ID = x$ID)
                         glm_mod <- glmmTMB::glmmTMB(COUNT ~ PT + (1 | ID) + (1 + PT | ID),
                                                     data = mod_df,
-                                                    family = glmmTMB::nbinom1(),
+                                                    family = glmmTMB::nbinom2(link = "log"),
                                                     se = TRUE,
                                                     REML = FALSE)
                         glm_preds <- data.frame(predict(glm_mod, type = "link", se.fit = TRUE)[1:2])

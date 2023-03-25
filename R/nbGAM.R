@@ -26,9 +26,9 @@ nbGAM <- function(expr = NULL,
                   id.vec = NULL) {
   # check inputs
   if (is.null(expr) || is.null(pt)) { stop("Required inputs to nbGAM() are missing.") }
-  if (class(pt) == "data.frame") {
+  if (inherits(pt, "data.frame")) {
     pt_vec <- pt[, 1]
-  } else if (class(pt) == "numeric") {
+  } else if (inherits(pt, "numeric")) {
     pt_vec <- pt
   } else {
     stop("Unsupported class for argument pt to nbGAM().")

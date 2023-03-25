@@ -1,19 +1,21 @@
 #' Calculate part of the score statistic for a GLM.
 #'
-#' @description A function that calculates parts of the score statistic for GLMs only (it is used for the full path for forward selection).
 #' @name stat_out_score_glm_null
-#' @param Y : the response variable.
-#' @param B_null : model matrix under the null model.
-#' @return \code{stat_out_score_glm_null} returns a list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
-#' @author Jakub Stoklosa and David I. Warton.
-#' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
-#' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+#' @author Jakub Stoklosa
+#' @author David I. Warton
+#' @author Jack Leary
 #' @importFrom stats fitted.values
 #' @importFrom MASS theta.mm
+#' @description A function that calculates parts of the score statistic for GLMs only (it is used for the full path for forward selection).
+#' @param Y : The response variable Defaults to NULL.
+#' @param B_null : Design matrix under the null model. Defaults to NULL.
+#' @return A list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
+#' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
+#' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @seealso \code{\link{stat_out}}
 #' @seealso \code{\link{stat_out_score_gee_null}}
 
-stat_out_score_glm_null <- function(Y = NULL, B_null = NULL, fast = TRUE) {
+stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   # check inputs
   if (is.null(Y) || is.null(B_null)) { stop("Some inputs to stat_out_score_glm_null() are missing.") }
   # old version of dispersion estimate

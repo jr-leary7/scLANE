@@ -87,6 +87,10 @@ testDynamic(expr.mat = raw_counts,
 
 \code{\link{testSlope}}
 
+\code{\link{marge2}}
+
+\code{\link[MASS]{glm.nb}}
+
 \code{\link[geeM]{geem}}
 
 \code{\link[glmmTMB]{glmmTMB}}

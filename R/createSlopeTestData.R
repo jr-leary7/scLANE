@@ -26,7 +26,7 @@ createSlopeTestData <- function(marge.model = NULL,
   if (is.null(marge.model) || is.null(pt)) { stop("Input to createSlopeTestData() should be non-null.") }
   # run function
   # checks to see if marge model was set to "try-error" in testDynamic()
-  if (all(class(marge.model) == "try-error")) {
+  if (inherits(marge.model, "try-error")) {
     rounded_brkpts <- NA_real_
     brkpts <- NA_real_
     brkpt_dirs <- NA_character_

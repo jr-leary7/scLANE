@@ -16,27 +16,27 @@ score_fun_glm(
 )
 }
 \arguments{
-\item{Y}{: the response variable.}
+\item{Y}{The response variable. Defaults to NULL.}
 
-\item{VS.est_list}{: a product of matrices.}
+\item{VS.est_list}{A product of matrices. Defaults to NULL.}
 
-\item{A_list}{: a product of matrices.}
+\item{A_list}{A product of matrices. Defaults to NULL.}
 
-\item{B1_list}{: a product of matrices.}
+\item{B1_list}{A product of matrices. Defaults to NULL.}
 
-\item{mu.est}{: estimates of the fitted mean under the null model.}
+\item{mu.est}{Estimates of the fitted mean under the null model. Defaults to NULL.}
 
-\item{V.est}{: estimates of the fitted variance under the null model.}
+\item{V.est}{Estimates of the fitted variance under the null model. Defaults to NULL.}
 
-\item{B1}{: model matrix under the null model.}
+\item{B1}{Design matrix under the null model. Defaults to NULL.}
 
-\item{XA}{: model matrix under the alternative model.}
+\item{XA}{Design matrix under the alternative model. Defaults to NULL.}
 }
 \value{
-\code{score_fun_glm} returns a calculated score statistic for the null and alternative model when fitting a GLM.
+A calculated score statistic for the null and alternative model when fitting a GLM.
 }
 \description{
-Given estimates from the null model fit and the design matrix for alternative model, find the score statistic (this is used for GLMs only).
+Calculate the score statistic for a GLM model.
 }
 \references{
 Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
@@ -44,5 +44,9 @@ Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for gener
 Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 }
 \author{
-Jakub Stoklosa and David I. Warton.
+Jakub Stoklosa
+
+David I. Warton
+
+Jack Leary
 }

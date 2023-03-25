@@ -1,19 +1,21 @@
-#' Calculate part of the score statistic for a GEE
+#' Calculate part of the score statistic for a GEE.
 #'
-#' @description A function that calculates parts of the score statistic for GEEs only (it is used for the full path for forward selection).
 #' @name stat_out_score_gee_null
-#' @param Y : the response variable.
-#' @param B_null : model matrix under the null model.
-#' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Defaults to NULL.
-#' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to NULL.
-#' @param theta.hat Estimated value to be treated as the "known" theta when passing the negative binomial family to \code{\link[geeM]{geeM}}. Defaults to NULL.
-#' @return \code{stat_out_score_glm_null} returns a list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
-#' @author Jakub Stoklosa and David I. Warton.
-#' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
-#' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+#' @author Jakub Stoklosa
+#' @author David I. Warton
+#' @author Jack Leary
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial
 #' @importFrom stats fitted.values
+#' @description A function that calculates parts of the score statistic for GEEs only (it is used for the full path for forward selection).
+#' @param Y The response variable Defaults to NULL.
+#' @param B_null The design matrix matrix under the null model Defaults to NULL.
+#' @param id.vec A vector of ID values for the observations. Defaults to NULL.
+#' @param cor.structure A string specifying the desired correlation structure for the NB GEE. Defaults to NULL.
+#' @param theta.hat Estimated value to be treated as the "known" theta when passing the negative binomial family to \code{\link[geeM]{geeM}}. Defaults to NULL.
+#' @return A list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
+#' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
+#' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @seealso \code{\link{stat_out}}
 #' @seealso \code{\link{stat_out_score_glm_null}}
 

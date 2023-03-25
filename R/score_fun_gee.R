@@ -1,24 +1,27 @@
 #' Given estimates from the null model fit and the design matrix for alternative model, find the score statistic (this is used for GEEs only).
 #'
 #' @name score_fun_gee
-#' @param Y : the response variable.
-#' @param N : the number of clusters.
-#' @param n_vec : a vector consisting of the cluster sizes for each cluster.
-#' @param VS.est_list : a product of matrices.
-#' @param AWA.est_list : a product of matrices.
-#' @param J2_list : a product of matrices.
-#' @param Sigma2_list : a product of matrices.
-#' @param J11.inv : a product of matrices.
-#' @param JSigma11 : a product of matrices.
-#' @param mu.est : estimates of the fitted mean under the null model.
-#' @param V.est : estimates of the fitted variance under the null model.
-#' @param B1 : model matrix under the null model.
-#' @param XA : model matrix under the alternative model.
-#' @return \code{score_fun_gee} returns a calculated score statistic for the null and alternative model when fitting a GEE.
-#' @author Jakub Stoklosa and David I. Warton
+#' @author Jakub Stoklosa
+#' @author David I. Warton
+#' @author Jack Leary
+#' @importFrom stats lm.fit
+#' @description Calculate the score statistic for a GEE model.
+#' @param Y The response variable. Defaults to NULL.
+#' @param N The number of clusters. Defaults to NULL.
+#' @param n_vec A vector consisting of the cluster sizes for each cluster. Defaults to NULL.
+#' @param VS.est_list A product of matrices. Defaults to NULL.
+#' @param AWA.est_list A product of matrices. Defaults to NULL.
+#' @param J2_list A product of matrices. Defaults to NULL.
+#' @param Sigma2_list A product of matrices. Defaults to NULL.
+#' @param J11.inv A product of matrices. Defaults to NULL.
+#' @param JSigma11 A product of matrices. Defaults to NULL.
+#' @param mu.est Estimates of the fitted mean under the null model. Defaults to NULL.
+#' @param V.est Estimates of the fitted variance under the null model. Defaults to NULL.
+#' @param B1 Design matrix under the null model. Defaults to NULL.
+#' @param XA Design matrix under the alternative model. Defaults to NULL.
+#' @return A calculated score statistic for the null and alternative model when fitting a GEE.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
-#' @importFrom stats lm.fit
 #' @seealso \code{\link{score_fun_glm}}
 
 score_fun_gee <- function(Y = NULL,
@@ -35,7 +38,7 @@ score_fun_gee <- function(Y = NULL,
                           B1 = NULL,
                           XA = NULL) {
   # check inputs
-  if (is.null(Y) | is.null(N) | is.null(n_vec) | is.null(VS.est_list) | is.null(AWA.est_list) | is.null(J2_list) | is.null(Sigma2_list) | is.null(J11.inv) | is.null(JSigma11) | is.null(mu.est) | is.null(V.est) | is.null(B1) | is.null(XA)) { stop("Some inputs to score_fun_gee() are missing.") }
+  if (is.null(Y) || is.null(N) || is.null(n_vec) || is.null(VS.est_list) || is.null(AWA.est_list) || is.null(J2_list) || is.null(Sigma2_list) || is.null(J11.inv) || is.null(JSigma11) || is.null(mu.est) || is.null(V.est) || is.null(B1) || is.null(XA)) { stop("Some inputs to score_fun_gee() are missing.") }
   # generate score statistic
   reg <- try(stats::lm.fit(B1, Y), silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
   if (inherits(reg, "try-error")) {

@@ -5,19 +5,17 @@
 #' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 #' @import glm2
 #' @import magrittr
-#' @importFrom BiocGenerics counts
-#' @importFrom slingshot slingPseudotime
 #' @importFrom bigstatsr as_FBM
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doParallel registerDoParallel
-#' @importFrom parallel makeCluster detectCores stopCluster clusterEvalQ clusterExport
+#' @importFrom parallel makeCluster detectCores stopCluster clusterEvalQ clusterExport clusterSetRNGStream
 #' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom dplyr rename mutate relocate
 #' @importFrom broom tidy
 #' @importFrom broom.mixed tidy
 #' @importFrom stats predict logLik deviance
 #' @importFrom geeM geem
-#' @importFrom glmmTMB glmmTMB nbinom1
+#' @importFrom glmmTMB glmmTMB nbinom2
 #' @param expr.mat Either a \code{SingleCellExperiment} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.
 #' @param pt Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.
 #' @param genes A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.
@@ -36,6 +34,8 @@
 #' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
 #' @seealso \code{\link{testSlope}}
+#' @seealso \code{\link{marge2}}
+#' @seealso \code{\link[MASS]{glm.nb}}
 #' @seealso \code{\link[geeM]{geem}}
 #' @seealso \code{\link[glmmTMB]{glmmTMB}}
 #' @export
@@ -79,14 +79,14 @@ testDynamic <- function(expr.mat = NULL,
                         log.iter = 1) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
-  if (any(class(expr.mat) == "SingleCellExperiment")) {
+  if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- as.matrix(t(BiocGenerics::counts(expr.mat)))  # transpose to cell x gene matrix
   }
-  if (any(class(expr.mat) != c("matrix", "array"))) { stop("Input expr.mat must be a matrix of integer counts.") }
-  if (class(pt) == "SlingshotDataSet") {
+  if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be a matrix of integer counts.") }
+  if (inherits(pt, "SlingshotDataSet")) {
     pt <- as.data.frame(slingshot::slingPseudotime(pt))
   }
-  if (class(pt) != "data.frame") { stop("pt must be of class data.frame.") }
+  if (!inherits(pt, "data.frame")) { stop("pt must be of class data.frame.") }
   if ((is.gee || is.glmm) && is.null(id.vec)) { stop("You must provide a vector of IDs if you're using GEE / GLMM frameworks.") }
   if ((is.gee || is.glmm) && is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running testDynamic() using GEE / GLMM frameworks.") }
   cor.structure <- tolower(cor.structure)
@@ -100,8 +100,8 @@ testDynamic <- function(expr.mat = NULL,
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
     doParallel::registerDoParallel(cl)
-    clusterEvalQ(cl, expr = {
-      set.seed(312)
+    parallel::clusterSetRNGStream(cl, iseed = 312)
+    parallel::clusterEvalQ(cl, expr = {
       rm(list = ls())
     })
   } else {
@@ -206,7 +206,7 @@ testDynamic <- function(expr.mat = NULL,
         null_mod <- try(
           { glmmTMB::glmmTMB(Y ~ (1 | subject),
                              data = subj_df,
-                             family = glmmTMB::nbinom1(),
+                             family = glmmTMB::nbinom2(link = "log"),
                              se = TRUE) },
           silent = TRUE
         )
@@ -220,11 +220,11 @@ testDynamic <- function(expr.mat = NULL,
         )
       }
       # slim down GLM object if not a GEE / GLMM model (which are much smaller for some reason)
-      if (!(is.gee || is.glmm) && all(class(null_mod) != "try-error")) {
+      if (!(is.gee || is.glmm) && !inherits(null_mod, "try-error")) {
         null_mod <- scLANE::stripGLM(glm.obj = null_mod)
       }
       # prepare results if there were errors in both null and MARGE models
-      if (all(class(marge_mod) == "try-error") && all(class(null_mod) == "try-error")) {
+      if (inherits(marge_mod, "try-error") && inherits(null_mod, "try-error")) {
         mod_status <- "MARGE model error, null model error"
         # generate empty dataframe for slope test
         slope_data_error <- data.frame(Gene = genes[i],
@@ -253,7 +253,7 @@ testDynamic <- function(expr.mat = NULL,
                                   Null_Preds = NA,
                                   MARGE_Slope_Data = slope_data_error)
       # prepare results if there were errors in MARGE model but not in null model
-      } else if (all(class(marge_mod) == "try-error") && !all(class(null_mod) == "try-error")) {
+      } else if (inherits(marge_mod, "try-error") && !inherits(null_mod, "try-error")) {
         mod_status <- "MARGE model error, null model OK"
         # generate empty dataframe for slope test
         slope_data_error <- data.frame(Gene = genes[i],
@@ -319,7 +319,7 @@ testDynamic <- function(expr.mat = NULL,
                                   Null_Preds = null_pred_df,
                                   MARGE_Slope_Data = slope_data_error)
       # prepare results if there were errors in null model but not in marge model
-      } else if (!all(class(marge_mod) == "try-error") && all(class(null_mod) == "try-error")) {
+      } else if (!inherits(marge_mod, "try-error") && inherits(null_mod, "try-error")) {
         mod_status <- "MARGE model OK, null model error"
         # generate marge model summary stat table & fitted values w/ standard errors (need to do so manually for GEE)
         if (is.gee) {
@@ -405,7 +405,7 @@ testDynamic <- function(expr.mat = NULL,
                                   MARGE_Slope_Data = marge_slope_df)
 
       # prepare results if neither model had errors
-      } else if (!all(class(marge_mod) == "try-error") && !all(class(null_mod) == "try-error")) {
+      } else if (!inherits(marge_mod, "try-error") && !inherits(null_mod, "try-error")) {
         mod_status <- "MARGE model OK, null model OK"
         # generate null model summary table & fitted values w/ standard errors (need to do so manually for GEE)
         if (is.gee) {
@@ -553,11 +553,16 @@ testDynamic <- function(expr.mat = NULL,
     total_time <- end_time - start_time
     total_time_units <- attributes(total_time)$units
     total_time_numeric <- as.numeric(total_time)
-    print(sprintf("testDynamic evaluated %s genes with %s lineages apiece in %s %s",
-                  length(genes),
+    print(paste0("testDynamic evaluated ",
+                 length(genes),
+                 " genes with ",
                   n_lineages,
-                  round(total_time_numeric, 3),
-                  total_time_units))
+                 " ",
+                 ifelse(n_lineages == 1, "lineage ", "lineages "),
+                 "apiece in ",
+                 round(total_time_numeric, 3),
+                 " ",
+                 total_time_units))
   }
   class(test_stats) <- "scLANE"
   return(test_stats)

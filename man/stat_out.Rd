@@ -7,24 +7,21 @@
 stat_out(Y = NULL, B1 = NULL, TSS = NULL, GCV.null = NULL, pen = 2)
 }
 \arguments{
-\item{Y}{: the response variable.}
+\item{Y}{The response variable. Defaults to NULL.}
 
-\item{B1}{: the model matrix of predictor variables.}
+\item{B1}{The model matrix of predictor variables. Defaults to NULL.}
 
-\item{TSS}{: total sum of squares.}
+\item{TSS}{Total sum of squares. Defaults to NULL.}
 
-\item{GCV.null}{: GCV value for the intercept model.}
+\item{GCV.null}{GCV value for the intercept model. Defaults to NULL.}
 
-\item{pen}{: the set/fixed penalty used for the GCV (the default is 2).}
+\item{pen}{The set/fixed penalty used for the GCV. Defaults to 2.}
 }
 \value{
-\code{stat_out} returns a list of values, consisting of: RSS, RSSq1, GCV1 and GCVq1 values for the fitted model.
+A list consisting of the RSS, RSSq1, GCV1 and GCVq1 values for the fitted model.
 }
 \description{
-Fits a linear regression model and calculates RSS/GCV measures (used for MARS linear models).
-}
-\details{
-See the \code{earth} package for more details on the output measures calculated here.
+Calculate the final RSS / GCV for a fitted model.
 }
 \references{
 Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
@@ -37,7 +34,13 @@ Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach
 }
 \seealso{
 \code{\link{stat_out_score_glm_null}}
+
+\code{\link[earth]{earth}}
 }
 \author{
-Jakub Stoklosa and David I. Warton
+Jakub Stoklosa
+
+David I. Warton
+
+Jack Leary
 }

@@ -38,10 +38,10 @@ test_that("testDynamic() output", {
   expect_equal(ncol(glm_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 5)
   expect_equal(nrow(gee_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 2)
   expect_equal(ncol(gee_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 5)
-  expect_equal(sum(unname(sapply(glm_gene_stats, function(x) x$Lineage_A$Model_Status)) == "MARGE model OK, null model OK"), 10)
-  expect_equal(sum(unname(sapply(gee_gene_stats, function(x) x$Lineage_A$Model_Status)) == "MARGE model OK, null model OK"), 10)
-  expect_equal(unique(sapply(glm_gene_stats, function(x) length(x$Lineage_A))), 17)
-  expect_equal(unique(sapply(gee_gene_stats, function(x) length(x$Lineage_A))), 17)
+  expect_equal(sum(unname(sapply(glm_gene_stats, \(x) x$Lineage_A$Model_Status)) == "MARGE model OK, null model OK"), 10)
+  expect_equal(sum(unname(sapply(gee_gene_stats, \(x) x$Lineage_A$Model_Status)) == "MARGE model OK, null model OK"), 10)
+  expect_equal(unique(sapply(glm_gene_stats, \(x) length(x$Lineage_A))), 17)
+  expect_equal(unique(sapply(gee_gene_stats, \(x) length(x$Lineage_A))), 17)
 })
 
 test_that("getResultsDE() output", {

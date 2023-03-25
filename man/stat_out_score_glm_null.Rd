@@ -4,15 +4,15 @@
 \alias{stat_out_score_glm_null}
 \title{Calculate part of the score statistic for a GLM.}
 \usage{
-stat_out_score_glm_null(Y = NULL, B_null = NULL, fast = TRUE)
+stat_out_score_glm_null(Y = NULL, B_null = NULL)
 }
 \arguments{
-\item{Y}{: the response variable.}
+\item{Y}{: The response variable Defaults to NULL.}
 
-\item{B_null}{: model matrix under the null model.}
+\item{B_null}{: Design matrix under the null model. Defaults to NULL.}
 }
 \value{
-\code{stat_out_score_glm_null} returns a list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
+A list of values (mainly products of matrices) that make up the final score statistic calculation (required for another function).
 }
 \description{
 A function that calculates parts of the score statistic for GLMs only (it is used for the full path for forward selection).
@@ -28,5 +28,9 @@ Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach
 \code{\link{stat_out_score_gee_null}}
 }
 \author{
-Jakub Stoklosa and David I. Warton.
+Jakub Stoklosa
+
+David I. Warton
+
+Jack Leary
 }

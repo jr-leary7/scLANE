@@ -19,7 +19,7 @@
 
 waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
   # check inputs
-  if (is.null(mod.1) | is.null(mod.0) | (class(mod.1) != "geem" | class(mod.0) != "geem")) { stop("You must provide two geeM models to wald_test_gee().") }
+  if (is.null(mod.1) || is.null(mod.0) || !(inherits(mod.1, "geem") || inherits(mod.0, "geem"))) { stop("You must provide two geeM models to wald_test_gee().") }
   if (length(coef(mod.1)) <= length(coef(mod.0))) {
     # can't calculate Wald statistic if both models are intercept-only
     res <- list(Wald_Stat = 0,
@@ -41,11 +41,11 @@ waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
     wald_test <- try({
       as.numeric(t(coef_vals) %*% solve(vcov_mat) %*% coef_vals)
     }, silent = TRUE)
-    if (all(class(wald_test) == "try-error")) {
+    if (inherits(wald_test, "try-error")) {
       wald_test <- try({
         as.numeric(t(coef_vals) %*% MASS::ginv(vcov_mat) %*% coef_vals)  # use Moore-Penrose pseudoinverse if vcov matrix is singular
       }, silent = TRUE)
-      if (all(class(wald_test) == "try-error")) {
+      if (inherits(wald_test, "try-error")) {
         wald_res <- 0
         p_value <- 1
         wald_note <- wald_test[1]  # this is the error message

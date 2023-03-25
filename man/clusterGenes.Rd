@@ -27,7 +27,7 @@ clusterGenes(
 A data.frame of with three columns: \code{Gene}, \code{Lineage}, and \code{Cluster}.
 }
 \description{
-This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms.
+This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms. An approximately optimal clustering is determined by iterating over reasonable hyperparameter values & choosing the value with the highest mean silhouette score.
 }
 \examples{
 \dontrun{

@@ -33,7 +33,7 @@ getResultsDE <- function(test.dyn.results = NULL,
   result_df <- purrr::map_dfr(test.dyn.results,
                               function(x) {
                                 purrr::map_dfr(x,
-                                               function(y){
+                                               function(y) {
                                                  as.data.frame(rbind(y[c(1:12)])) %>%
                                                    dplyr::mutate(dplyr::across(tidyselect::everything(), \(z) unname(unlist(z))))
                                                })

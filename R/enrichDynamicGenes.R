@@ -3,9 +3,8 @@
 #' @name enrichDynamicGenes
 #' @author Jack Leary
 #' @description This function uses the \code{msigdbr} and \code{clusterProfiler} packages to perform GSEA on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
+#' @import magrittr
 #' @importFrom dplyr filter distinct pull
-#' @importFrom msigdbr msigdbr
-#' @importFrom clusterProfiler enricher
 #' @param scLANE.de.res The output from \code{\link{getResultsDE}}. Defaults to NULL.
 #' @param lineage A character vector specifying lineages to isolate. Defaults to NULL.
 #' @param species One of "hs" or "mm", specifying whether the gene sets are human or murine in origin.
@@ -34,7 +33,7 @@ enrichDynamicGenes <- function(scLANE.de.res = NULL,
                                gene.set.cat = NULL,
                                gene.set.subcat = NULL) {
   # check inputs
-  if (is.null(scLANE.de.res) | is.null(gene.set.cat)) { stop("Arguments to enrichDynamicGenes() are missing.") }
+  if (is.null(scLANE.de.res) || is.null(gene.set.cat)) { stop("Arguments to enrichDynamicGenes() are missing.") }
   species <- tolower(species)
   if (!species %in% c("hs", "mm")) { stop("species must be one of 'hs' or 'mm' at this time.") }
   if (!is.null(lineage)) {

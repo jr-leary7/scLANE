@@ -7,7 +7,7 @@
 stripGLM(glm.obj = NULL)
 }
 \arguments{
-\item{glm.obj}{An object of class GLM from which you'd like to strip out unnecessary components.}
+\item{glm.obj}{An object of class GLM from which you'd like to strip out unnecessary components. Defaults to NULL.}
 }
 \value{
 A slimmed-down \code{glm} object.
@@ -19,6 +19,9 @@ This function removes a \emph{lot} of components from the default GLM object in 
 \dontrun{
 stripGLM(marge_model)
 }
+}
+\seealso{
+\code{\link{glm}}
 }
 \author{
 Jack Leary

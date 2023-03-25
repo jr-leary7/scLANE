@@ -4,9 +4,9 @@
 #' @author Jack Leary
 #' @description Fits a negative binomial generalized linear mixed model using truncated power basis function splines as input. The basis matrix can be created adaptively using subject-specific estimation of optimal knots using \code{\link{marge2}}, or basis functions can be evenly space across quantiles. The resulting model can output subject-specific and population-level fitted values.
 #' @importFrom purrr map_dfr pmap_dfc
-#' @importFrom dplyr mutate select case_when
-#' @importFrom stats quantile logLik fitted
-#' @importFrom glmmTMB glmmTMB nbinom1
+#' @importFrom dplyr mutate select if_else
+#' @importFrom stats quantile logLik fitted as.formula
+#' @importFrom glmmTMB glmmTMB nbinom2
 #' @param X_pred A matrix with one column containing cell ordering values. Defaults to NULL.
 #' @param Y A vector of raw single cell counts. Defaults to NULL.
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
@@ -50,8 +50,7 @@ fitGLMM <- function(X_pred = NULL,
                                                                 return.basis = TRUE)
                                         knot_df <- data.frame(knot = extractBreakpoints(marge_mod_sub)$Breakpoint,
                                                               coef = names(coef(marge_mod_sub$final_mod)[-1])) %>%
-                                                   mutate(tp_fun = dplyr::case_when(grepl("-[0-9]", coef) ~ "tp1",
-                                                                                    TRUE ~ "tp2"))
+                                                   dplyr::mutate(tp_fun = dplyr::if_else(grepl("-[0-9]", coef), "tp1", "tp2"))
                                         return(knot_df)
                                       })
     glmm_basis_df <- purrr::pmap_dfc(list(glm_marge_knots$knot,
@@ -69,17 +68,17 @@ fitGLMM <- function(X_pred = NULL,
                                      })
     marge_style_names <- glm_marge_knots$coef
     # build formula automatically
-    mod_formula <- as.formula(paste0("Y ~ ",
-                                     paste(colnames(glmm_basis_df), collapse = " + "),
-                                     " + (1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
-                                     " | subject)"))
+    mod_formula <- stats::as.formula(paste0("Y ~ ",
+                                            paste(colnames(glmm_basis_df), collapse = " + "),
+                                            " + (1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
+                                            " | subject)"))
     glmm_basis_df <- dplyr::mutate(glmm_basis_df,
                                    Y = Y,
                                    subject = id.vec,
                                    .before = 1)
     glmm_mod <- glmmTMB::glmmTMB(mod_formula,
                                  data = glmm_basis_df,
-                                 family = glmmTMB::nbinom1(),
+                                 family = glmmTMB::nbinom2(link = "log"),
                                  se = TRUE,
                                  REML = FALSE)
   } else {
@@ -95,7 +94,7 @@ fitGLMM <- function(X_pred = NULL,
                            paste0("B_final(LineageA-", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 2), ")"))
     glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),  # fix intercept bullshit
                                  data = glmm_basis_df,
-                                 family = glmmTMB::nbinom1(),
+                                 family = glmmTMB::nbinom2(link = "log"),
                                  se = TRUE,
                                  REML = FALSE)
   }

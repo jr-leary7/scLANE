@@ -25,7 +25,7 @@ modelLRT <- function(mod.1 = NULL,
   LRT_notes <- NULL
   # compute LRT
   if (is.glmm) {
-    if (!(class(mod.1) == "glmmTMB" & class(mod.0) == "glmmTMB")) { stop("Models must be of class glmmTMB.") }
+    if (!(inherits(mod.1, "glmmTMB") && inherits(mod.0, "glmmTMB"))) { stop("Models must be of class glmmTMB.") }
     mod.1_ll <- -mod.1$fit$objective
     mod.0_ll <- -mod.0$fit$objective
     lrt_stat <- 2 * (mod.1_ll - mod.0_ll)
@@ -37,12 +37,12 @@ modelLRT <- function(mod.1 = NULL,
       }
     }
   } else {
-    if (!(any(class(mod.1) == "glm") | any(class(mod.1) == "lm"))) { stop("Models must be of class lm or glm.") }
+    if (!(inherits(mod.1, "glm") || inherits(mod.1, "lm"))) { stop("Models must be of class lm or glm.") }
     mod.1_ll <- stats::logLik(mod.1)
     mod.0_ll <- stats::logLik(mod.0)
     lrt_stat <- as.numeric(2 * (mod.1_ll - mod.0_ll))
   }
-  dgr_free <- attributes(logLik(mod.1))$df - attributes(logLik(mod.0))$df
+  dgr_free <- attributes(stats::logLik(mod.1))$df - attributes(stats::logLik(mod.0))$df
   if (dgr_free == 0) {
     dgr_free <- 1
   }

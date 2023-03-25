@@ -3,9 +3,8 @@
 #' @name plotClusteredGenes
 #' @author Jack Leary
 #' @description Plot per-lineage, per-cluster fitted values from \code{scLANE}.
-#' @importFrom purrr map2 reduce
-#' @importFrom future plan multisession
-#' @importFrom furrr future_map2
+#' @import magrittr
+#' @importFrom purrr imap reduce
 #' @importFrom dplyr inner_join rename mutate
 #' @param test.dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param gene.clusters The data.frame returned by \code{\link{clusterGenes}}. Defaults to NULL.

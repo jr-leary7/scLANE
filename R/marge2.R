@@ -1,27 +1,28 @@
 #' Fit \code{MARGE} models of single cell counts.
 #'
 #' @name marge2
-#' @author Jakub Stoklosa and David I. Warton.
-#' @description MARS fitting function for generalized linear models (GLMs).
+#' @author Jakub Stoklosa
+#' @author David I. Warton.
+#' @author Jack Leary
+#' @description MARS fitting function for negative binomial generalized linear models (GLMs) & generalized estimating equations (GEEs).
 #' @import glm2
 #' @import magrittr
 #' @importFrom dplyr mutate ntile group_by sample_frac
 #' @importFrom geeM geem
-#' @importFrom gamlss gamlss
 #' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom stats fitted coef
-#' @param X_pred A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.
-#' @param Y The response variable. A vector of length n by N.
+#' @param X_pred A matrix of the predictor variables. Defaults to NULL.
+#' @param Y The response variable. Defaults to NULL.
 #' @param M A set threshold for the number of basis functions to be used. Defaults to 5.
-#' @param is.gee Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.
+#' @param is.gee Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
-#' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".
-#' @param approx.knot Should the space of possible knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
-#' @param n.knot.max The maximum number of candidate knots to consider. Uses quantiles to set this number of unique values from the reduced set of all candidate knots.
-#' @param pen (Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.
-#' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001
-#' @param minspan (Optional) A set minimum span value. The default is \code{minspan = NULL}.
-#' @param return.basis (Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the model object much larger than necessary.
+#' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "exchangeable".
+#' @param approx.knot (Optional) Should the set of candidate knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
+#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 15.
+#' @param pen (Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). Defaults to 2.
+#' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
+#' @param minspan (Optional) A set minimum span value. Defaults to NULL.
+#' @param return.basis (Optional) Whether the basis model matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param return.wic (Optional) Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @return An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
@@ -56,11 +57,11 @@ marge2 <- function(X_pred = NULL,
                    M = 5,
                    is.gee = FALSE,
                    id.vec = NULL,
-                   cor.structure = "independence",
+                   cor.structure = "exchangeable",
                    approx.knot = TRUE,
                    n.knot.max = 15,
                    pen = 2,
-                   tols_score = 0.00001,
+                   tols_score = 1e-5,
                    minspan = NULL,
                    return.basis = FALSE,
                    return.wic = FALSE,
@@ -766,7 +767,7 @@ marge2 <- function(X_pred = NULL,
   ncol_B <- ncol(B)
   cnames_2 <- list(colnames(B_new))
 
-  wic_mat_2 <- matrix(NA, ncol = ncol_B , nrow = ncol_B )
+  wic_mat_2 <- matrix(NA, ncol = ncol_B , nrow = ncol_B)
   colnames(wic_mat_2) <- colnames(B)
   wic_mat_2 <- cbind(wic_mat_2, rep(NA, ncol_B ))
   colnames(wic_mat_2)[(ncol_B  + 1)] <- "Forward pass model"
@@ -781,39 +782,16 @@ marge2 <- function(X_pred = NULL,
   var.low.vec_2 <- c(colnames(B_new)[variable.lowest_2 + 1])
   B_new_2 <- as.matrix(B_new[, -(variable.lowest_2 + 1)])
   cnames_2 <- c(cnames_2, list(colnames(B_new_2)))
-
   for (i in 2:(ncol_B - 1)) {
+    wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new_2)
     if (i != (ncol_B - 1)) {
-      wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new_2)
-
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
-
       WIC_2 <- sum(apply(wic_mat_2[1:(i + 1), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
-
       WIC_vec_2 <- c(WIC_vec_2, WIC_2)
-
       variable.lowest_2 <- as.numeric(which(wic1_2 == min(wic1_2, na.rm = TRUE))[1])
       var.low.vec_2 <- c(var.low.vec_2, colnames(B_new_2)[variable.lowest_2 + 1])
-
       B_new_2 <- as.matrix(B_new_2[, -(variable.lowest_2 + 1)])
     } else {
-      if (is.gee) {
-        full.fit_2 <- geeM::geem(Y ~ B_new_2 - 1,
-                                 id = id.vec,
-                                 family = MASS::negative.binomial(theta_hat),
-                                 corstr = cor.structure,
-                                 sandwich = TRUE)
-        full.wald_2 <- (unname(summary(full.fit_2)$wald.test[-1]))^2
-        wic1_2 <- full.wald_2
-      } else {
-        full.fit_2 <- gamlss::gamlss(Y ~ B_new_2 - 1,
-                                     family = "NBI",
-                                     trace = FALSE)
-        sink(tempfile())
-        full.wald_2 <- ((as.matrix(summary(full.fit_2))[, 3])[-c(1, nrow(as.matrix(summary(full.fit_2))))])^2
-        sink()
-        wic1_2 <- full.wald_2
-      }
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
       WIC_2 <- sum(apply(wic_mat_2[1:(ncol_B), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
       WIC_vec_2 <- c(WIC_vec_2, WIC_2)

@@ -5,7 +5,7 @@
 
 # scLANE
 
-The `scLANE` package enables users to accurately determine differential expression of genes over pseudotime or latent time, and to characterize gene's dynamics using interpretable model coefficients. `scLANE` builds upon the [`marge` modeling framework](https://github.com/JakubStats/marge) developed by Stoklosa & Warton, and applies `marge`'s negative binomial GLM spline models to scRNA-seq data. 
+The `scLANE` package enables users to accurately determine differential expression of genes over pseudotime or latent time, and to characterize gene's dynamics using interpretable model coefficients. `scLANE` builds upon the [`marge` modeling framework](https://github.com/JakubStats/marge) developed by Stoklosa & Warton, and applies negative binomial GLM, GEE, & GLMM spline models to scRNA-seq data. 
 
 # Installation 
 
@@ -17,7 +17,7 @@ remotes::install_github("jr-leary7/scLANE")
 
 # Identifying Differentially Expressed Genes
 
-Say we have a matrix of integer counts (non-normalized) named `expr_mat` and a dataframe of pseudotime values named `pt_df`. We can then use those as inputs to the main test function in `scLANE`, `testDynamic()`, in order to determine which genes are differentially expressed over pseudotime at the per-lineage level i.e., if there are more than one pseudotime lineages, we'll generate DE test statistics per-gene, per-lineage. In addition, if the number of cells and/or genes is high, we'll want to use the built-in parallel processing to speed up the function's execution. The below function call illustrates the default GLM_based funcionality. 
+Say we have a matrix of integer counts (non-normalized) named `expr_mat` and a dataframe of pseudotime values named `pt_df`. We can then use those as inputs to the main test function in `scLANE`, `testDynamic()`, in order to determine which genes are differentially expressed over pseudotime at the per-lineage level i.e., if there are more than one pseudotime lineages, we'll generate DE test statistics per-gene, per-lineage. In addition, if the number of cells and/or genes is high, we'll want to use the built-in parallel processing to speed up the function's execution. The below function call illustrates the default GLM-based functionality. 
 
 ```
 gene_stats <- testDynamic(expr.mat = expr_mat, 
@@ -52,7 +52,7 @@ slope_test_results <- testSlope(test.dyn.results = gene_stats,
                                 fdr.cutoff = 0.01)
 ```
 
-Next, fitted values from the `marge`, intercept-only, GLM, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene CXCL8. We omit the intercept-only model in this case using `plot.null = FALSE` as it makes the plot cleaner. 
+Next, fitted values from the intercept-only, GLM, `scLANE`, and GAM models can be plotted over gene expression & pseudotime using `plotModels()`. In this case we'd be plotting the results for the gene CXCL8. We omit the intercept-only model in this case using `plot.null = FALSE` as it makes the plot cleaner. 
 
 ```
 plotModels(test.dyn.res = gene_stats, 
@@ -63,7 +63,7 @@ plotModels(test.dyn.res = gene_stats,
 ```
 ![GLM Framework Model Output](./vignettes/scLANE_plotModels_Output_GLM_CXCL8.png)
 
-We can also plot the results for GEE-based `marge` models and compare them to an intercept-only NB GEE and an NB GEE with pseudotime as a covariate. Note that the GEE-specific arguments are the same as are used in `testDynamic()`, so hopefully it isn't too confusing to use. 
+We can also plot the results for GEE-based models and compare them to an intercept-only NB GEE and an NB GEE with pseudotime as a covariate. Note that the GEE-specific arguments are consistent with those in `testDynamic()`, so hopefully it isn't too confusing to use. 
 
 ```
 plotModels(test.dyn.res = gene_stats, 

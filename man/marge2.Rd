@@ -10,7 +10,7 @@ marge2(
   M = 5,
   is.gee = FALSE,
   id.vec = NULL,
-  cor.structure = "independence",
+  cor.structure = "exchangeable",
   approx.knot = TRUE,
   n.knot.max = 15,
   pen = 2,
@@ -22,29 +22,29 @@ marge2(
 )
 }
 \arguments{
-\item{X_pred}{A matrix of the predictor variables. Note that this matrix should include a column of 1's for the intercept term.}
+\item{X_pred}{A matrix of the predictor variables. Defaults to NULL.}
 
-\item{Y}{The response variable. A vector of length n by N.}
+\item{Y}{The response variable. Defaults to NULL.}
 
 \item{M}{A set threshold for the number of basis functions to be used. Defaults to 5.}
 
-\item{is.gee}{Should the \code{\link[geeM]{geem}} package be used to fit a negative binomial GEE model? Defaults to FALSE.}
+\item{is.gee}{Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.}
 
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
 
-\item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "independence".}
+\item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "exchangeable".}
 
-\item{approx.knot}{Should the space of possible knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
+\item{approx.knot}{(Optional) Should the set of candidate knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
 
-\item{n.knot.max}{The maximum number of candidate knots to consider. Uses quantiles to set this number of unique values from the reduced set of all candidate knots.}
+\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 15.}
 
-\item{pen}{(Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). The default is 2.}
+\item{pen}{(Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). Defaults to 2.}
 
-\item{tols_score}{(Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). The default is 0.00001}
+\item{tols_score}{(Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.}
 
-\item{minspan}{(Optional) A set minimum span value. The default is \code{minspan = NULL}.}
+\item{minspan}{(Optional) A set minimum span value. Defaults to NULL.}
 
-\item{return.basis}{(Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE since it makes the model object much larger than necessary.}
+\item{return.basis}{(Optional) Whether the basis model matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 
 \item{return.wic}{(Optional) Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 
@@ -54,7 +54,7 @@ marge2(
 An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 }
 \description{
-MARS fitting function for generalized linear models (GLMs).
+MARS fitting function for negative binomial generalized linear models (GLMs) & generalized estimating equations (GEEs).
 }
 \examples{
 \dontrun{
@@ -91,5 +91,9 @@ Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach
 \code{\link[geeM]{geem}}
 }
 \author{
-Jakub Stoklosa and David I. Warton.
+Jakub Stoklosa
+
+David I. Warton.
+
+Jack Leary
 }

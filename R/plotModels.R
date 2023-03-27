@@ -6,7 +6,7 @@
 #' @import glm2
 #' @importFrom stats qnorm predict
 #' @importFrom purrr map map2 reduce
-#' @importFrom dplyr relocate mutate select contains case_when filter
+#' @importFrom dplyr relocate mutate select contains case_when filter if_else
 #' @importFrom geeM geem
 #' @importFrom glmmTMB glmmTMB nbinom2
 #' @importFrom MASS negative.binomial theta.mm
@@ -48,8 +48,8 @@
 #'            pt = pt_df,
 #'            is.glmm = TRUE,
 #'            id.vec = subject_ids,
-#'            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes for pseudotime
-#'            plot.gam = TRUE,  # plots an NB GLMM with random effects per-subject
+#'            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject
+#'            plot.gam = TRUE,  # plots an NB GAMM with random intercepts per-subject
 #'            gg.theme = ggplot2::theme_minimal())
 #' }
 
@@ -182,22 +182,30 @@ plotModels <- function(test.dyn.res = NULL,
                                        by = c("CELL" = "CELL", "ID" = "ID", "LINEAGE" = "LINEAGE", "MODEL" = "MODEL"))
     })
   counts_df <- purrr::reduce(counts_df_list, rbind) %>%
-               dplyr::mutate(MODEL = factor(dplyr::case_when(MODEL == "NULL" ~ "Intercept-only",
-                                                             MODEL == "MARGE" ~ "scLANE",
-                                                             TRUE ~ MODEL),
-                                            levels = c("Intercept-only", "GLM", "GAM", "scLANE")))
+               dplyr::mutate(MODEL = dplyr::case_when(MODEL == "NULL" ~ "Intercept-only",
+                                                      MODEL == "MARGE" ~ "scLANE",
+                                                      TRUE ~ MODEL))
   # add conditional filters here
   if (!plot.null) { counts_df %<>% dplyr::filter(MODEL != "Intercept-only") }
   if (!plot.glm) { counts_df %<>% dplyr::filter(MODEL != "GLM") }
   if (!plot.gam) { counts_df %<>% dplyr::filter(MODEL != "GAM") }
   if (!plot.marge) { counts_df %<>% dplyr::filter(MODEL != "scLANE") }
   if (!is.null(filter.lineage)) { counts_df %<>% dplyr::filter(!LINEAGE %in% filter.lineage) }
+  # change model labels as necessary
+  if (is.gee) {
+    counts_df %<>% dplyr::mutate(MODEL = dplyr::if_else(MODEL == "GLM", "GEE", MODEL),
+                                 MODEL = factor(MODEL, levels = c("Intercept-only", "GEE", "GAM", "scLANE")))
+  }
+  if (is.glmm) {
+    counts_df %<>% dplyr::mutate(MODEL = dplyr::if_else(MODEL == "GLM", "GLMM", MODEL),
+                                 MODEL = factor(MODEL, levels = c("Intercept-only", "GLMM", "GAM", "scLANE")))
+  }
   # generate plot
   if (is.glmm) {
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = ID, fill = ID)) +
          ggplot2::geom_point(alpha = 0.4, size = 0.5, show.legend = FALSE) +
          ggplot2::facet_wrap(~LINEAGE + MODEL) +
-         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED, group = ID), size = 1) +
+         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED, group = ID), linewidth = 1) +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
                               alpha = 0.4,
                               size = 0,
@@ -216,7 +224,7 @@ plotModels <- function(test.dyn.res = NULL,
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
          ggplot2::geom_point(alpha = 0.4, size = 0.5) +
          ggplot2::facet_wrap(~LINEAGE + MODEL) +
-         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED), size = 1, color = "black") +
+         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED), linewidth = 1, color = "black") +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
                               alpha = 0.4,
                               size = 0,

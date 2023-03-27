@@ -133,12 +133,16 @@ clusterGenes <- function(test.dyn.results = NULL,
         clust_res <- igraph::cluster_leiden(graph = fitted_vals_graph,
                                             objective_function = "modularity",
                                             resolution_parameter = res_vals[r])
-        if (use.pca) {
-          sil_res <- cluster::silhouette(clust_res$membership, stats::dist(fitted_vals_pca$x))
+        if (clust_res$nb_clusters == 1) {
+          sil_vals[r] <- 0
         } else {
-          sil_res <- cluster::silhouette(clust_res$membership, stats::dist(fitted_vals_mat))
+          if (use.pca) {
+            sil_res <- cluster::silhouette(clust_res$membership, stats::dist(fitted_vals_pca$x))
+          } else {
+            sil_res <- cluster::silhouette(clust_res$membership, stats::dist(fitted_vals_mat))
+          }
+          sil_vals[r] <- mean(sil_res[, 3])
         }
-        sil_vals[k] <- mean(sil_res[, 3])
       }
       res_to_use <- res_vals[which.max(sil_vals)]
       clust_res <- igraph::cluster_leiden(graph = fitted_vals_graph,

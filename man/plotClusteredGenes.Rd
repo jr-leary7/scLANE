@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotClusteredGenes.R
 \name{plotClusteredGenes}
 \alias{plotClusteredGenes}
-\title{Plot the results from \code{clusterGenes}.}
+\title{Plot the results from \code{\link{clusterGenes}}.}
 \usage{
 plotClusteredGenes(
   test.dyn.results = NULL,
@@ -17,7 +17,7 @@ plotClusteredGenes(
 
 \item{gene.clusters}{The data.frame returned by \code{\link{clusterGenes}}. Defaults to NULL.}
 
-\item{pt}{A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.}
+\item{pt}{A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
 \item{parallel.exec}{Should \code{furrr} be used to speed up execution at the cost of increased memory usage? Defaults to TRUE.}
 

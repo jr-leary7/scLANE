@@ -1,4 +1,4 @@
-#' Plot the results from \code{clusterGenes}.
+#' Plot the results from \code{\link{clusterGenes}}.
 #'
 #' @name plotClusteredGenes
 #' @author Jack Leary
@@ -8,7 +8,7 @@
 #' @importFrom dplyr inner_join rename mutate
 #' @param test.dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param gene.clusters The data.frame returned by \code{\link{clusterGenes}}. Defaults to NULL.
-#' @param pt A data.frame containing a single column - the pseudotime or latent time estimates for each cell. Defaults to NULL.
+#' @param pt A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param parallel.exec Should \code{furrr} be used to speed up execution at the cost of increased memory usage? Defaults to TRUE.
 #' @param n.cores If parallel execution is desired, how many cores should be utilized? Defaults to 2.
 #' @return A \code{data.frame} object with ready-to-plot tidy data.

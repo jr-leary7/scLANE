@@ -1,6 +1,7 @@
 comment: false
 language: R
 sudo: false
+token: 22c87571-03cf-4f2e-a913-0bdf858e606b
 cache: packages
 after_success:
 - Rscript -e 'covr::codecov()'

@@ -76,8 +76,8 @@ plotModels(gene_stats,
            pt = pt_df,
            is.glmm = TRUE,
            id.vec = subject_ids,
-           plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes for pseudotime
-           plot.gam = TRUE,  # plots an NB GLMM with random effects per-subject
+           plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject
+           plot.gam = TRUE,  # plots an NB GAMM with random intercepts per-subject
            gg.theme = ggplot2::theme_minimal())
 }
 }

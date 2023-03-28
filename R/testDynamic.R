@@ -528,7 +528,10 @@ testDynamic <- function(expr.mat = NULL,
                                   Null_Preds = null_pred_df,
                                   MARGE_Slope_Data = marge_slope_df)
       } else {
-        stop(sprintf("Conditions for marge or null model fits not met for gene %s on lineage %s.", genes[i], j))
+        stop(paste0("Conditions for marge or null model fits not met for gene ",
+                    genes[i],
+                    " on lineage ",
+                    j))
       }
     }
     names(lineage_list) <- paste0("Lineage_", LETTERS[1:n_lineages])

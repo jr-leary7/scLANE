@@ -1,8 +1,8 @@
-#' Test whether a gene's expression is changing over a window of pseudotime.
+#' Test whether a gene is dynamic over a pseudotime interval.
 #'
 #' @name testSlope
 #' @author Jack Leary
-#' @description This function tests whether the slope of a gene's \eqn{\beta} coefficient(s) for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
+#' @description This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime interval using a Wald test.
 #' @import magrittr
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr arrange mutate case_when with_groups
@@ -17,7 +17,7 @@
 #' @examples
 #' \dontrun{
 #' testSlope(test.dyn.results = gene_stats)
-#' testSlope(test.dyn.results = gene_stats, method = "BH")
+#' testSlope(test.dyn.results = gene_stats, method = "BH", fdr.cutoff = 0.05)
 #' }
 
 testSlope <- function(test.dyn.results = NULL,

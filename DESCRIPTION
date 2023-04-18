@@ -1,6 +1,5 @@
 Package: scLANE
 Type: Package
-Date@R: Sys.Date()
 Title: Model gene expression over pseudotime with spline-based NB GLMs, GEEs, & GLMMs
 Version: 0.6.1
 Authors@R: c(person(given = "Jack", family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre")), 

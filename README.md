@@ -7,6 +7,8 @@
 
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
+[![License:
+MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
 The `scLANE` package enables users to accurately determine differential
@@ -101,10 +103,13 @@ the trajectory is conserved cleanly across subjects.
 
 ``` r
 plotPCA(sim_data, colour_by = "subject")
-plotPCA(sim_data, colour_by = "cell_time_normed")
 ```
 
 <img src="man/figures/README-plot-sims-1.png" width="100%" />
+
+``` r
+plotPCA(sim_data, colour_by = "cell_time_normed")
+```
 
 <img src="man/figures/README-plot-sims-2.png" width="100%" />
 
@@ -121,7 +126,11 @@ usually unnecessary to fit a model for every single gene in a dataset,
 as trajectories are usually estimated using a subset of the entire set
 of genes (usually a few thousand most highly variable genes). For the
 purpose of demonstration, we’ll select 50 genes each from the dynamic
-and non-dynamic populations.
+and non-dynamic populations. Note: in this case we’re working with a
+single pseudotime lineage, though in real datasets several lineages
+often exist; in order to fit models for a subset of lineages simply
+remove the corresponding columns from the cell ordering dataframe passed
+as input to `testDynamic()`.
 
 ``` r
 set.seed(312)
@@ -146,7 +155,7 @@ de_test_glm <- testDynamic(expr.mat = counts_mat,
                            n.potential.basis.fns = 3, 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 25.667 secs"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 24.054 secs"
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -232,7 +241,7 @@ de_test_gee <- testDynamic(expr.mat = counts_mat,
                            cor.structure = "exchangeable", 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 20.727 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 17.248 mins"
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -269,26 +278,26 @@ caret::confusionMatrix(factor(de_res_gee$Gene_Dynamic_Overall, levels = c(0, 1))
 #> 
 #>           Reference
 #> Prediction  0  1
-#>          0 43 23
-#>          1  7 27
+#>          0 50 23
+#>          1  0 27
 #>                                           
-#>                Accuracy : 0.7             
-#>                  95% CI : (0.6002, 0.7876)
+#>                Accuracy : 0.77            
+#>                  95% CI : (0.6751, 0.8483)
 #>     No Information Rate : 0.5             
-#>     P-Value [Acc > NIR] : 3.925e-05       
+#>     P-Value [Acc > NIR] : 2.757e-08       
 #>                                           
-#>                   Kappa : 0.4             
+#>                   Kappa : 0.54            
 #>                                           
-#>  Mcnemar's Test P-Value : 0.00617         
+#>  Mcnemar's Test P-Value : 4.490e-06       
 #>                                           
 #>             Sensitivity : 0.5400          
-#>             Specificity : 0.8600          
-#>          Pos Pred Value : 0.7941          
-#>          Neg Pred Value : 0.6515          
+#>             Specificity : 1.0000          
+#>          Pos Pred Value : 1.0000          
+#>          Neg Pred Value : 0.6849          
 #>              Prevalence : 0.5000          
 #>          Detection Rate : 0.2700          
-#>    Detection Prevalence : 0.3400          
-#>       Balanced Accuracy : 0.7000          
+#>    Detection Prevalence : 0.2700          
+#>       Balanced Accuracy : 0.7700          
 #>                                           
 #>        'Positive' Class : 1               
 #> 
@@ -297,8 +306,8 @@ caret::confusionMatrix(factor(de_res_gee$Gene_Dynamic_Overall, levels = c(0, 1))
 ### GLMM Backend
 
 We re-run the DE tests a final time using the GLMM backend. This is the
-most complex type of model we support, can take a while to run, and is also 
-the trickiest to interpret. We recommend using it when you’re most
+most complex & time-consuming type of model we support, and is also the
+trickiest to interpret. We recommend using it when you’re most
 interested in how a trajectory differs between subjects e.g., if the
 subjects can be stratified by groups such as Treatment & Control and you
 expect the Treatment group to have a different progression through the
@@ -319,7 +328,7 @@ de_test_glmm <- testDynamic(expr.mat = counts_mat,
                             id.vec = sim_data$subject, 
                             n.cores = 2, 
                             track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 13.077 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 13.699 mins"
 ```
 
 Like the GLM backend, the GLMMs use a likelihood ratio test to compare

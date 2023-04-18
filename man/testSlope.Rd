@@ -2,7 +2,7 @@
 % Please edit documentation in R/testSlope.R
 \name{testSlope}
 \alias{testSlope}
-\title{Test whether a gene's expression is changing over a window of pseudotime.}
+\title{Test whether a gene is dynamic over a pseudotime interval.}
 \usage{
 testSlope(test.dyn.results = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
 }
@@ -17,12 +17,12 @@ testSlope(test.dyn.results = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
 A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
 }
 \description{
-This function tests whether the slope of a gene's \eqn{\beta} coefficient(s) for pseudotime has a significant effect on expression within a pseudotime window. In short, it tells us whether a gene's expression is changing over an interval or not.
+This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime interval using a Wald test.
 }
 \examples{
 \dontrun{
 testSlope(test.dyn.results = gene_stats)
-testSlope(test.dyn.results = gene_stats, method = "BH")
+testSlope(test.dyn.results = gene_stats, method = "BH", fdr.cutoff = 0.05)
 }
 }
 \seealso{

@@ -43,8 +43,7 @@ enrichDynamicGenes <- function(scLANE.de.res = NULL,
   } else {
     scLANE.de.res <- dplyr::filter(scLANE.de.res, Gene_Dynamic_Overall == 1)
   }
-  genes <- scLANE.de.res %>%
-           dplyr::distinct(Gene) %>%
+  genes <- dplyr::distinct(scLANE.de.res, Gene) %>%
            dplyr::pull(Gene)
   if (species == "hs") {
     gene_sets <- msigdbr::msigdbr(species = "human",
@@ -55,7 +54,7 @@ enrichDynamicGenes <- function(scLANE.de.res = NULL,
                                   category = gene.set.cat,
                                   subcategory = gene.set.subcat)
   }
-  term_to_gene <- gene_sets %>% dplyr::distinct(gs_name, gene_symbol)
+  term_to_gene <- dplyr::distinct(gene_sets, gs_name, gene_symbol)
   gsea_res <- clusterProfiler::enricher(gene = genes,
                                         TERM2GENE = term_to_gene,
                                         universe = unique(term_to_gene$gene_symbol),

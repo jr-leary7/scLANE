@@ -1,5 +1,7 @@
 ---
-output: github_document
+output: 
+  github_document
+always_allow_html: true
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -20,6 +22,7 @@ knitr::opts_chunk$set(message = FALSE,
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![release](https://img.shields.io/github/v/release/jr-leary7/scLANE?color=purple)
 <!-- badges: end -->
 
 The `scLANE` package enables users to accurately determine differential expression of genes over pseudotime or latent time, and to characterize gene's dynamics using interpretable model coefficients. `scLANE` builds upon the [`marge` modeling framework](https://github.com/JakubStats/marge), allowing users to characterize their trajectory's effects on mRNA expression using negative binomial [GLMs](https://en.wikipedia.org/wiki/Generalized_linear_model), [GEEs](https://en.wikipedia.org/wiki/Generalized_estimating_equation), or [GLMMs](https://en.wikipedia.org/wiki/Generalized_linear_mixed_model), depending on the experimental design & biological questions of interest. 
@@ -38,7 +41,7 @@ Our method relies on a relatively simple test in order to define whether a given
 
 ## Input Data 
 
-`scLANE` has a few basic inputs with standardized formats, though different modeling frameworks require different types of information; for example, the GEE & GLMM backends require a vector of subject IDs corresponding to each cell. We'll start by simulating some scRNA-seq counts data with a subset of genes being dynamic over a trajectory using the [`scaffold` R package](https://github.com/rhondabacher/scaffold). As part of our simulation studies I wrote the function sourced below to generate multi-subject scRNA-seq datasets with trajectories partially conserved between subjects. 
+`scLANE` has a few basic inputs with standardized formats, though different modeling frameworks require different inputs; for example, the GEE & GLMM backends require a vector of subject IDs corresponding to each cell. We'll start by simulating some scRNA-seq counts data with a subset of genes being dynamic over a trajectory using the [`scaffold` R package](https://github.com/rhondabacher/scaffold). As part of our simulation studies I wrote the function sourced below to generate multi-subject scRNA-seq datasets with trajectories partially conserved between subjects. 
 
 ```{r fun-source}
 source("https://raw.githubusercontent.com/jr-leary7/scLANE-Sims/main/R/functions_simulation.R")
@@ -68,7 +71,7 @@ sim_data <- simulate_multi_subject(ref.dataset = panc,
                                    gene.dyn.threshold = 2)
 ```
 
-The PCA embeddings show us a pretty simple trajectory that's fairly correlated with the first principal component, and we can also see that the trajectory is conserved cleanly across subjects. 
+The PCA embeddings show us a pretty simple trajectory that's strongly correlated with the first principal component, and we can also see that the trajectory is conserved cleanly across subjects. 
 
 ```{r plot-sims, results='hold'}
 plotPCA(sim_data, colour_by = "subject")
@@ -105,7 +108,11 @@ After the function finishes running, we use `getResultsDE()` to generate a sorte
 ```{r glm-results}
 de_res_glm <- getResultsDE(de_test_glm)
 select(de_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5)
+  slice_head(n = 5) %>% 
+  kableExtra::kbl(format = "html", 
+                  digits = 3, 
+                  col.names = c("Gene", "Lineage", "LRT Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status")) %>% 
+  kableExtra::kable_styling(full_width = FALSE)
 ```
 
 After creating a reference table of the ground truth status for each gene - `1` denotes a dynamic gene and `0` a non-dynamic one - and adding that binary indicator the the DE results table, we can generate some classification metrics using [a confusion matrix](https://en.wikipedia.org/wiki/Confusion_matrix). 
@@ -141,7 +148,10 @@ We again generate the table of DE test results. The variance of the estimated co
 de_res_gee <- getResultsDE(de_test_gee)
 de_res_gee %>% 
   select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5)
+  slice_head(n = 5) %>% 
+  knitr::kable("pipe", 
+               digits = 3, 
+               col.names = c("Gene", "Lineage", "Wald Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
 ```
 
 We create the same confusion matrix for the GEEs as we did before. Empirically speaking, when the true trend doesn't differ much between subjects, the GEEs tend to be more conservative (and thus they perform slightly worse) than the GLMs. This is shown below, where the GEEs perform fairly well, but the false negative rate is higher than that of the GLMs. 
@@ -174,7 +184,10 @@ Like the GLM backend, the GLMMs use a likelihood ratio test to compare the null 
 de_res_glmm <- getResultsDE(de_test_glmm)
 de_res_glmm %>% 
   select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5)
+  slice_head(n = 5) %>% 
+  knitr::kable("pipe", 
+               digits = 3, 
+               col.names = c("Gene", "Lineage", "LRT Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
 ```
 
 The GLMMs perform better than the GEEs, and almost as well as the GLMs. Like with the GEEs, it's more appropriate to use these more complex models when you expect expression dynamics to differ between subjects. Since the dynamics in our simulated data are mostly conserved across subjects, it follows that the simpler GLMs perform the best. 
@@ -213,6 +226,7 @@ The results can then be plotted as desired using `ggplot2` or another visualizat
 ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
   facet_wrap(~paste0("Cluster ", CLUSTER)) + 
   geom_line(alpha = 0.75) + 
+  scale_y_continuous(labels = scales::label_number(accuracy = 1)) + 
   scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) + 
   scale_color_manual(values = c("forestgreen", "steelblue3")) + 
   labs(x = "True Cell Ordering", 
@@ -231,7 +245,10 @@ gene_clust_table %>%
   inner_join(gene_status_df, by = c("GENE" = "gene")) %>% 
   with_groups(CLUSTER, 
               summarise, 
-              P_DYNAMIC = mean(True_Gene_Status))
+              P_DYNAMIC = mean(True_Gene_Status)) %>% 
+  knitr::kable("pipe", 
+               digits = 3, 
+               col.names = c("Leiden Cluster", "Dynamic Gene Frequency"))
 ```
 
 # Conclusions & Best Practices

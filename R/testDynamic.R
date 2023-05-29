@@ -19,18 +19,18 @@
 #' @param expr.mat Either a \code{SingleCellExperiment} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.
 #' @param pt Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.
 #' @param genes A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.
-#' @param n.potential.basis.fns (Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
+#' @param n.potential.basis.fns (Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "exchangeable".
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
-#' @param parallel.exec A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.
+#' @param parallel.exec A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to FALSE.
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
 #' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
-#' @param log.file (Optional) A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.
-#' @param log.iter (Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.
+#' @param log.file (Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL
+#' @param log.iter (Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 100.
 #' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
 #' @seealso \code{\link{testSlope}}
@@ -43,7 +43,7 @@
 #' \dontrun{
 #' testDynamic(expr.mat = raw_counts,
 #'             pt = pseudotime_df,
-#'             parallel.exec = false)
+#'             parallel.exec = TRUE)
 #' testDynamic(expr.mat = sce_obj,
 #'             pt = slingshot_obj,
 #'             genes = rownames(sce_obj)[1:100])
@@ -56,10 +56,18 @@
 #'             pt = pseudotime_df,
 #'             is.gee = TRUE,
 #'             id.vec = my_subject_ids,
-#'             cor.structure = "independence",
+#'             cor.structure = "ar1",
 #'             parallel.exec = TRUE,
 #'             n.cores = 8,
 #'             n.potential.basis.fns = 7)
+#' testDynamic(expr.mat = raw_counts,
+#'             pt = pseudotime_df,
+#'             parallel.exec = TRUE,
+#'             n.cores = 8,
+#'             is.glmm = TRUE,
+#'             id.vec = my_subject_ids,
+#'             log.file = "scLANE_log.txt",
+#'             log.iter = 10)
 #' }
 
 testDynamic <- function(expr.mat = NULL,
@@ -75,8 +83,8 @@ testDynamic <- function(expr.mat = NULL,
                         n.cores = 2,
                         approx.knot = TRUE,
                         track.time = FALSE,
-                        log.file = FALSE,
-                        log.iter = 1) {
+                        log.file = NULL,
+                        log.iter = 100) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
   if (inherits(expr.mat, "SingleCellExperiment")) {
@@ -111,8 +119,16 @@ testDynamic <- function(expr.mat = NULL,
   expr.mat <- bigstatsr::as_FBM(expr.mat,
                                 type = "integer",
                                 is_read_only = TRUE)
+  # set up logging to .txt file if desired
+  print_nums <- seq(0, length(genes), log.iter)[-1]
+  if (!is.null(log.file)) {
+    if (!substr(log.file, nchar(log.file) - 3, nchar(log.file)) == ".txt") {
+      log.file <- paste0(log.file, ".txt")
+    }
+    writeLines(c(""), log.file)
+  }
   # build list of objects to prevent from being sent to workers
-  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm",
+  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "print_nums",
                       "n_lineages", "id.vec", "cor.structure", "is.gee", "log.file", "log.iter", "glmm.adaptive")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
@@ -123,9 +139,6 @@ testDynamic <- function(expr.mat = NULL,
   }
   no_export <- unique(no_export)
   # build models per-lineage per-gene, parallelize over genes
-  if (log.file) {
-    writeLines(c(""), "log.txt")
-  }
   test_stats <- foreach::foreach(i = seq_along(genes),
                                  .combine = "list",
                                  .multicombine = ifelse(length(genes) > 1, TRUE, FALSE),
@@ -133,13 +146,10 @@ testDynamic <- function(expr.mat = NULL,
                                  .packages = c("glm2", "scLANE", "MASS",  "bigstatsr", "broom", "dplyr", "stats", "geeM", "glmmTMB"),
                                  .noexport = no_export,
                                  .verbose = FALSE) %dopar% {
-    if (log.file) {
-      print_nums <- seq(0, length(genes), log.iter)[-1]
-      if (i %in% print_nums) {
-        sink("log.txt", append = TRUE)
-        cat(paste("Starting iteration:", i, "\n"))
-        sink()
-      }
+    if (!is.null(log.file) && i %in% print_nums) {
+      sink(log.file, append = TRUE)
+      cat(paste(Sys.time(), "- Starting iteration:", 20, "\n"))
+      sink()
     }
     lineage_list <- vector("list", n_lineages)
     for (j in seq(n_lineages)) {

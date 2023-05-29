@@ -18,8 +18,8 @@ testDynamic(
   n.cores = 2,
   approx.knot = TRUE,
   track.time = FALSE,
-  log.file = FALSE,
-  log.iter = 1
+  log.file = NULL,
+  log.iter = 100
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ testDynamic(
 
 \item{genes}{A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.}
 
-\item{n.potential.basis.fns}{(Optional) The number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
+\item{n.potential.basis.fns}{(Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
 
 \item{is.gee}{Should a GEE framework be used instead of the default GLM? Defaults to FALSE.}
 
@@ -41,7 +41,7 @@ testDynamic(
 
 \item{id.vec}{If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
 
-\item{parallel.exec}{A boolean indicating whether a parallel \code{foreach} loop should be used to generate results more quickly. Defaults to FALSE.}
+\item{parallel.exec}{A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to FALSE.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
 
@@ -49,9 +49,9 @@ testDynamic(
 
 \item{track.time}{(Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
 
-\item{log.file}{(Optional) A boolean indicating whether iteration tracking should be printed to \code{"log.txt"}. Can be useful for debugging. Defaults to FALSE.}
+\item{log.file}{(Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL}
 
-\item{log.iter}{(Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 1, or every iteration.}
+\item{log.iter}{(Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 100.}
 }
 \value{
 A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
@@ -63,7 +63,7 @@ This function tests whether a NB \code{marge} model is better than a null (inter
 \dontrun{
 testDynamic(expr.mat = raw_counts,
             pt = pseudotime_df,
-            parallel.exec = false)
+            parallel.exec = TRUE)
 testDynamic(expr.mat = sce_obj,
             pt = slingshot_obj,
             genes = rownames(sce_obj)[1:100])
@@ -76,10 +76,18 @@ testDynamic(expr.mat = raw_counts,
             pt = pseudotime_df,
             is.gee = TRUE,
             id.vec = my_subject_ids,
-            cor.structure = "independence",
+            cor.structure = "ar1",
             parallel.exec = TRUE,
             n.cores = 8,
             n.potential.basis.fns = 7)
+testDynamic(expr.mat = raw_counts,
+            pt = pseudotime_df,
+            parallel.exec = TRUE,
+            n.cores = 8,
+            is.glmm = TRUE,
+            id.vec = my_subject_ids,
+            log.file = "scLANE_log.txt",
+            log.iter = 10)
 }
 }
 \seealso{

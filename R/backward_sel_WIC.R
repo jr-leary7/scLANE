@@ -17,7 +17,7 @@
 
 backward_sel_WIC <- function(Y = NULL, B_new = NULL, is.gee = FALSE, id.vec = NULL, cor.structure = NULL) {
   # check inputs
-  if (is.null(Y) | is.null(B_new)) { stop("Some inputs are missing from backward_sel_WIC().") }
+  if (is.null(Y) || is.null(B_new)) { stop("Some inputs are missing from backward_sel_WIC().") }
   if (is.gee & is.null(id.vec)) { stop("GEEs require a vector of observation IDs in backward_sel_WIC().") }
   if (is.gee & is.null(cor.structure)) { stop("GEEs require a working correlation structure in backward_sel_WIC().") }
   cor.structure <- tolower(cor.structure)
@@ -29,7 +29,9 @@ backward_sel_WIC <- function(Y = NULL, B_new = NULL, is.gee = FALSE, id.vec = NU
                       sandwich = TRUE)
     wald_stat <- (unname(summary(fit)$wald.test[-1]))^2
   } else {
-    fit <- gamlss::gamlss(Y ~ B_new - 1, family = "NBI", trace = FALSE, )
+    fit <- gamlss::gamlss(Y ~ B_new - 1,
+                          family = "NBI",
+                          trace = FALSE)
     sink(tempfile())
     fit_sum <- summary(fit)
     sink()

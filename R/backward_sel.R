@@ -20,7 +20,7 @@ backward_sel <- function(Y = NULL,
                          pen = 2,
                          GCV.null = 0.001) {
   # check inputs
-  if (is.null(Y) | is.null(B_new)) { stop("Some inputs are missing from backward_sel().") }
+  if (is.null(Y) || is.null(B_new)) { stop("Some inputs are missing from backward_sel().") }
   if (GCV.null == 0) { stop("GCV.null in backward_sel() cannot be set to 0.") }
   N <- length(Y)
   n_pred <- ncol(B_new) - 1

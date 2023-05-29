@@ -48,7 +48,7 @@
 #'          Y = expr_vec,
 #'          is.gee = TRUE,
 #'          id.vec = subject_vec,
-#'          cor.structure = "independence",
+#'          cor.structure = "ar1",
 #'          n.knot.max = 10)
 #' }
 

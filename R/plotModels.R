@@ -204,23 +204,27 @@ plotModels <- function(test.dyn.res = NULL,
   if (!is.null(filter.lineage)) { counts_df %<>% dplyr::filter(!LINEAGE %in% filter.lineage) }
   # change model labels as necessary
   if (is.gee) {
-    counts_df %<>% dplyr::mutate(MODEL = dplyr::if_else(MODEL == "GLM", "GEE", MODEL),
+    counts_df %<>% dplyr::mutate(MODEL = dplyr::if_else(as.character(MODEL) == "GLM", "GEE", as.character(MODEL)),
                                  MODEL = factor(MODEL, levels = c("Intercept-only", "GEE", "GAM", "scLANE")))
   }
   if (is.glmm) {
-    counts_df %<>% dplyr::mutate(MODEL = dplyr::if_else(MODEL == "GLM", "GLMM", MODEL),
+    counts_df %<>% dplyr::mutate(MODEL = dplyr::if_else(as.character(MODEL) == "GLM", "GLMM", as.character(MODEL)),
                                  MODEL = factor(MODEL, levels = c("Intercept-only", "GLMM", "GAM", "scLANE")))
   }
   counts_df <- dplyr::mutate(counts_df, MODEL = droplevels(MODEL))
   # generate plot
   if (is.glmm) {
-    p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = ID, fill = ID)) +
-         ggplot2::geom_point(alpha = 0.5,
-                             size = 0.5,
-                             show.legend = FALSE) +
-         ggplot2::facet_wrap(~LINEAGE + MODEL) +
-         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED, group = ID), linewidth = 1) +
+    p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, group = ID)) +
+         ggplot2::geom_point(mapping = ggplot2::aes(color = ID),
+                             alpha = 0.5,
+                             size = 0.5) +
+         ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL) +
+         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED),
+                            linewidth = 1,
+                            color = "black",
+                            show.legend = FALSE) +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
+                              fill = "grey50",
                               alpha = 0.4,
                               size = 0,
                               show.legend = FALSE) +
@@ -232,13 +236,15 @@ plotModels <- function(test.dyn.res = NULL,
                        fill = "Subject",
                        title = gene) +
          gg.theme +
-         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
+         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, alpha = 1)))
   } else {
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
          ggplot2::geom_point(alpha = 0.5, size = 0.5) +
-         ggplot2::facet_wrap(~LINEAGE + MODEL) +
-         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED), linewidth = 1, color = "black") +
+         ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL) +
+         ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED),
+                            linewidth = 1,
+                            color = "black") +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
                               alpha = 0.4,
                               size = 0,
@@ -251,7 +257,7 @@ plotModels <- function(test.dyn.res = NULL,
                        fill = "Lineage",
                        title = gene) +
          gg.theme +
-         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5)) +
+         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, alpha = 1)))
   }
   return(p)

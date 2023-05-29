@@ -14,7 +14,7 @@ testDynamic(
   is.glmm = FALSE,
   glmm.adaptive = FALSE,
   id.vec = NULL,
-  parallel.exec = FALSE,
+  parallel.exec = TRUE,
   n.cores = 2,
   approx.knot = TRUE,
   track.time = FALSE,
@@ -41,7 +41,7 @@ testDynamic(
 
 \item{id.vec}{If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
 
-\item{parallel.exec}{A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to FALSE.}
+\item{parallel.exec}{A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
 
@@ -49,7 +49,7 @@ testDynamic(
 
 \item{track.time}{(Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
 
-\item{log.file}{(Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL}
+\item{log.file}{(Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL.}
 
 \item{log.iter}{(Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 100.}
 }

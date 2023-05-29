@@ -19,12 +19,12 @@ plotClusteredGenes(
 
 \item{pt}{A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
-\item{parallel.exec}{Should \code{furrr} be used to speed up execution at the cost of increased memory usage? Defaults to TRUE.}
+\item{parallel.exec}{Should \code{furrr} be used to speed up execution? Defaults to TRUE.}
 
 \item{n.cores}{If parallel execution is desired, how many cores should be utilized? Defaults to 2.}
 }
 \value{
-A \code{data.frame} object with ready-to-plot tidy data.
+A \code{data.frame} with ready-to-plot tidy data. Includes columns for gene name, pseudotime lineage, cell name, fitted values on link & response scale, pseudotime, & gene cluster.
 }
 \description{
 Plot per-lineage, per-cluster fitted values from \code{scLANE}.

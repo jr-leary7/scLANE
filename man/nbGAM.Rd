@@ -17,7 +17,7 @@ nbGAM(expr = NULL, pt = NULL, id.vec = NULL)
 An object of class \code{gamlss}
 }
 \description{
-Fits a negative-binomial family GAM using a b-spline on pseudotime.
+Fits a negative-binomial family GAM using a B-spline of degree 3 on pseudotime. If data are multi-subject in nature, a random intercept is included for each subject.
 }
 \examples{
 \dontrun{

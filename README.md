@@ -9,6 +9,7 @@
 [![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![release](https://img.shields.io/github/v/release/jr-leary7/scLANE?color=purple)
 <!-- badges: end -->
 
 The `scLANE` package enables users to accurately determine differential
@@ -54,14 +55,14 @@ correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method).
 ## Input Data
 
 `scLANE` has a few basic inputs with standardized formats, though
-different modeling frameworks require different types of information;
-for example, the GEE & GLMM backends require a vector of subject IDs
-corresponding to each cell. We’ll start by simulating some scRNA-seq
-counts data with a subset of genes being dynamic over a trajectory using
-the [`scaffold` R package](https://github.com/rhondabacher/scaffold). As
-part of our simulation studies I wrote the function sourced below to
-generate multi-subject scRNA-seq datasets with trajectories partially
-conserved between subjects.
+different modeling frameworks require different inputs; for example, the
+GEE & GLMM backends require a vector of subject IDs corresponding to
+each cell. We’ll start by simulating some scRNA-seq counts data with a
+subset of genes being dynamic over a trajectory using the [`scaffold` R
+package](https://github.com/rhondabacher/scaffold). As part of our
+simulation studies I wrote the function sourced below to generate
+multi-subject scRNA-seq datasets with trajectories partially conserved
+between subjects.
 
 ``` r
 source("https://raw.githubusercontent.com/jr-leary7/scLANE-Sims/main/R/functions_simulation.R")
@@ -97,7 +98,7 @@ sim_data <- simulate_multi_subject(ref.dataset = panc,
                                    gene.dyn.threshold = 2)
 ```
 
-The PCA embeddings show us a pretty simple trajectory that’s fairly
+The PCA embeddings show us a pretty simple trajectory that’s strongly
 correlated with the first principal component, and we can also see that
 the trajectory is conserved cleanly across subjects.
 
@@ -155,7 +156,7 @@ de_test_glm <- testDynamic(expr.mat = counts_mat,
                            n.potential.basis.fns = 3, 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 24.054 secs"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 24.525 secs"
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -168,14 +169,139 @@ Chi-squared](https://en.wikipedia.org/wiki/Likelihood-ratio_test).
 ``` r
 de_res_glm <- getResultsDE(de_test_glm)
 select(de_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5)
-#>     Gene Lineage Test_Stat        P_Val    P_Val_Adj Gene_Dynamic_Overall
-#> 1  WAPAL       A  261.8895 6.647352e-59 6.647352e-57                    1
-#> 2 JARID2       A  187.2614 1.259294e-42 1.246701e-40                    1
-#> 3   CBX6       A  168.4822 1.587337e-38 1.555590e-36                    1
-#> 4  ISOC2       A  156.8985 5.386738e-36 5.225135e-34                    1
-#> 5  IDH3G       A  133.4688 7.139469e-31 6.853890e-29                    1
+  slice_head(n = 5) %>% 
+  kableExtra::kbl(format = "html", 
+                  digits = 3, 
+                  col.names = c("Gene", "Lineage", "LRT Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status")) %>% 
+  kableExtra::kable_styling(full_width = FALSE)
 ```
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Gene
+</th>
+<th style="text-align:left;">
+Lineage
+</th>
+<th style="text-align:right;">
+LRT Stat.
+</th>
+<th style="text-align:right;">
+P-value
+</th>
+<th style="text-align:right;">
+Adj. P-value
+</th>
+<th style="text-align:right;">
+Predicted Dynamic Status
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+WAPAL
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+261.890
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+JARID2
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+187.261
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+CBX6
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+168.482
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ISOC2
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+156.899
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IDH3G
+</td>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+133.469
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+</tbody>
+</table>
 
 After creating a reference table of the ground truth status for each
 gene - `1` denotes a dynamic gene and `0` a non-dynamic one - and adding
@@ -241,7 +367,7 @@ de_test_gee <- testDynamic(expr.mat = counts_mat,
                            cor.structure = "exchangeable", 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 17.248 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 17.653 mins"
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -253,14 +379,19 @@ Wald test is used to compare the null & alternate models.
 de_res_gee <- getResultsDE(de_test_gee)
 de_res_gee %>% 
   select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5)
-#>     Gene Lineage Test_Stat P_Val P_Val_Adj Gene_Dynamic_Overall
-#> 1 JARID2       A  261.3821     0         0                    1
-#> 2  RAB1B       A  620.4544     0         0                    1
-#> 3  IDH3G       A  281.0624     0         0                    1
-#> 4 MFSD2B       A 2330.7697     0         0                    1
-#> 5  PFDN2       A  605.9555     0         0                    1
+  slice_head(n = 5) %>% 
+  knitr::kable("pipe", 
+               digits = 3, 
+               col.names = c("Gene", "Lineage", "Wald Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
 ```
+
+| Gene   | Lineage | Wald Stat. | P-value | Adj. P-value | Predicted Dynamic Status |
+|:-------|:--------|-----------:|--------:|-------------:|-------------------------:|
+| JARID2 | A       |    261.382 |       0 |            0 |                        1 |
+| RAB1B  | A       |    620.454 |       0 |            0 |                        1 |
+| IDH3G  | A       |    281.062 |       0 |            0 |                        1 |
+| MFSD2B | A       |   2330.770 |       0 |            0 |                        1 |
+| PFDN2  | A       |    605.955 |       0 |            0 |                        1 |
 
 We create the same confusion matrix for the GEEs as we did before.
 Empirically speaking, when the true trend doesn’t differ much between
@@ -328,7 +459,7 @@ de_test_glmm <- testDynamic(expr.mat = counts_mat,
                             id.vec = sim_data$subject, 
                             n.cores = 2, 
                             track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 13.699 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 13.919 mins"
 ```
 
 Like the GLM backend, the GLMMs use a likelihood ratio test to compare
@@ -339,14 +470,19 @@ instead of REML in order to perform this test).
 de_res_glmm <- getResultsDE(de_test_glmm)
 de_res_glmm %>% 
   select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5)
-#>     Gene Lineage Test_Stat        P_Val    P_Val_Adj Gene_Dynamic_Overall
-#> 1 LY6G5C       A 7143.7344 0.000000e+00 0.000000e+00                    1
-#> 2    MPG       A  380.1858 1.225984e-69 1.213725e-67                    1
-#> 3  WAPAL       A  360.8859 1.257202e-65 1.232058e-63                    1
-#> 4  FLOT2       A  281.2589 3.386315e-49 3.284726e-47                    1
-#> 5  SPCS3       A  270.6374 5.051715e-47 4.849647e-45                    1
+  slice_head(n = 5) %>% 
+  knitr::kable("pipe", 
+               digits = 3, 
+               col.names = c("Gene", "Lineage", "LRT Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
 ```
+
+| Gene   | Lineage | LRT Stat. | P-value | Adj. P-value | Predicted Dynamic Status |
+|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
+| LY6G5C | A       |  7143.734 |       0 |            0 |                        1 |
+| MPG    | A       |   380.186 |       0 |            0 |                        1 |
+| WAPAL  | A       |   360.886 |       0 |            0 |                        1 |
+| FLOT2  | A       |   281.259 |       0 |            0 |                        1 |
+| SPCS3  | A       |   270.637 |       0 |            0 |                        1 |
 
 The GLMMs perform better than the GEEs, and almost as well as the GLMs.
 Like with the GEEs, it’s more appropriate to use these more complex
@@ -431,6 +567,7 @@ cluster of non-dynamic genes (cluster 1) and a cluster of dynamic genes
 ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
   facet_wrap(~paste0("Cluster ", CLUSTER)) + 
   geom_line(alpha = 0.75) + 
+  scale_y_continuous(labels = scales::label_number(accuracy = 1)) + 
   scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) + 
   scale_color_manual(values = c("forestgreen", "steelblue3")) + 
   labs(x = "True Cell Ordering", 
@@ -452,11 +589,16 @@ gene_clust_table %>%
   inner_join(gene_status_df, by = c("GENE" = "gene")) %>% 
   with_groups(CLUSTER, 
               summarise, 
-              P_DYNAMIC = mean(True_Gene_Status))
-#>   CLUSTER  P_DYNAMIC
-#> 1       1 0.04347826
-#> 2       2 0.88888889
+              P_DYNAMIC = mean(True_Gene_Status)) %>% 
+  knitr::kable("pipe", 
+               digits = 3, 
+               col.names = c("Leiden Cluster", "Dynamic Gene Frequency"))
 ```
+
+| Leiden Cluster | Dynamic Gene Frequency |
+|:---------------|-----------------------:|
+| 1              |                  0.043 |
+| 2              |                  0.889 |
 
 # Conclusions & Best Practices
 

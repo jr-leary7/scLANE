@@ -14,8 +14,8 @@
 
 stripGLM <- function(glm.obj = NULL) {
   # check inputs
-  if (is.null(glm.obj)) stop("You forgot to supply inputs to stripGLM().")
-  if (!"glm" %in% class(glm.obj)) stop("Input to stripGLM() must be of class glm.")
+  if (is.null(glm.obj)) { stop("You forgot to supply inputs to stripGLM().") }
+  if (!inherits(glm.obj, "glm")) { stop("Input to stripGLM() must be of class glm.") }
 
   # strip out unnecessary glm pieces
   glm.obj$effects <- c()

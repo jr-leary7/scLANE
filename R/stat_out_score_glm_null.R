@@ -23,13 +23,13 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   #                        family = "NBI",
   #                        trace = FALSE,
   #                        data = NULL)
-  len_Y <- length(Y)
+  N <- length(Y)
   mean_Y <- mean(Y)
-  mu.est <- as.matrix(rep(mean_Y, len_Y))  # faster than calling stats::fitted.values() actually
+  mu.est <- as.matrix(rep(mean_Y, N))  # faster than calling stats::fitted.values() actually
   # V.est <- mu.est * (1 + mu.est * (exp(ests$sigma.coef)))
   theta_hat <- MASS::theta.mm(y = Y,
                               mu = mean(Y),
-                              dfr = length(Y) - 1)
+                              dfr = N - 1)
   V.est <- mu.est * (1 + mu.est * (1 / theta_hat))  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
   VS.est_list <- (Y - mu.est) / V.est
   temp_prod <- eigenMapMatMult(A = t(B_null),

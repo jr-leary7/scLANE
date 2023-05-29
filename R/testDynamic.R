@@ -24,12 +24,12 @@
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "exchangeable".
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
-#' @param parallel.exec A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to FALSE.
+#' @param parallel.exec A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
 #' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
-#' @param log.file (Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL
+#' @param log.file (Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL.
 #' @param log.iter (Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 100.
 #' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
@@ -79,7 +79,7 @@ testDynamic <- function(expr.mat = NULL,
                         is.glmm = FALSE,
                         glmm.adaptive = FALSE,
                         id.vec = NULL,
-                        parallel.exec = FALSE,
+                        parallel.exec = TRUE,
                         n.cores = 2,
                         approx.knot = TRUE,
                         track.time = FALSE,
@@ -87,24 +87,32 @@ testDynamic <- function(expr.mat = NULL,
                         log.iter = 100) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
+  # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (inherits(expr.mat, "SingleCellExperiment")) {
-    expr.mat <- as.matrix(t(BiocGenerics::counts(expr.mat)))  # transpose to cell x gene matrix
+    expr.mat <- as.matrix(t(BiocGenerics::counts(expr.mat)))
+  } else if (inherits(expr.mat, "Seurat")) {
+    expr.mat <- as.matrix(t(Seurat::GetAssayData(expr.mat,
+                                                 slot = "counts",
+                                                 assay = Seurat::DefaultAssay(expr.mat))))
   }
   if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be a matrix of integer counts.") }
+  # extract pseudotime dataframe if input is results from Slingshot
   if (inherits(pt, "SlingshotDataSet")) {
     pt <- as.data.frame(slingshot::slingPseudotime(pt))
   }
   if (!inherits(pt, "data.frame")) { stop("pt must be of class data.frame.") }
+  # set pseudotime lineage column names automatically to prevent user error; uses e.g., "Lineage_A", "Lineage_B", etc.
+  n_lineages <- ncol(pt)
+  colnames(pt) <- paste0("Lineage_", LETTERS[1:n_lineages])
+  # ensure subject ID vector meets criteria for GEE / GLMM fitting
   if ((is.gee || is.glmm) && is.null(id.vec)) { stop("You must provide a vector of IDs if you're using GEE / GLMM frameworks.") }
   if ((is.gee || is.glmm) && is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running testDynamic() using GEE / GLMM frameworks.") }
   cor.structure <- tolower(cor.structure)
   if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a specified correlation structure.") }
+  # fit models for all genes if otherwise unspecified
   if (is.null(genes)) { genes <- colnames(expr.mat) }
+  # set up parallel execution & time tracking
   if (track.time) { start_time <- Sys.time() }
-
-  # set column names automatically to prevent user error
-  n_lineages <- ncol(pt)
-  colnames(pt) <- paste0("Lineage_", LETTERS[1:n_lineages])
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
     doParallel::registerDoParallel(cl)
@@ -116,6 +124,7 @@ testDynamic <- function(expr.mat = NULL,
     cl <- foreach::registerDoSEQ()
     set.seed(312)
   }
+  # convert dense counts matrix to file-backed matrix
   expr.mat <- bigstatsr::as_FBM(expr.mat,
                                 type = "integer",
                                 is_read_only = TRUE)
@@ -127,7 +136,7 @@ testDynamic <- function(expr.mat = NULL,
     }
     writeLines(c(""), log.file)
   }
-  # build list of objects to prevent from being sent to workers
+  # build list of objects to prevent from being sent to parallel workers
   necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "print_nums",
                       "n_lineages", "id.vec", "cor.structure", "is.gee", "log.file", "log.iter", "glmm.adaptive")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
@@ -154,7 +163,7 @@ testDynamic <- function(expr.mat = NULL,
     lineage_list <- vector("list", n_lineages)
     for (j in seq(n_lineages)) {
       lineage_cells <- which(!is.na(pt[, j]))
-      # run original MARGE model - GEE or not
+      # run original MARGE model using one of GLM, GEE, or GLMM backends
       if (is.gee) {
         marge_mod <- try(
           { scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
@@ -198,7 +207,7 @@ testDynamic <- function(expr.mat = NULL,
           silent = TRUE
         )
       }
-      # fit null model for comparison - must use MASS::glm.nb() because log-likelihood differs when using lm() if not using a GEE model
+      # fit null model for comparison via Wald or likelihood ratio test
       if (is.gee) {
         theta_hat <- MASS::theta.mm(y = expr.mat[lineage_cells, i],
                                     mu = mean(expr.mat[lineage_cells, i]),

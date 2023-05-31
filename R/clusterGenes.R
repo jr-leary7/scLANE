@@ -40,11 +40,12 @@ clusterGenes <- function(test.dyn.results = NULL,
   }
   gene_cluster_list <- vector("list", length = length(lineages))
   for (l in seq_along(lineages)) {
-    # coerce fitted values to a gene x cell matrix
+    # coerce fitted values to a gene x cell matrix, dropping genes w/ model errors
     lineage_name <- paste0("Lineage_", lineages[l])
     fitted_vals_mat <- purrr::map(test.dyn.results, \(x) x[[lineage_name]]$MARGE_Preds) %>%
                        stats::setNames(names(test.dyn.results)) %>%
                        purrr::discard(rlang::is_na) %>%
+                       purrr::discard(\(p) rlang::inherits_only(p, "try-error")) %>%
                        purrr::map2(.y = names(.), function(x, y) {
                          t(as.data.frame(exp(x$marge_link_fit))) %>%
                            magrittr::set_rownames(y)

@@ -74,6 +74,7 @@ plotModels(gene_stats,
 plotModels(gene_stats,
            gene = "CD14",
            pt = pt_df,
+           gene.counts = count_mat,
            is.glmm = TRUE,
            id.vec = subject_ids,
            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject

@@ -46,6 +46,7 @@
 #' plotModels(gene_stats,
 #'            gene = "CD14",
 #'            pt = pt_df,
+#'            gene.counts = count_mat,
 #'            is.glmm = TRUE,
 #'            id.vec = subject_ids,
 #'            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject
@@ -220,7 +221,7 @@ plotModels <- function(test.dyn.res = NULL,
                              size = 0.5) +
          ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL) +
          ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED),
-                            linewidth = 1,
+                            size = 1,
                             color = "black",
                             show.legend = FALSE) +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
@@ -243,7 +244,7 @@ plotModels <- function(test.dyn.res = NULL,
          ggplot2::geom_point(alpha = 0.5, size = 0.5) +
          ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL) +
          ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED),
-                            linewidth = 1,
+                            size = 1,
                             color = "black") +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(x = PT, ymin = CI_LL, ymax = CI_UL),
                               alpha = 0.4,

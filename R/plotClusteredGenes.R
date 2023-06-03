@@ -1,14 +1,14 @@
-#' Plot the results from \code{\link{clusterGenes}}.
+#' Generate tidy results from \code{\link{clusterGenes}} to use in plotting.
 #'
 #' @name plotClusteredGenes
 #' @author Jack Leary
-#' @description Plot per-lineage, per-cluster fitted values from \code{scLANE}.
+#' @description Generate a table of per-lineage, per-cluster fitted values from \code{scLANE} to be used in visualizations.
 #' @import magrittr
 #' @importFrom future plan multisession sequential
 #' @importFrom furrr future_imap
 #' @importFrom purrr reduce
 #' @importFrom dplyr inner_join rename mutate
-#' @param test.dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
+#' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param gene.clusters The data.frame returned by \code{\link{clusterGenes}}. Defaults to NULL.
 #' @param pt A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param parallel.exec Should \code{furrr} be used to speed up execution? Defaults to TRUE.
@@ -18,7 +18,7 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' plotClusteredGenes(test.dyn.results = gene_stats,
+#' plotClusteredGenes(test.dyn.res = gene_stats,
 #'                    gene.clusters = gene_clusters,
 #'                    pt = pt_df) %>%
 #'   ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE) +
@@ -26,20 +26,20 @@
 #'   facet_wrap(~LINEAGE))
 #' }
 
-plotClusteredGenes <- function(test.dyn.results = NULL,
+plotClusteredGenes <- function(test.dyn.res = NULL,
                                gene.clusters = NULL,
                                pt = NULL,
                                parallel.exec = TRUE,
                                n.cores = 2) {
   # check inputs
-  if (is.null(test.dyn.results) || is.null(gene.clusters) || is.null(pt)) { stop("Arguments to plotClusteredGenes() are missing.") }
+  if (is.null(test.dyn.res) || is.null(gene.clusters) || is.null(pt)) { stop("Arguments to plotClusteredGenes() are missing.") }
   colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
   if (parallel.exec) {
     future::plan(future::multisession, workers = n.cores)
   } else {
     future::plan(future::sequential)
   }
-  furrr::future_imap(test.dyn.results, function(x, y) {
+  furrr::future_imap(test.dyn.res, function(x, y) {
     df_list <- vector("list", ncol(pt))
     for (l in seq(ncol(pt))) {
       lineage_name <- colnames(pt)[l]

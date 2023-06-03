@@ -5,7 +5,7 @@
 \title{Cluster the fitted values from a set of \code{scLANE} models.}
 \usage{
 clusterGenes(
-  test.dyn.results = NULL,
+  test.dyn.res = NULL,
   clust.algo = "leiden",
   use.pca = FALSE,
   n.PC = 15,
@@ -13,7 +13,7 @@ clusterGenes(
 )
 }
 \arguments{
-\item{test.dyn.results}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
+\item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
 
 \item{clust.algo}{The clustering method to use. Can be one of "hclust", "kmeans", "leiden". Defaults to "leiden".}
 
@@ -31,12 +31,13 @@ This function takes as input the output from \code{\link{testDynamic}} and clust
 }
 \examples{
 \dontrun{
-clusterGenes(test.dyn.results = gene_stats, clust.algo = "leiden")
-clusterGenes(test.dyn.results = gene_stats,
-             use.PCA = TRUE,
+clusterGenes(gene_stats, clust.algo = "leiden")
+clusterGenes(gene_stats,
+             clust.algo = "kmeans",
+             use.pca = TRUE,
              n.PC = 10,
              lineages = "B")
-clusterGenes(test.dyn.results = gene_stats, lineages = c("A", "C"))
+clusterGenes(gene_stats, lineages = c("A", "C"))
 }
 }
 \seealso{

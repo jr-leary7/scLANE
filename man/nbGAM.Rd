@@ -4,27 +4,41 @@
 \alias{nbGAM}
 \title{Fit a negative-binomial GAM.}
 \usage{
-nbGAM(expr = NULL, pt = NULL, id.vec = NULL)
+nbGAM(
+  expr = NULL,
+  pt = NULL,
+  id.vec = NULL,
+  use.b.spline = FALSE,
+  spline.degree = 3
+)
 }
 \arguments{
 \item{expr}{A vector of integer counts. Defaults to NULL.}
 
-\item{pt}{A dataframe or vector of pesudotime values. Defaults to NULL.}
+\item{pt}{A dataframe or vector of pseudotime values. Defaults to NULL.}
 
 \item{id.vec}{(Optional) A vector of subject IDs to be used in creating random intercepts in the GAM. Useful for comparing GAMs to GLMMs. Defaults to NULL.}
+
+\item{use.b.spline}{(Optional) Should a B-spline with degree 3 be used to fit the GAM? By default a P-spline is used instead. Defaults to FALSE.}
+
+\item{spline.degree}{(Optional) Degree of the fitted spline. Defaults to 3.}
 }
 \value{
 An object of class \code{gamlss}
 }
 \description{
-Fits a negative-binomial family GAM using a B-spline of degree 3 on pseudotime. If data are multi-subject in nature, a random intercept is included for each subject.
+Fits a negative-binomial family GAM using a P-spline of degree 3 on pseudotime. If data are multi-subject in nature, a random intercept is included for each subject.
 }
 \examples{
 \dontrun{
-nbGAM(expr_vec, pt = pt_df)
+nbGAM(expr_vec, pt_df)
 nbGAM(expr_vec,
       pt = pt_df,
       id.vec = subject_ids)
+nbGAM(expr_vec,
+      pt = pt_df,
+      use.b.spline = TRUE,
+      spline.degree = 5)
 }
 }
 \seealso{
@@ -32,7 +46,11 @@ nbGAM(expr_vec,
 
 \code{\link[gamlss]{random}}
 
+\code{\link[gamlss]{pb}}
+
 \code{\link[gamlss.dist]{NBI}}
+
+\code{\link[splines]{bs}}
 }
 \author{
 Jack Leary

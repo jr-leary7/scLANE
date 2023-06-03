@@ -27,6 +27,7 @@
 #' @param plot.glm (Optional) Should the fitted values from an NB GLM be plotted? If the data are multi-subject, the "GLM" model can be a GEE or GLMM depending on the desired framework. See Examples for more detail. Defaults to TRUE.
 #' @param plot.gam (Optional) Should the fitted values from an NB GAM be plotted? Defaults to TRUE.
 #' @param plot.marge (Optional) Should the fitted values from the \code{marge} model be plotted? Defaults to TRUE.
+#' @param gam.degree (Optional) The basis spline degree used in \code{\link{nbGAM}}. Defaults to 3.
 #' @param filter.lineage (Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.
 #' @param gg.theme (Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.
 #' @return A \code{ggplot} object.
@@ -51,6 +52,7 @@
 #'            id.vec = subject_ids,
 #'            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject
 #'            plot.gam = TRUE,  # plots an NB GAMM with random intercepts per-subject
+#'            gam.degree = 5,
 #'            gg.theme = ggplot2::theme_minimal())
 #' }
 
@@ -67,6 +69,7 @@ plotModels <- function(test.dyn.res = NULL,
                        plot.glm = TRUE,
                        plot.gam = TRUE,
                        plot.marge = TRUE,
+                       gam.degree = 3,
                        filter.lineage = NULL,
                        gg.theme = ggplot2::theme_classic(base_size = 14)) {
   # check inputs
@@ -147,9 +150,14 @@ plotModels <- function(test.dyn.res = NULL,
                       if (is.glmm) {
                         gam_mod <- nbGAM(expr = x$COUNT,
                                          pt = x$PT,
-                                         id.vec = x$ID)
+                                         id.vec = x$ID,
+                                         use.b.spline = FALSE,
+                                         spline.degree = gam.degree)
                       } else {
-                        gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT)
+                        gam_mod <- nbGAM(expr = x$COUNT,
+                                         pt = x$PT,
+                                         use.b.spline = FALSE,
+                                         spline.degree = gam.degree)
                       }
                       gam_preds <- data.frame(predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
                       x %<>% dplyr::mutate(RESP_GAM = gam_preds$fit,
@@ -219,7 +227,7 @@ plotModels <- function(test.dyn.res = NULL,
          ggplot2::geom_point(mapping = ggplot2::aes(color = ID),
                              alpha = 0.5,
                              size = 0.5) +
-         ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL) +
+         ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL + ID) +
          ggplot2::geom_line(mapping = ggplot2::aes(x = PT, y = PRED),
                             size = 1,
                             color = "black",
@@ -237,7 +245,7 @@ plotModels <- function(test.dyn.res = NULL,
                        fill = "Subject",
                        title = gene) +
          gg.theme +
-         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")) +
+         ggplot2::theme(plot.title = ggplot2::element_text(face = "italic")) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, alpha = 1)))
   } else {
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
@@ -258,7 +266,7 @@ plotModels <- function(test.dyn.res = NULL,
                        fill = "Lineage",
                        title = gene) +
          gg.theme +
-         ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5, face = "bold")) +
+         ggplot2::theme(plot.title = ggplot2::element_text(face = "italic")) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, alpha = 1)))
   }
   return(p)

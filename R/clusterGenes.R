@@ -6,7 +6,7 @@
 #' @import magrittr
 #' @importFrom purrr map discard map2 reduce
 #' @importFrom stats setNames hclust cutree kmeans dist
-#' @param test.dyn.results The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
+#' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param clust.algo The clustering method to use. Can be one of "hclust", "kmeans", "leiden". Defaults to "leiden".
 #' @param use.pca Should PCA be performed prior to clustering? Defaults to FALSE.
 #' @param n.PC The number of principal components to use when performing dimension reduction prior to clustering. Defaults to 15.
@@ -17,33 +17,34 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' clusterGenes(test.dyn.results = gene_stats, clust.algo = "leiden")
-#' clusterGenes(test.dyn.results = gene_stats,
-#'              use.PCA = TRUE,
+#' clusterGenes(gene_stats, clust.algo = "leiden")
+#' clusterGenes(gene_stats,
+#'              clust.algo = "kmeans",
+#'              use.pca = TRUE,
 #'              n.PC = 10,
 #'              lineages = "B")
-#' clusterGenes(test.dyn.results = gene_stats, lineages = c("A", "C"))
+#' clusterGenes(gene_stats, lineages = c("A", "C"))
 #' }
 
-clusterGenes <- function(test.dyn.results = NULL,
+clusterGenes <- function(test.dyn.res = NULL,
                          clust.algo = "leiden",
                          use.pca = FALSE,
                          n.PC = 15,
                          lineages = NULL) {
   # check inputs
-  if (is.null(test.dyn.results)) { stop("test.dyn.results must be supplied to clusterGenes().") }
+  if (is.null(test.dyn.res)) { stop("test.dyn.res must be supplied to clusterGenes().") }
   clust.algo <- tolower(clust.algo)
   if (!clust.algo %in% c("hclust", "kmeans", "leiden")) { stop("clust.algo must be one of 'hclust', 'kmeans', or 'leiden'.") }
   if ((use.pca & is.null(n.PC)) || (use.pca & n.PC <= 0)) { stop("n.PC must be a non-zero integer when clustering on principal components.") }
   if (is.null(lineages)) {
-    lineages <- LETTERS[1:length(test.dyn.results[[1]])]
+    lineages <- LETTERS[1:length(test.dyn.res[[1]])]
   }
   gene_cluster_list <- vector("list", length = length(lineages))
   for (l in seq_along(lineages)) {
     # coerce fitted values to a gene x cell matrix, dropping genes w/ model errors
     lineage_name <- paste0("Lineage_", lineages[l])
-    fitted_vals_mat <- purrr::map(test.dyn.results, \(x) x[[lineage_name]]$MARGE_Preds) %>%
-                       stats::setNames(names(test.dyn.results)) %>%
+    fitted_vals_mat <- purrr::map(test.dyn.res, \(x) x[[lineage_name]]$MARGE_Preds) %>%
+                       stats::setNames(names(test.dyn.res)) %>%
                        purrr::discard(rlang::is_na) %>%
                        purrr::discard(\(p) rlang::inherits_only(p, "try-error")) %>%
                        purrr::map2(.y = names(.), function(x, y) {

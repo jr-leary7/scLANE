@@ -2,10 +2,10 @@
 % Please edit documentation in R/plotClusteredGenes.R
 \name{plotClusteredGenes}
 \alias{plotClusteredGenes}
-\title{Plot the results from \code{\link{clusterGenes}}.}
+\title{Generate tidy results from \code{\link{clusterGenes}} to use in plotting.}
 \usage{
 plotClusteredGenes(
-  test.dyn.results = NULL,
+  test.dyn.res = NULL,
   gene.clusters = NULL,
   pt = NULL,
   parallel.exec = TRUE,
@@ -13,7 +13,7 @@ plotClusteredGenes(
 )
 }
 \arguments{
-\item{test.dyn.results}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
+\item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
 
 \item{gene.clusters}{The data.frame returned by \code{\link{clusterGenes}}. Defaults to NULL.}
 
@@ -27,11 +27,11 @@ plotClusteredGenes(
 A \code{data.frame} with ready-to-plot tidy data. Includes columns for gene name, pseudotime lineage, cell name, fitted values on link & response scale, pseudotime, & gene cluster.
 }
 \description{
-Plot per-lineage, per-cluster fitted values from \code{scLANE}.
+Generate a table of per-lineage, per-cluster fitted values from \code{scLANE} to be used in visualizations.
 }
 \examples{
 \dontrun{
-plotClusteredGenes(test.dyn.results = gene_stats,
+plotClusteredGenes(test.dyn.res = gene_stats,
                    gene.clusters = gene_clusters,
                    pt = pt_df) \%>\%
   ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE) +

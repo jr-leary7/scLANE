@@ -18,6 +18,7 @@ plotModels(
   plot.glm = TRUE,
   plot.gam = TRUE,
   plot.marge = TRUE,
+  gam.degree = 3,
   filter.lineage = NULL,
   gg.theme = ggplot2::theme_classic(base_size = 14)
 )
@@ -49,6 +50,8 @@ plotModels(
 
 \item{plot.marge}{(Optional) Should the fitted values from the \code{marge} model be plotted? Defaults to TRUE.}
 
+\item{gam.degree}{(Optional) The basis spline degree used in \code{\link{nbGAM}}. Defaults to 3.}
+
 \item{filter.lineage}{(Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.}
 
 \item{gg.theme}{(Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.}
@@ -79,6 +82,7 @@ plotModels(gene_stats,
            id.vec = subject_ids,
            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject
            plot.gam = TRUE,  # plots an NB GAMM with random intercepts per-subject
+           gam.degree = 5,
            gg.theme = ggplot2::theme_minimal())
 }
 }

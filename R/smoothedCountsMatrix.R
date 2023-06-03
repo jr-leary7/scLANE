@@ -19,9 +19,9 @@
 #' \dontrun{
 #' smoothedCountsMatrix(gene_stats)
 #' smoothedCountsMatrix(gene_stats,
-#'                      genes = names(gene_stats)[1:100],
+#'                      genes = c("AURKA", "KRT19", "EPCAM", "GATA6"),
 #'                      parallel.exec = TRUE,
-#'                      n.cores = 4)
+#'                      n.cores = 2)
 #' }
 
 smoothedCountsMatrix <- function(test.dyn.res = NULL,
@@ -36,9 +36,11 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
   } else {
     future::plan(future::sequential)
   }
-  # extract fitted values for all genes of interest
+  # extract fitted values for all genes of interest across pseudotime lineages
   if (!is.null(genes)) {
     test.dyn.res <- test.dyn.res[genes]
+  } else {
+    genes <- names(test.dyn.res)
   }
   lineages <- LETTERS[1:length(test.dyn.res[[1]])]
   lineage_mat_list <- purrr::map(lineages, \(x) {
@@ -46,10 +48,10 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
     fitted_vals_list <- furrr::future_map(test.dyn.res, \(y) y[[lineage_name]]$MARGE_Preds) %>%
                         stats::setNames(names(test.dyn.res)) %>%
                         purrr::discard(rlang::is_na) %>%
-                        purrr::discard(\(p) rlang::inherits_only(p, "try-error")) %>%
-                        purrr::map(\(z) exp(z$marge_link_fit))
-    fitted_vals_mat <- purrr::reduce(fitted_vals_list, cbind) %>%
-                       stats::setNames(names(fitted_vals_list))
+                        purrr::discard(\(p) rlang::inherits_only(p, "try-error"))
+    fitted_vals_mat <- purrr::map(fitted_vals_list, \(z) exp(z$marge_link_fit)) %>%
+                       purrr::reduce(cbind)
+    colnames(fitted_vals_mat) <- names(fitted_vals_list)
     return(fitted_vals_mat)
   })
   names(lineage_mat_list) <- paste0("Lineage_", lineages)

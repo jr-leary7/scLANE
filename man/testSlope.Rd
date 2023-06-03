@@ -4,10 +4,10 @@
 \alias{testSlope}
 \title{Test whether a gene is dynamic over a pseudotime interval.}
 \usage{
-testSlope(test.dyn.results = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
+testSlope(test.dyn.res = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
 }
 \arguments{
-\item{test.dyn.results}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
+\item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
 
 \item{p.adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "holm".}
 
@@ -21,8 +21,10 @@ This function tests whether each gene's estimated \eqn{\beta} for pseudotime dif
 }
 \examples{
 \dontrun{
-testSlope(test.dyn.results = gene_stats)
-testSlope(test.dyn.results = gene_stats, method = "BH", fdr.cutoff = 0.05)
+testSlope(gene_stats)
+testSlope(gene_stats,
+          method = "BH",
+          fdr.cutoff = 0.05)
 }
 }
 \seealso{

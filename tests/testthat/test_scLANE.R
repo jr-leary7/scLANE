@@ -24,24 +24,29 @@ gee_gene_stats <- testDynamic(expr.mat = counts_test,
                               approx.knot = TRUE,
                               track.time = TRUE)
 glmm_gene_stats <- testDynamic(expr.mat = counts_test,
-                                pt = pt_test,
-                                n.potential.basis.fns = 3,
-                                is.glmm = TRUE,
-                                id.vec = sim_data$subject,
-                                parallel.exec = TRUE,
-                                n.cores = 2,
-                                approx.knot = TRUE,
-                                track.time = TRUE)
+                               pt = pt_test,
+                               n.potential.basis.fns = 3,
+                               is.glmm = TRUE,
+                               id.vec = sim_data$subject,
+                               parallel.exec = TRUE,
+                               n.cores = 2,
+                               approx.knot = TRUE,
+                               track.time = TRUE)
 # get results tables overall
-glm_test_results <- getResultsDE(test.dyn.results = glm_gene_stats)
-gee_test_results <- getResultsDE(test.dyn.results = gee_gene_stats)
-glmm_test_results <- getResultsDE(test.dyn.results = glmm_gene_stats)
+glm_test_results <- getResultsDE(glm_gene_stats)
+gee_test_results <- getResultsDE(gee_gene_stats)
+glmm_test_results <- getResultsDE(glmm_gene_stats)
 # get results tables by interval
-glm_slope_test <- testSlope(test.dyn.results = glm_gene_stats)
-gee_slope_test <- testSlope(test.dyn.results = gee_gene_stats)
-glmm_slope_test <- testSlope(test.dyn.results = glmm_gene_stats)
+glm_slope_test <- testSlope(glm_gene_stats)
+gee_slope_test <- testSlope(gee_gene_stats)
+glmm_slope_test <- testSlope(glmm_gene_stats)
 # run NB GAM
-gam_mod <- nbGAM(expr = counts_test[, 1], pt = pt_test)
+gam_mod_ps <- nbGAM(expr = counts_test[, 1],
+                    pt = pt_test,
+                    use.b.spline = FALSE)
+gam_mod_bs <- nbGAM(expr = counts_test[, 1],
+                    pt = pt_test,
+                    use.b.spline = TRUE)
 # run original marge model
 marge_mod <- marge2(X_pred = pt_test,
                     Y = counts_test[, 3],
@@ -70,6 +75,23 @@ plot_gee <- plotModels(glm_gene_stats,
                        is.gee = TRUE,
                        id.vec = sim_data$subject,
                        cor.structure = "exchangeable")
+# downstream analysis
+set.seed(312)
+gene_clusters <- clusterGenes(glm_gene_stats, clust.algo = "leiden")
+gene_clust_table <- plotClusteredGenes(glm_gene_stats,
+                                       gene.clusters = gene_clusters,
+                                       pt = pt_test,
+                                       n.cores = 2)
+smoothed_counts <- smoothedCountsMatrix(test.dyn.res = glm_gene_stats,
+                                        parallel.exec = TRUE,
+                                        n.cores = 2)
+fitted_values_table <- getFittedValues(glm_gene_stats,
+                                       genes = names(glm_gene_stats),
+                                       pt = pt_test,
+                                       expr.mat = counts_test,
+                                       cell.meta.data = as.data.frame(SummarizedExperiment::colData(sim_data)),
+                                       id.vec = sim_data$subject)
+gsea_res <- enrichDynamicGenes(glm_test_results, gene.set.cat = "C2")
 sink()
 
 test_that("testDynamic() output", {
@@ -103,9 +125,9 @@ test_that("getResultsDE() output", {
   expect_equal(ncol(glm_test_results), 14)
   expect_equal(ncol(gee_test_results), 15)
   expect_equal(ncol(glmm_test_results), 15)
-  expect_more_than(sum(glm_test_results$Gene_Dynamic_Overall), 0)
-  expect_more_than(sum(gee_test_results$Gene_Dynamic_Overall), 0)
-  expect_more_than(sum(glmm_test_results$Gene_Dynamic_Overall), 0)
+  expect_gt(sum(glm_test_results$Gene_Dynamic_Overall), 0)
+  expect_gt(sum(gee_test_results$Gene_Dynamic_Overall), 0)
+  expect_gt(sum(glmm_test_results$Gene_Dynamic_Overall), 0)
 })
 
 test_that("testSlope() output", {
@@ -127,10 +149,12 @@ test_that("testSlope() output", {
 })
 
 test_that("nbGAM() output", {
-  expect_s3_class(gam_mod, "gamlss")
-  expect_equal(length(coef(gam_mod)), 4)
-  expect_equal(round(gam_mod$G.deviance), 585)
-  expect_true(gam_mod$converged)
+  expect_s3_class(gam_mod_bs, "gamlss")
+  expect_s3_class(gam_mod_ps, "gamlss")
+  expect_equal(length(coef(gam_mod_bs)), 4)
+  expect_equal(length(coef(gam_mod_ps)), 2)
+  expect_true(gam_mod_bs$converged)
+  expect_true(gam_mod_ps$converged)
 })
 
 test_that("marge2() output", {
@@ -157,4 +181,36 @@ test_that("plotModels() output", {
   expect_equal(ncol(plot_gee$data), 11)
   expect_equal(nrow(plot_glm$data), 1200)
   expect_equal(nrow(plot_gee$data), 1200)
+})
+
+test_that("clusterGenes() output", {
+  expect_s3_class(gene_clusters, "data.frame")
+  expect_equal(ncol(gene_clusters), 3)
+  expect_equal(nrow(gene_clusters), 10)
+})
+
+test_that("plotClusteredGenes() output", {
+  expect_s3_class(gene_clust_table, "data.frame")
+  expect_equal(ncol(gene_clust_table), 7)
+  expect_equal(nrow(gene_clust_table), 3000)
+})
+
+test_that("smoothedCountsMatrix() output", {
+  expect_type(smoothed_counts, "list")
+  expect_equal(length(smoothed_counts), 1)
+  expect_type(smoothed_counts$Lineage_A, "double")
+  expect_equal(ncol(smoothed_counts$Lineage_A), 10)
+  expect_equal(nrow(smoothed_counts$Lineage_A), 300)
+})
+
+test_that("getFittedValues() output", {
+  expect_s3_class(fitted_values_table, "data.frame")
+  expect_equal(ncol(fitted_values_table), 17)
+  expect_equal(nrow(fitted_values_table), 3000)
+})
+
+test_that("enrichDynamicGenes() output", {
+  expect_s4_class(gsea_res, "enrichResult")
+  expect_s3_class(gsea_res@result, "data.frame")
+  expect_equal(ncol(gsea_res@result), 9)
 })

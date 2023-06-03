@@ -161,7 +161,7 @@ de_test_glm <- testDynamic(expr.mat = counts_mat,
                            n.potential.basis.fns = 3, 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 14.316 secs"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 13.941 secs"
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -254,7 +254,7 @@ de_test_gee <- testDynamic(expr.mat = counts_mat,
                            cor.structure = "exchangeable", 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 5.083 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 4.509 mins"
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -264,8 +264,7 @@ Wald test is used to compare the null & alternate models.
 
 ``` r
 de_res_gee <- getResultsDE(de_test_gee)
-de_res_gee %>% 
-  select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
+select(de_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
@@ -326,18 +325,18 @@ caret::confusionMatrix(factor(de_res_gee$Gene_Dynamic_Overall, levels = c(0, 1))
 ### GLMM Backend
 
 We re-run the DE tests a final time using the GLMM backend. This is the
-most complex & time-consuming type of model we support, and is also the
-trickiest to interpret. We recommend using it when you’re most
-interested in how a trajectory differs between subjects e.g., if the
-subjects can be stratified by groups such as Treatment & Control and you
-expect the Treatment group to have a different progression through the
-biological process. Executing the function with the GLMM backend differs
-only in that we switch the `is.glmm` flag to `TRUE` and no longer need
-to specify a working correlation structure. **Note**: the GLMM backend
-is still under development, as we are attempting to reduce runtime and
-increase the odds of the underlying optimization process converging
-successfully. As such, updates will be frequent and functionality /
-results may shift slightly.
+most complex model architecture we support, and is the trickiest to
+interpret. We recommend using it when you’re most interested in how a
+trajectory differs between subjects e.g., if the subjects can be
+stratified by groups such as Treatment & Control and you expect the
+Treatment group to have a different progression through the biological
+process. Executing the function with the GLMM backend differs only in
+that we switch the `is.glmm` flag to `TRUE` and no longer need to
+specify a working correlation structure. **Note**: the GLMM backend is
+still under development, as we are working on further reducing runtime
+and increasing the odds of the underlying optimization process
+converging successfully. As such, updates will be frequent and
+functionality / results may shift slightly.
 
 ``` r
 de_test_glmm <- testDynamic(expr.mat = counts_mat, 
@@ -348,7 +347,7 @@ de_test_glmm <- testDynamic(expr.mat = counts_mat,
                             id.vec = sim_data$subject, 
                             n.cores = 2, 
                             track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 6.488 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 5.648 mins"
 ```
 
 Like the GLM backend, the GLMMs use a likelihood ratio test to compare
@@ -359,8 +358,7 @@ each subject.
 
 ``` r
 de_res_glmm <- getResultsDE(de_test_glmm)
-de_res_glmm %>% 
-  select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
+select(de_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
@@ -428,8 +426,8 @@ show the output generated using the GLM backend, split by model type &
 colored by pseudotime lineage:
 
 ``` r
-plotModels(test.dyn.res = de_test_glm, 
-           gene = gene_sample[6], 
+plotModels(de_test_glm, 
+           gene = gene_sample[4], 
            pt = order_df, 
            gene.counts = counts_mat)
 ```
@@ -437,13 +435,16 @@ plotModels(test.dyn.res = de_test_glm,
 <img src="man/figures/README-plot-models-glm-1.png" width="100%" />
 
 When plotting the models generated using the GLMM backend, we split by
-lineage & color the points by subject ID instead of by lineage:
+lineage & color the points by subject ID instead of by lineage. The
+GLMMs perform well here since the gene’s dynamics differ somewhat
+between subjects.
 
 ``` r
-plotModels(test.dyn.res = de_test_glmm, 
-           gene = gene_sample[6], 
+plotModels(de_test_glmm, 
+           gene = gene_sample[2], 
            pt = order_df, 
            is.glmm = TRUE, 
+           plot.null = FALSE, 
            id.vec = sim_data$subject, 
            gene.counts = counts_mat)
 ```
@@ -461,8 +462,8 @@ fitted values per-gene, per-lineage over pseudotime along with the
 accompanying cluster labels.
 
 ``` r
-gene_clusters <- clusterGenes(test.dyn.results = de_test_glm, clust.algo = "leiden")
-gene_clust_table <- plotClusteredGenes(test.dyn.results = de_test_glm, 
+gene_clusters <- clusterGenes(de_test_glm, clust.algo = "leiden")
+gene_clust_table <- plotClusteredGenes(de_test_glm, 
                                        gene.clusters = gene_clusters, 
                                        pt = order_df, 
                                        n.cores = 2)
@@ -475,15 +476,15 @@ slice_sample(gene_clust_table, n = 5) %>%
 
 | Gene   | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
 |:-------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
-| EDF1   | A       | 1055 |         1.697 |             5.459 |      0.637 | 2       |
-| JARID2 | A       | 388  |         0.103 |             1.109 |      0.970 | 1       |
-| CCDC69 | A       | 1011 |        -2.060 |             0.127 |      0.527 | 1       |
-| MRPL42 | A       | 490  |        -1.236 |             0.290 |      0.225 | 2       |
-| TPT1   | A       | 406  |         3.863 |            47.628 |      0.015 | 2       |
+| ELOVL2 | A       | 133  |        -3.999 |             0.018 |      0.332 | 3       |
+| AMH    | A       | 278  |        -3.401 |             0.033 |      0.695 | 3       |
+| TIMP1  | A       | 976  |         3.113 |            22.492 |      0.440 | 2       |
+| TMC6   | A       | 1158 |        -2.239 |             0.107 |      0.895 | 3       |
+| PFDN2  | A       | 814  |         0.974 |             2.649 |      0.035 | 2       |
 
 The results can then be plotted as desired using `ggplot2` or another
-visualization package. Our results could be interpreted as showing a cluster 
-of static genes (cluster 1) and a cluster of dynamic genes (cluster 2).
+visualization package. Upon visual inspection, the genes seem to cluster
+based on whether they are dynamic or static over pseudotime.
 
 ``` r
 ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
@@ -491,7 +492,6 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
   geom_line(alpha = 0.75) + 
   scale_y_continuous(labels = scales::label_number(accuracy = 1)) + 
   scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) + 
-  scale_color_manual(values = c("forestgreen", "steelblue3", "firebrick")) + 
   labs(x = "Pseudotime", 
        y = "Fitted Values", 
        color = "Leiden\nCluster", 
@@ -502,8 +502,8 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
 
 <img src="man/figures/README-plot-clust-1.png" width="100%" />
 
-Indeed, if we look at the true frequency of dynamic genes in each group, 
-we see that cluster 2 has a much higher proportion than cluster 1.
+Checking the true frequency of dynamic genes in each cluster seems to
+confirm that hypothesis:
 
 ``` r
 distinct(gene_clust_table, GENE, CLUSTER) %>% 
@@ -518,8 +518,9 @@ distinct(gene_clust_table, GENE, CLUSTER) %>%
 
 | Leiden Cluster | Dynamic Gene Frequency |
 |:---------------|-----------------------:|
-| 1              |                  0.043 |
-| 2              |                  0.889 |
+| 1              |                  0.862 |
+| 2              |                  0.926 |
+| 3              |                  0.000 |
 
 # Conclusions & Best Practices
 

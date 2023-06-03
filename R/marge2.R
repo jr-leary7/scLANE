@@ -36,20 +36,21 @@
 #' @export
 #' @examples
 #' \dontrun{
-#'   marge2(X_pred = pseudotime_df,
+#'   marge2(pseudotime_df,
 #'          Y = expr_vec,
 #'          M = 3)
-#'   marge2(X_pred = pseudotime_df,
+#'   marge2(pseudotime_df,
 #'          Y = expr_vec,
 #'          is.gee = TRUE,
 #'          id.vec = subject_vec,
 #'          cor.structure = "exchangeable")
-#'   marge2(X_pred = pseudotime_df,
+#'   marge2(pseudotime_df,
 #'          Y = expr_vec,
 #'          is.gee = TRUE,
 #'          id.vec = subject_vec,
 #'          cor.structure = "ar1",
-#'          n.knot.max = 10)
+#'          n.knot.max = 10,
+#'          return.basis = TRUE)
 #' }
 
 marge2 <- function(X_pred = NULL,

@@ -149,8 +149,7 @@ We again generate the table of DE test results. The variance of the estimated co
 
 ```{r gee-results}
 de_res_gee <- getResultsDE(de_test_gee)
-de_res_gee %>% 
-  select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
+select(de_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
@@ -170,7 +169,7 @@ caret::confusionMatrix(factor(de_res_gee$Gene_Dynamic_Overall, levels = c(0, 1))
 
 ### GLMM Backend
 
-We re-run the DE tests a final time using the GLMM backend. This is the most complex & time-consuming type of model we support, and is also the trickiest to interpret. We recommend using it when you're most interested in how a trajectory differs between subjects e.g., if the subjects can be stratified by groups such as Treatment & Control and you expect the Treatment group to have a different progression through the biological process. Executing the function with the GLMM backend differs only in that we switch the `is.glmm` flag to `TRUE` and no longer need to specify a working correlation structure. **Note**: the GLMM backend is still under development, as we are attempting to reduce runtime and increase the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+We re-run the DE tests a final time using the GLMM backend. This is the most complex model architecture we support, and is the trickiest to interpret. We recommend using it when you're most interested in how a trajectory differs between subjects e.g., if the subjects can be stratified by groups such as Treatment & Control and you expect the Treatment group to have a different progression through the biological process. Executing the function with the GLMM backend differs only in that we switch the `is.glmm` flag to `TRUE` and no longer need to specify a working correlation structure. **Note**: the GLMM backend is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
 
 ```{r glmm-models}
 de_test_glmm <- testDynamic(expr.mat = counts_mat, 
@@ -187,8 +186,7 @@ Like the GLM backend, the GLMMs use a likelihood ratio test to compare the null 
 
 ```{r glmm-results}
 de_res_glmm <- getResultsDE(de_test_glmm)
-de_res_glmm %>% 
-  select(Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
+select(de_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
@@ -211,19 +209,20 @@ caret::confusionMatrix(factor(de_res_glmm$Gene_Dynamic_Overall, levels = c(0, 1)
 The main visualization function is `plotModels()`. It takes as input the results from `testDynamic()`, as well as a few specifications for which models & lineages should be plotted. While more complex visualizations can be created from our model output, this function gives us a good first glance at which models fit the underlying trend the best. Here we show the output generated using the GLM backend, split by model type & colored by pseudotime lineage:
 
 ```{r plot-models-glm}
-plotModels(test.dyn.res = de_test_glm, 
-           gene = gene_sample[6], 
+plotModels(de_test_glm, 
+           gene = gene_sample[4], 
            pt = order_df, 
            gene.counts = counts_mat)
 ```
 
-When plotting the models generated using the GLMM backend, we split by lineage & color the points by subject ID instead of by lineage:
+When plotting the models generated using the GLMM backend, we split by lineage & color the points by subject ID instead of by lineage. The GLMMs perform well here since the gene's dynamics differ somewhat between subjects. 
 
-```{r plot-models-glmm}
-plotModels(test.dyn.res = de_test_glmm, 
-           gene = gene_sample[6], 
+```{r plot-models-glmm, fig.width=9, fig.height=9}
+plotModels(de_test_glmm, 
+           gene = gene_sample[2], 
            pt = order_df, 
            is.glmm = TRUE, 
+           plot.null = FALSE, 
            id.vec = sim_data$subject, 
            gene.counts = counts_mat)
 ```
@@ -231,8 +230,8 @@ plotModels(test.dyn.res = de_test_glmm,
 After generating a suitable set of models, we can cluster the genes in a semi-supervised fashion using `clusterGenes()`. This function uses the Leiden algorithm (the default), hierarchical clustering, or *k*-means and selects the best set of clustering hyperparameters using the silhouette score. If desired PCA can be run prior to clustering, but the default is to cluster on the fitted values themselves. We then use the results as input to `plotClusteredGenes()`, which generates a table of fitted values per-gene, per-lineage over pseudotime along with the accompanying cluster labels. 
 
 ```{r cluster-genes}
-gene_clusters <- clusterGenes(test.dyn.results = de_test_glm, clust.algo = "leiden")
-gene_clust_table <- plotClusteredGenes(test.dyn.results = de_test_glm, 
+gene_clusters <- clusterGenes(de_test_glm, clust.algo = "leiden")
+gene_clust_table <- plotClusteredGenes(de_test_glm, 
                                        gene.clusters = gene_clusters, 
                                        pt = order_df, 
                                        n.cores = 2)
@@ -243,7 +242,7 @@ slice_sample(gene_clust_table, n = 5) %>%
                col.names = c("Gene", "Lineage", "Cell", "Fitted (link)", "Fitted (response)", "Pseudotime", "Cluster"))
 ```
 
-The results can then be plotted as desired using `ggplot2` or another visualization package. Our results could be interpreted as showing a cluster of static genes (cluster 1) and a cluster of dynamic genes (cluster 2).
+The results can then be plotted as desired using `ggplot2` or another visualization package. Upon visual inspection, the genes seem to cluster based on whether they are dynamic or static over pseudotime. 
 
 ```{r plot-clust}
 ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
@@ -251,7 +250,6 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
   geom_line(alpha = 0.75) + 
   scale_y_continuous(labels = scales::label_number(accuracy = 1)) + 
   scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) + 
-  scale_color_manual(values = c("forestgreen", "steelblue3")) + 
   labs(x = "Pseudotime", 
        y = "Fitted Values", 
        color = "Leiden\nCluster", 
@@ -260,7 +258,7 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
   guides(color = guide_legend(override.aes = list(size = 3, alpha = 1)))
 ```
 
-Indeed, if we look at the true frequency of dynamic genes in each group, we see that cluster 2 has a much higher proportion than cluster 1.
+Checking the true frequency of dynamic genes in each cluster seems to confirm that hypothesis:
 
 ```{r dyn-freq}
 distinct(gene_clust_table, GENE, CLUSTER) %>% 

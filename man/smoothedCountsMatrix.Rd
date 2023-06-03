@@ -30,9 +30,9 @@ This function takes as input the output from \code{\link{testDynamic}} and retur
 \dontrun{
 smoothedCountsMatrix(gene_stats)
 smoothedCountsMatrix(gene_stats,
-                     genes = names(gene_stats)[1:100],
+                     genes = c("AURKA", "KRT19", "EPCAM", "GATA6"),
                      parallel.exec = TRUE,
-                     n.cores = 4)
+                     n.cores = 2)
 }
 }
 \seealso{

@@ -82,6 +82,13 @@ library(scLANE)
 library(ggplot2)
 library(scaffold)
 library(SingleCellExperiment)
+library(scRNAseq)
+library(scran)
+library(purrr)
+library(scater)
+library(igraph)
+library(caret)
+
 select <- dplyr::select
 ```
 

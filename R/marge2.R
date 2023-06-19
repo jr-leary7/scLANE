@@ -10,27 +10,34 @@
 #' @importFrom dplyr mutate ntile group_by sample_frac
 #' @importFrom geeM geem
 #' @importFrom MASS glm.nb negative.binomial theta.mm
-#' @importFrom stats fitted coef
+#' @importFrom utils tail
+#' @importFrom purrr map_chr
+#' @importFrom stats fitted coef offset as.formula
 #' @param X_pred A matrix of the predictor variables. Defaults to NULL.
 #' @param Y The response variable. Defaults to NULL.
+#' @param Y.offset (Optional) An vector of per-cell size factors to be included in the final model fit as an offset. Defaults to NULL.
 #' @param M A set threshold for the number of basis functions to be used. Defaults to 5.
 #' @param is.gee Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
-#' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "exchangeable".
+#' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
 #' @param approx.knot (Optional) Should the set of candidate knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
-#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 15.
-#' @param pen (Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). Defaults to 2.
+#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 20.
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
 #' @param minspan (Optional) A set minimum span value. Defaults to NULL.
 #' @param return.basis (Optional) Whether the basis model matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.
-#' @param return.wic (Optional) Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE.
+#' @param return.WIC (Optional) Whether the WIC matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
+#' @details
+#' \itemize{
+#' \item If models are being fit using an offset (as is recommended), it is assumed that the offset represents a library size factor (or similar quantity) generated using e.g., \code{\link{createCellOffset}} or \code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents a scaling factor divide by sequencing depth, the offset is formulated as \code{offset(log(1 / cell_offset))}. The inversion is necessary because the rate term, i.e. the sequencing depth, is the denominator of the estimated size factors.
+#' }
 #' @return An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 #' @seealso \code{\link{backward_sel_WIC}}
 #' @seealso \code{\link{testDynamic}}
+#' @seealso \code{\link{createCellOffset}}
 #' @seealso \code{\link[MASS]{glm.nb}}
 #' @seealso \code{\link[geeM]{geem}}
 #' @export
@@ -41,6 +48,7 @@
 #'          M = 3)
 #'   marge2(pseudotime_df,
 #'          Y = expr_vec,
+#'          Y.offset = size_factor_vec,
 #'          is.gee = TRUE,
 #'          id.vec = subject_vec,
 #'          cor.structure = "exchangeable")
@@ -55,17 +63,17 @@
 
 marge2 <- function(X_pred = NULL,
                    Y = NULL,
+                   Y.offset = NULL,
                    M = 5,
                    is.gee = FALSE,
                    id.vec = NULL,
-                   cor.structure = "exchangeable",
+                   cor.structure = "ar1",
                    approx.knot = TRUE,
-                   n.knot.max = 15,
-                   pen = 2,
+                   n.knot.max = 20,
                    tols_score = 1e-5,
                    minspan = NULL,
                    return.basis = FALSE,
-                   return.wic = FALSE,
+                   return.WIC = FALSE,
                    return.GCV = FALSE) {
   # check inputs
   if (is.null(X_pred) || is.null(Y)) { stop("Some required inputs to marge2() are missing.") }
@@ -88,41 +96,42 @@ marge2 <- function(X_pred = NULL,
                                 dfr = NN - 1)
   }
 
-  colnames(B) <- c("Intercept")
-  var_name_vec <- c("Intercept")
+  pen <- 2  # penalty for GCV criterion
+  colnames(B) <- "Intercept"
+  var_name_vec <- "Intercept"
   var_name_list <- list("Intercept")
-  B_names_vec <- c("Intercept")
-  min_knot_vec <- c("Intercept")
-  pred.name_vec <- c("Intercept")
-  cut_vec <- c("Intercept")
-  trunc.type_vec <- c(1)
-  is.int_vec <- c("FALSE")
-  mod_struct <- c(1)  # Univariate (1) or interaction (2).
-  score_term <- c(0)
+  B_names_vec <- "Intercept"
+  min_knot_vec <- "Intercept"
+  pred.name_vec <- "Intercept"
+  cut_vec <- "Intercept"
+  trunc.type_vec <- 1
+  mod_struct <- 1  # Univariate (1) or interaction (2).
+  score_term <- 0
   TSS <- sum((Y - mean(Y))^2)
   GCV.null <- TSS / (NN * (1 - (1 / NN))^2)
 
   # Null model setup.
-  m <- 1
-  k <- 1
+  m <- k <- 1
   breakFlag <- FALSE
   ok <- TRUE
   int.count <- 0
 
   while (ok) {  # this is such egregiously bad code lol
-    if (breakFlag) { break }
+    if (breakFlag) {
+      break
+    }
 
-    var.mod_temp <- c()
-    score_term_temp <- c()
-    min_knot_vec_temp <- c()
-    int.count1_temp <- c()
-    is.int_temp <- c()
-    trunc.type_temp <- c()
-    B_new_list_temp <- list()
-    var_name_list1_temp <- list()
-    B_names_temp <- list()
-    X_red_temp <- list()
-    B_temp_list <- list()
+    var.mod_temp <- NULL
+    score_term_temp <- NULL
+    min_knot_vec_temp <- NULL
+    int.count1_temp <- NULL
+    is.int_temp <- NULL
+    trunc.type_temp <- NULL
+    B_new_list_temp <- vector("list")
+    var_name_list1_temp <- vector("list")
+    B_names_temp <- vector("list")
+    X_red_temp <- vector("list")
+    B_temp_list <- vector("list")
 
     # Obtain/calculate the null stats here (speeds things up).
     if (is.gee) {
@@ -151,25 +160,26 @@ marge2 <- function(X_pred = NULL,
     for (v in seq(q)) {
       var_name <- colnames(X_pred)[v]
       if (approx.knot) {
-        X <- round(X_pred[, v], 2)
-        X_red1 <- min_span(X_red = X, q = q, minspan = minspan)  # reduce the space between knots
-        X_red2 <- max_span(X_pred = X, q = q)  # truncate the ends of data to avoid extreme values
+        # enhanced candidate knot selection
+        X <- round(X_pred[, v], 4)
+        X_red1 <- min_span(X_red = X, q = q, minspan = minspan)
+        X_red2 <- max_span(X_red = X, q = q)
         X_red <- intersect(X_red1, X_red2)
-        # further subsample by quantile to make things EVEN FASTER
         if (length(X_red) > n.knot.max) {
           X_red <- seq(min(X_red), max(X_red), length.out = n.knot.max)
         }
       } else {
+        # original candidate knot selection from 2017 Stoklosa & Warton paper
         X <- round(X_pred[, v], 4)
-        X_red1 <- min_span(X_red = X, q = q, minspan = minspan)  # reduce the space between knots
-        X_red2 <- max_span(X_pred = X, q = q)  # truncate the ends of data to avoid extreme values
+        X_red1 <- min_span(X_red = X, q = q, minspan = minspan)
+        X_red2 <- max_span(X_red = X, q = q)
         X_red <- intersect(X_red1, X_red2)
       }
 
-      score_knot_both_int_mat <- c()
-      score_knot_both_add_mat <- c()
-      score_knot_one_int_mat <- c()
-      score_knot_one_add_mat <- c()
+      score_knot_both_int_mat <- NULL
+      score_knot_both_add_mat <- NULL
+      score_knot_one_int_mat <- NULL
+      score_knot_one_add_mat <- NULL
 
       int.count1 <- 0
 
@@ -179,14 +189,14 @@ marge2 <- function(X_pred = NULL,
         b1_new <- matrix(tp1(x = X,  t = X_red[t]), ncol = 1)  # Pairs of truncated functions.
         b2_new <- matrix(tp2(x = X, t = X_red[t]), ncol = 1)
 
-        score_knot_both_int <- c()
-        score_knot_both_add <- c()
-        score_knot_one_int <- c()
-        score_knot_one_add <- c()
+        score_knot_both_int <- NULL
+        score_knot_both_add <- NULL
+        score_knot_one_int <- NULL
+        score_knot_one_add <- NULL
 
         if (in.set == 0) {
-          B_new_both_add <- cbind(B, b1_new, b2_new)   # Additive model with both truncated functions.
-          B_new_one_add <- cbind(B, b1_new)         # Additive model with one truncated function (positive part).
+          B_new_both_add <- cbind(B, b1_new, b2_new)  # Additive model with both truncated functions.
+          B_new_one_add <- cbind(B, b1_new)  # Additive model with one truncated function (positive part).
 
           if (is.gee) {
             meas_model_both_add <- score_fun_gee(Y = Y,
@@ -236,14 +246,15 @@ marge2 <- function(X_pred = NULL,
 
           score_knot_both_add <- c(score_knot_both_add, meas_model_both_add$score)
           score_knot_one_add <- c(score_knot_one_add, meas_model_one_add$score)
-          score_knot_both_int <- score_knot_one_int <- -100000  # Interaction set is impossible since there is nothing to interact with, so let the LOF measure be a huge negative number.
+          score_knot_both_int <- score_knot_one_int <- -1e5  # Interaction set is impossible since there is nothing to interact with, so let the LOF measure be a huge negative number.
 
           } else {
           var_name_struct <- which(((var_name != var_name_vec) * mod_struct) == 1)
-          colnames(B)[1] <- c("")
+          colnames(B)[1] <- ""
           B2 <- as.matrix(B[, var_name_struct])
-          if (k != 1 & (any(!var_name_vec[-1] %in% var_name))) { B2 <- as.matrix(B2[, -1]) }
-          if (ncol(B2) == 0) { B2 <- as.matrix(B[, 1]) }
+          if (k != 1 & any(!var_name_vec[-1] %in% var_name)) {
+            B2 <- as.matrix(B2[, -1, drop = FALSE])
+          }
 
           for (nn in seq(ncol(B2))) {
             B2a <- matrix(rep(B2[, nn], 2), ncol = 2)
@@ -589,13 +600,14 @@ marge2 <- function(X_pred = NULL,
 
       if (int) {
         mod_struct1 <- which(mod_struct == 1)
-        colnames(B)[1] <- c("")
+        colnames(B)[1] <- ""
         var_name1 <- which(var_name_vec != var_name)
-        var_name2 <- ifelse(int.count == 0, var_name_vec[var_name1], var_name_vec[var_name_struct])
+        var_name2 <- ifelse(int.count == 0,
+                            var_name_vec[var_name1],
+                            var_name_vec[var_name_struct])
         var_name2 <- var_name2[-1]
         var_name_struct <- mod_struct1[mod_struct1 %in% var_name1]
         B2 <- as.matrix(B[, var_name_struct, drop = FALSE])
-        #B2 <- as.matrix(B2[, -1, drop = FALSE])
         B3_names <- B_names_vec[var_name_struct][-1]
 
         if (trunc.type == 2) {
@@ -614,16 +626,18 @@ marge2 <- function(X_pred = NULL,
         }
 
         B_names <- paste(B3_names[best.var], B_name1, sep = "*")
-        B_names <- ifelse(trunc.type == 2, c(B_names, paste(B3_names[best.var], B_name2, sep = "*")), B_names)
+        B_names <- ifelse(trunc.type == 2,
+                          c(B_names, paste(B3_names[best.var], B_name2, sep = "*")),
+                          B_names)
 
-        var_name_list1 <- list()
+        var_name_list1 <- vector("list")
         for (ll in seq(ncol(B_new))) {
           colnames(B_new)[ll] <- paste(var_name, colnames(B_new)[ll], sep = ":")
           var_name_list1 <- c(var_name_list1, list(colnames(B_new)[ll]))
           int.count1 <- int.count1 + 1
         }
       } else {
-        var_name_list1 <- list()
+        var_name_list1 <- vector("list")
         if (trunc.type == 2) {
           B_temp <- cbind(B, b1_new, b2_new) # Additive model with both truncated basis functions.
           B_new <- cbind(b1_new, b2_new)
@@ -669,9 +683,7 @@ marge2 <- function(X_pred = NULL,
                               TSS = TSS,
                               GCV.null = GCV.null,
                               pen = pen)
-      GCVq2 <- meas_model0$GCVq1
-
-      if (GCVq2 < (-10) || round(score2, 4) <= 0) {
+      if (meas_model0$GCVq1 < -10 || round(score2, 4) <= 0) {
         var.mod_temp <- c(var.mod_temp, NA)
         min_knot_vec_temp <- c(min_knot_vec_temp, NA)
         int.count1_temp <- c(int.count1_temp, NA)
@@ -690,9 +702,7 @@ marge2 <- function(X_pred = NULL,
         } else {
           next
         }
-      }
-
-      if (GCVq2 >= (-10) || round(score2, 4) > 0) {
+      } else if (meas_model0$GCVq1 >= -10 || round(score2, 4) > 0) {
         score_term_temp <- c(score_term_temp, score2)
       }
 
@@ -706,12 +716,13 @@ marge2 <- function(X_pred = NULL,
       B_names_temp <- c(B_names_temp, list(B_names))
       X_red_temp <- c(X_red_temp, list(X_red))
       B_temp_list <- c(B_temp_list, list(B_temp))
-    }  # Terminate the for loop to end v (variables) here.
+    }
 
-    if (breakFlag) { break }
+    if (breakFlag) {
+      break
+    }
 
-    best.mod <- which.max(score_term_temp)  # Finds the best model (i.e., the max LOF) from your candidate model/basis set. This becomes the new parent.
-
+    best.mod <- which.max(score_term_temp)  # Finds the best model (i.e., the max LOF) from your candidate model/basis set. This becomes the new parent
     score2 <- score_term_temp[best.mod]
     min_knot_vec1 <- min_knot_vec_temp[best.mod]
     int.count1 <- int.count1_temp[best.mod]
@@ -727,7 +738,6 @@ marge2 <- function(X_pred = NULL,
     pred.name_vec <- c(pred.name_vec, colnames(B_new)[1])
     cut_vec <- c(cut_vec, X_red[min_knot_vec1])
     trunc.type_vec <- c(trunc.type_vec, trunc.type)
-    is.int_vec <- c(is.int_vec, int)
 
     if (score_term[k + 1] < tols_score) {
       breakFlag <- TRUE
@@ -747,36 +757,30 @@ marge2 <- function(X_pred = NULL,
       m <- m + 2
     }
 
-    if (nrow(B) <= (ncol(B) + 2)) {  # To avoid the p > N issue!
-      ok <- FALSE
-    }
-
-    if (m >= M) { # If model exceeds no. of set terms, terminate it.
+    # terminate if high dimensionality occurs or maximum # of hinge functions is reached
+    if (nrow(B) <= (ncol(B) + 2) || m >= M) {
       ok <- FALSE
     }
   }
 
-  colnames(B) <- B_names_vec
-  B2 <- B
-
   # Algorithm 3 (backward pass) as in Friedman (1991) but for GLM/GEE use WIC.
 
+  colnames(B) <- B_names_vec
   WIC_vec_2 <- NA
   full.wic <- 0
   B_new <- B
-  ncol_Bnew <- ncol(B_new)
   ncol_B <- ncol(B)
   cnames_2 <- list(colnames(B_new))
 
-  wic_mat_2 <- matrix(NA, ncol = ncol_B , nrow = ncol_B)
-  colnames(wic_mat_2) <- colnames(B)
-  wic_mat_2 <- cbind(wic_mat_2, rep(NA, ncol_B ))
+  wic_mat_2 <- matrix(NA_real_, ncol = ncol_B , nrow = ncol_B)
+  colnames(wic_mat_2) <- B_names_vec
+  wic_mat_2 <- cbind(wic_mat_2, rep(NA_real_, ncol_B))
   colnames(wic_mat_2)[(ncol_B  + 1)] <- "Forward pass model"
 
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
   wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
-  WIC_2 <- sum(apply(wic_mat_2[1:2, ], 1, min, na.rm = TRUE)) + 2 * ncol_Bnew
+  WIC_2 <- sum(apply(wic_mat_2[1:2, ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new)
   WIC_vec_2 <- c(WIC_vec_2, WIC_2)
 
   variable.lowest_2 <- as.numeric(which(wic1_2 == min(wic1_2, na.rm = TRUE))[1])
@@ -804,14 +808,31 @@ marge2 <- function(X_pred = NULL,
 
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
+  model_df <- as.data.frame(B_final)
+  clean_varnames <- gsub("\\(", "", colnames(model_df)[-1])
+  clean_varnames <- gsub("\\)", "", clean_varnames)
+  clean_varnames <- gsub("-", "_", clean_varnames)
+  clean_varnames <- paste0("h_", clean_varnames)
+  colnames(model_df) <- c("Intercept", clean_varnames)
+  model_formula <- paste(colnames(model_df), collapse = " + ")
+  model_formula <- paste0("Y ~ -1 + ", model_formula)
+  if (!is.null(Y.offset)) {
+    model_df <- dplyr::mutate(model_df,
+                              cell_offset = Y.offset)
+    model_formula <- paste0(model_formula, " + ", "offset(log(1 / cell_offset))")  # this is correct i promise
+  }
+  model_formula <- stats::as.formula(model_formula)
   if (is.gee) {
-    final_mod <- geeM::geem(Y ~ B_final - 1,
+    final_mod <- geeM::geem(model_formula,
+                            data = model_df,
                             id = id.vec,
-                            family = MASS::negative.binomial(theta_hat),
+                            family = MASS::negative.binomial(theta_hat, link = log),
                             corstr = cor.structure,
+                            scale.fix = FALSE,
                             sandwich = TRUE)
   } else {
-    final_mod <- MASS::glm.nb(Y ~ B_final - 1,
+    final_mod <- MASS::glm.nb(model_formula,
+                              data = model_df,
                               method = "glm.fit2",
                               link = log,
                               init.theta = 1,
@@ -823,26 +844,21 @@ marge2 <- function(X_pred = NULL,
     final_mod <- stripGLM(glm.obj = final_mod)
   }
   res <- list(final_mod = final_mod,
-              bx = NULL,
-              wic_mat = NULL,
-              min_wic_own = NULL,
+              basis_mtx = NULL,
+              WIC_mtx = NULL,
               GCV = NULL,
               model_type = ifelse(is.gee, "GEE", "GLM"),
-              marge_coef_names = names(stats::coef(final_mod)))
+              coef_names = names(stats::coef(final_mod)),
+              marge_coef_names = colnames(B_final))
   if (return.basis) {
-    res$bx <- B_final
+    res$basis_mtx <- model_df
   }
   if (return.GCV) {
-    p_2 <- ncol(B_final)
-    df1a <- p_2 + pen * (p_2 - 1) / 2  # This matches the {earth} package, SAS and Friedman (1991) penalty
-    RSS1 <- sum((Y - stats::fitted(final_mod))^2)
-    GCV1 <- RSS1 / (NN * (1 - df1a / NN)^2)
-    res$GCV <- GCV1
+    df1a <- ncol(B_final) + pen * (ncol(B_final) - 1) / 2  # This matches the {earth} package, SAS and Friedman (1991) penalty
+    res$GCV <- sum((Y - stats::fitted(final_mod))^2) / (NN * (1 - df1a / NN)^2)
   }
-  if (return.wic) {
-    min_wic_own <- min(wic_mat_2, na.rm = TRUE)
-    res$wic_mat <- wic_mat_2
-    res$min_wic_own <- min_wic_own
+  if (return.WIC) {
+    res$WIC_mtx <- wic_mat_2
   }
   class(res) <- "marge"
   return(res)

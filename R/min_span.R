@@ -19,18 +19,13 @@ min_span <- function(X_red = NULL,
   if (is.null(X_red) || is.null(q)) { stop("Some inputs to min_span() are missing.") }
   N <- length(X_red)
   x <- sort(X_red)
-  minspan <- ifelse(is.null(minspan),
-                    round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5)),
-                    minspan)
+  if (is.null(minspan)) {
+    minspan <- round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))
+  }
   # run function
-  okA <- TRUE
   x_new <- min(x, na.rm = TRUE)
   cc <- 1
-  while (okA) {
-    if ((cc + minspan) > length(x)) {
-      break
-      okA <- FALSE
-    }
+  while ((cc + minspan) <= length(x)) {
     x_new1 <- x[cc + (minspan + 1)]
     x_new <- c(x_new, x_new1)
     cc <- cc + (minspan + 1)

@@ -6,6 +6,8 @@
 \usage{
 smoothedCountsMatrix(
   test.dyn.res = NULL,
+  size.factor.offset = NULL,
+  pt = NULL,
   genes = NULL,
   parallel.exec = TRUE,
   n.cores = 2
@@ -13,6 +15,10 @@ smoothedCountsMatrix(
 }
 \arguments{
 \item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
+
+\item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
+
+\item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
 \item{genes}{(Optional) A character vector of genes with which to subset the results. Defaults to NULL.}
 
@@ -28,8 +34,9 @@ This function takes as input the output from \code{\link{testDynamic}} and retur
 }
 \examples{
 \dontrun{
-smoothedCountsMatrix(gene_stats)
+smoothedCountsMatrix(gene_stats, pt = pt_df)
 smoothedCountsMatrix(gene_stats,
+                     pt = pt_df,
                      genes = c("AURKA", "KRT19", "EPCAM", "GATA6"),
                      parallel.exec = TRUE,
                      n.cores = 2)

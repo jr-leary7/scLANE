@@ -7,32 +7,44 @@
 #' @importFrom purrr map discard map2 reduce
 #' @importFrom stats setNames hclust cutree kmeans dist
 #' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
+#' @param pt A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.
+#' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param clust.algo The clustering method to use. Can be one of "hclust", "kmeans", "leiden". Defaults to "leiden".
 #' @param use.pca Should PCA be performed prior to clustering? Defaults to FALSE.
 #' @param n.PC The number of principal components to use when performing dimension reduction prior to clustering. Defaults to 15.
 #' @param lineages Should one or more lineages be isolated? If so, specify which one(s). Otherwise, all lineages will be clustered independently. Defaults to NULL.
+#' @details
+#' \itemize{
+#' \item Due to some peculiarities of how the fitted values (on the link scale) are generated for \code{geeM} models, it's not necessary to multiply them by the offset as this is done internally. For GLM & GEE models, the opposite is true, and \code{size.factor.offset} must be provided in order to rescale the fitted values correctly.
+#' }
 #' @return A data.frame of with three columns: \code{Gene}, \code{Lineage}, and \code{Cluster}.
 #' @seealso \code{\link{testDynamic}}
 #' @seealso \code{\link{plotClusteredGenes}}
 #' @export
 #' @examples
 #' \dontrun{
-#' clusterGenes(gene_stats, clust.algo = "leiden")
+#' clusterGenes(gene_stats, pt = pt_df)
 #' clusterGenes(gene_stats,
+#'              pt = pt_df,
+#'              size.factor.offset = createCellOffset(sce_obj),
 #'              clust.algo = "kmeans",
 #'              use.pca = TRUE,
 #'              n.PC = 10,
 #'              lineages = "B")
-#' clusterGenes(gene_stats, lineages = c("A", "C"))
+#' clusterGenes(gene_stats,
+#'              pt = pt_df,
+#'              lineages = c("A", "C"))
 #' }
 
 clusterGenes <- function(test.dyn.res = NULL,
+                         pt = NULL,
+                         size.factor.offset = NULL,
                          clust.algo = "leiden",
                          use.pca = FALSE,
                          n.PC = 15,
                          lineages = NULL) {
   # check inputs
-  if (is.null(test.dyn.res)) { stop("test.dyn.res must be supplied to clusterGenes().") }
+  if (is.null(test.dyn.res) || is.null(pt)) { stop("test.dyn.res & pt must be supplied to clusterGenes().") }
   clust.algo <- tolower(clust.algo)
   if (!clust.algo %in% c("hclust", "kmeans", "leiden")) { stop("clust.algo must be one of 'hclust', 'kmeans', or 'leiden'.") }
   if ((use.pca & is.null(n.PC)) || (use.pca & n.PC <= 0)) { stop("n.PC must be a non-zero integer when clustering on principal components.") }
@@ -48,8 +60,13 @@ clusterGenes <- function(test.dyn.res = NULL,
                        purrr::discard(rlang::is_na) %>%
                        purrr::discard(\(p) rlang::inherits_only(p, "try-error")) %>%
                        purrr::map2(.y = names(.), function(x, y) {
-                         t(as.data.frame(exp(x$marge_link_fit))) %>%
-                           magrittr::set_rownames(y)
+                         if (is.null(size.factor.offset)) {
+                           t(as.data.frame(exp(x$marge_link_fit))) %>%
+                             magrittr::set_rownames(y)
+                         } else {
+                           t(as.data.frame(exp(x$marge_link_fit)) * unname(size.factor.offset)[!is.na(pt[, l])]) %>%
+                             magrittr::set_rownames(y)
+                         }
                        }) %>%
                        purrr::reduce(rbind)
     if (use.pca) {
@@ -105,12 +122,12 @@ clusterGenes <- function(test.dyn.res = NULL,
       if (use.pca) {
         clust_res <- stats::kmeans(fitted_vals_pca$x,
                                    centers = k_to_use,
-                                   nstart = 5,
+                                   nstart = 10,
                                    algorithm = "Hartigan-Wong")
       } else {
         clust_res <- stats::kmeans(fitted_vals_mat,
                                    centers = k_to_use,
-                                   nstart = 5,
+                                   nstart = 10,
                                    algorithm = "Hartigan-Wong")
       }
       gene_clusters <- data.frame(Gene = rownames(fitted_vals_mat),

@@ -5,12 +5,13 @@
 #' @import magrittr
 #' @importFrom stats qnorm
 #' @importFrom purrr map map2 reduce
-#' @importFrom dplyr mutate bind_cols relocate select filter
+#' @importFrom dplyr mutate bind_cols relocate select filter across
 #' @description Generate a table of expression counts, model fitted values, celltype metadata, etc. in order to create custom plots of gene dynamics.
 #' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to NULL.
 #' @param genes A character vector of genes to generate fitted values for. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param expr.mat A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.
+#' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param cell.meta.data (Optional) A data.frame of metadata values for each cell (celltype label, subject characteristics, tissue type, etc.) that will be included in the result table. Defaults to NULL.
 #' @param id.vec (Optional) A vector of subject IDs used in fitting GEE or GLMM models. Defaults to NULL.
 #' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
@@ -31,6 +32,7 @@ getFittedValues <- function(test.dyn.res = NULL,
                             genes = NULL,
                             pt = NULL,
                             expr.mat = NULL,
+                            size.factor.offset = NULL,
                             cell.meta.data = NULL,
                             id.vec = NULL,
                             ci.alpha = 0.05,
@@ -52,12 +54,28 @@ getFittedValues <- function(test.dyn.res = NULL,
                                                  lineage = y,
                                                  pt = x[!is.na(x)],
                                                  gene = g,
-                                                 expression = expr.mat[!is.na(x), g],
-                                                 scLANE_fitted_link = test.dyn.res[[g]][[paste0("Lineage_", y)]]$MARGE_Preds$marge_link_fit,
-                                                 scLANE_se_link = test.dyn.res[[g]][[paste0("Lineage_", y)]]$MARGE_Preds$marge_link_se) %>%
-                                      dplyr::mutate(scLANE_fitted = exp(scLANE_fitted_link),
+                                                 expression = expr.mat[!is.na(x), g])
+                           pred_df <- try({
+                             data.frame(scLANE_fitted_link = test.dyn.res[[g]][[paste0("Lineage_", y)]]$MARGE_Preds$marge_link_fit,
+                                        scLANE_se_link = test.dyn.res[[g]][[paste0("Lineage_", y)]]$MARGE_Preds$marge_link_se)
+                           }, silent = TRUE)
+                           if (inherits(pred_df, "try-error")) {
+                             gene_df <- dplyr::mutate(gene_df,
+                                                      scLANE_fitted_link = NA_real_,
+                                                      scLANE_se_link = NA_real_)
+                           } else {
+                             gene_df <- dplyr::mutate(gene_df,
+                                                      scLANE_fitted_link = pred_df$scLANE_fitted_link,
+                                                      scLANE_se_link = pred_df$scLANE_se_link)
+                           }
+                           gene_df <- dplyr::mutate(gene_df,
+                                                    scLANE_fitted = exp(scLANE_fitted_link),
                                                     scLANE_ci_ll = exp(scLANE_fitted_link - Z * scLANE_se_link),
                                                     scLANE_ci_ul = exp(scLANE_fitted_link + Z * scLANE_se_link))
+                           if (!is.null(size.factor.offset)) {
+                             gene_df <- dplyr::mutate(gene_df,
+                                                      dplyr::across(c(scLANE_fitted, scLANE_ci_ll, scLANE_ci_ul), \(m) m * unname(size.factor.offset)[!is.na(x)]))
+                           }
                            gene_df <- dplyr::bind_cols(gene_df, cell.meta.data[!is.na(x), , drop = FALSE])
                            return(gene_df)
                          }) %>%

@@ -9,6 +9,8 @@
 #' @importFrom furrr future_map
 #' @importFrom stats setNames
 #' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
+#' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
+#' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param genes (Optional) A character vector of genes with which to subset the results. Defaults to NULL.
 #' @param parallel.exec Should \code{furrr} be used to speed up execution? Defaults to TRUE.
 #' @param n.cores If parallel execution is desired, how many cores should be utilized? Defaults to 2.
@@ -17,19 +19,22 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' smoothedCountsMatrix(gene_stats)
+#' smoothedCountsMatrix(gene_stats, pt = pt_df)
 #' smoothedCountsMatrix(gene_stats,
+#'                      pt = pt_df,
 #'                      genes = c("AURKA", "KRT19", "EPCAM", "GATA6"),
 #'                      parallel.exec = TRUE,
 #'                      n.cores = 2)
 #' }
 
 smoothedCountsMatrix <- function(test.dyn.res = NULL,
+                                 size.factor.offset = NULL,
+                                 pt = NULL,
                                  genes = NULL,
                                  parallel.exec = TRUE,
                                  n.cores = 2) {
   # check inputs
-  if (is.null(test.dyn.res)) { stop("Please provide the scLANE output from testDynamic().") }
+  if (is.null(test.dyn.res) || is.null(pt)) { stop("Please provide the scLANE output from testDynamic().") }
   # set up parallel execution
   if (parallel.exec) {
     future::plan(future::multisession, workers = n.cores)
@@ -43,13 +48,20 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
     genes <- names(test.dyn.res)
   }
   lineages <- LETTERS[1:length(test.dyn.res[[1]])]
+  colnames(pt) <- paste0("Lineage_", lineages)
   lineage_mat_list <- purrr::map(lineages, \(x) {
     lineage_name <- paste0("Lineage_", x)
     fitted_vals_list <- furrr::future_map(test.dyn.res, \(y) y[[lineage_name]]$MARGE_Preds) %>%
                         stats::setNames(names(test.dyn.res)) %>%
                         purrr::discard(rlang::is_na) %>%
                         purrr::discard(\(p) rlang::inherits_only(p, "try-error"))
-    fitted_vals_mat <- purrr::map(fitted_vals_list, \(z) exp(z$marge_link_fit)) %>%
+    fitted_vals_mat <- purrr::map(fitted_vals_list, \(z) {
+                         if (is.null(size.factor.offset)) {
+                           exp(z$marge_link_fit)
+                         } else {
+                           exp(z$marge_link_fit) * unname(size.factor.offset)[!is.na(pt[, lineage_name])]
+                         }
+                       }) %>%
                        purrr::reduce(cbind)
     colnames(fitted_vals_mat) <- names(fitted_vals_list)
     return(fitted_vals_mat)

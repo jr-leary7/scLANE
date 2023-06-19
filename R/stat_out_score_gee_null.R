@@ -37,51 +37,40 @@ stat_out_score_gee_null <- function(Y = NULL,
                      corstr = cor.structure,
                      family = MASS::negative.binomial(theta.hat),
                      sandwich = TRUE)
-  # old version -- slower
-  # ests_gam <- gamlss::gamlss(Y ~ gamlss::random(as.factor(id.vec)),
-  #                            sigma.formula = ~1,
-  #                            data = NULL,
-  #                            family = "NBI",
-  #                            trace = FALSE)
   alpha_est <- ests$alpha
-  # mu_est <- as.matrix(stats::fitted.values(ests))
-  len_Y <- length(Y)
-  mean_Y <- mean(Y)
-  mu_est <- as.matrix(rep(mean_Y, len_Y))
-  # V_est <- mu_est * (1 + mu_est * (exp(ests_gam$sigma.coefficients)))  # NB (type I) var = mu + mu^2 * sigma = mu (1 + mu * sigma)
+  mu_est <- as.matrix(rep(mean(Y), length(Y)))
   # alternate naive estimate -- faster than GAM-based method
   V_est <- mu_est * (1 + mu_est * (1 / theta.hat))
-  p <- ncol(B_null)
   n_vec1 <- c(0, n_vec)
-  VS_est_list <- list()
-  AWA_est_list <- list()
-  J2_list <- list()
-  Sigma2_list <- list()
-  J11 <- matrix(0, nrow = p, ncol = p)
-  Sigma11 <- matrix(0, nrow = p, ncol = p)
+  VS_est_list <- AWA_est_list <- J2_list <- Sigma2_list <- vector("list", length = N)
+  J11 <- Sigma11 <- matrix(0, ncol(B_null), ncol(B_null))
 
   for (i in seq(N)) {
     k <- sum(n_vec[1:i])
     # set up working correlation matrix structure
     if (cor.structure == "independence") {
-      R_alpha <- diag(1, nrow = n_vec[i], ncol = n_vec[i])
-    } else if (cor.structure == "ar1") {
-      R_alpha <- matrix(c(rep(alpha_est, n_vec[i] * n_vec[i])), ncol = n_vec[i]) + diag(c(1 - alpha_est), ncol = n_vec[i], nrow = n_vec[i])
+      R_alpha <- diag(1, n_vec[i], n_vec[i])
     } else if (cor.structure == "exchangeable") {
-      R_alpha <- alpha_est^outer(1:n_vec[i], 1:n_vec[i], function(x, y) { abs(x - y) })
+      R_alpha <- matrix(alpha_est, n_vec[i], n_vec[i]) + diag(c(1 - alpha_est), n_vec[i], n_vec[i])
+    } else if (cor.structure == "ar1") {
+      R_alpha <- alpha_est^outer(1:n_vec[i], 1:n_vec[i], \(x, y) abs(x - y))
     } else {
       stop("Currently unsupported correlation structure.")
     }
-    # V_est_i <- diag(sqrt(V_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]) %*% R_alpha %*% diag(sqrt(V_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i])
-    temp_prod <- eigenMapMatMult(A = diag(sqrt(V_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
+    # compute iteration values for each statistic
+    temp_seq_n <- (sum(n_vec1[1:i]) + 1):k
+    mu_est_sub <- mu_est[temp_seq_n]
+    diag_sqrt_V_est <- diag(sqrt(V_est[temp_seq_n]),
+                            nrow = n_vec[i],
+                            ncol = n_vec[i])
+    temp_prod <- eigenMapMatMult(A = diag_sqrt_V_est,
                                  B = R_alpha,
                                  n_cores = 1)
     V_est_i <- eigenMapMatMult(A = temp_prod,
-                               B = diag(sqrt(V_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
-                               n_cores = 1); rm(temp_prod)
+                               B = diag_sqrt_V_est,
+                               n_cores = 1)
     V_est_i_inv <- chol2inv(chol(V_est_i))
-    S_est_i <- t(Y)[(sum(n_vec1[1:i]) + 1):k] - mu_est[(sum(n_vec1[1:i]) + 1):k]
-    # AWA_est_i <- V_est_i_inv %*% (S_est_i %*% t(S_est_i)) %*% V_est_i_inv
+    S_est_i <- t(Y)[temp_seq_n] - mu_est_sub
     temp_prod <- eigenMapMatMult(A = S_est_i,
                                  B = t(S_est_i),
                                  n_cores = 1)
@@ -90,56 +79,49 @@ stat_out_score_gee_null <- function(Y = NULL,
                                  n_cores = 1)
     AWA_est_i <- eigenMapMatMult(A = temp_prod,
                                  B = V_est_i_inv,
-                                 n_cores = 1); rm(temp_prod)
-    # D_est_i <- diag((mu_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]) %*% B_null[(sum(n_vec1[1:i]) + 1):k, ]
-    D_est_i <- eigenMapMatMult(A = diag((mu_est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
-                               B = B_null[(sum(n_vec1[1:i]) + 1):k, ],
+                                 n_cores = 1)
+    D_est_i <- eigenMapMatMult(A = diag(mu_est_sub,
+                                        nrow = n_vec[i],
+                                        ncol = n_vec[i]),
+                               B = B_null[temp_seq_n, ],
                                n_cores = 1)
-    # J1_i <- t(D_est_i) %*% V_est_i_inv %*% D_est_i
-    temp_prod <- eigenMapMatMult(A = t(D_est_i),
+    D_est_i_transpose <- t(D_est_i)
+    temp_prod <- eigenMapMatMult(A = D_est_i_transpose,
                                  B = V_est_i_inv,
                                  n_cores = 1)
     J1_i <- eigenMapMatMult(A = temp_prod,
                             B = D_est_i,
-                            n_cores = 1); rm(temp_prod)
+                            n_cores = 1)
     J11 <- J11 + J1_i
-    # J2_i <- t(D_est_i) %*% V_est_i_inv
-    J2_i <- eigenMapMatMult(A = t(D_est_i),
+    J2_i <- eigenMapMatMult(A = D_est_i_transpose,
                             B = V_est_i_inv,
                             n_cores = 1)
-    # Sigma1_i <- t(D_est_i) %*% AWA_est_i %*% (D_est_i)
-    temp_prod <- eigenMapMatMult(A = t(D_est_i),
-                                 B = AWA_est_i,
-                                 n_cores = 1)
-    Sigma1_i <- eigenMapMatMult(A = temp_prod,
-                                B = D_est_i,
-                                n_cores = 1); rm(temp_prod)
-    Sigma11 <- Sigma11 + Sigma1_i
-    # Sigma2_i <- t(D_est_i) %*% AWA_est_i
-    Sigma2_i <- eigenMapMatMult(A = t(D_est_i),
+    Sigma2_i <- eigenMapMatMult(A = D_est_i_transpose,
                                 B = AWA_est_i,
                                 n_cores = 1)
+    Sigma1_i <- eigenMapMatMult(A = Sigma2_i,
+                                B = D_est_i,
+                                n_cores = 1)
+    Sigma11 <- Sigma11 + Sigma1_i
     V_est_list_elem_2 <- eigenMapMatMult(A = V_est_i_inv,
                                          B = S_est_i,
                                          n_cores = 1)
-    # VS_est_list <- c(VS_est_list, list(V_est_i_inv %*% S_est_i))
-    VS_est_list <- c(VS_est_list, list(V_est_list_elem_2))
-    AWA_est_list <- c(AWA_est_list, list(AWA_est_i))
-    J2_list <- c(J2_list, list(J2_i))
-    Sigma2_list <- c(Sigma2_list, list(Sigma2_i))
+    VS_est_list[[i]] <- V_est_list_elem_2
+    AWA_est_list[[i]] <- AWA_est_i
+    J2_list[[i]] <- J2_i
+    Sigma2_list[[i]] <- Sigma2_i
   }
   if (nrow(J11) == 1 && ncol(J11) == 1) {
     J11_inv <- 1 / J11
   } else {
     J11_inv <- chol2inv(chol(J11))
   }
-  # JSigma11 <- J11_inv %*% Sigma11 %*% J11_inv
   temp_prod <- eigenMapMatMult(A = J11_inv,
                                B = Sigma11,
                                n_cores = 1)
   JSigma11 <- eigenMapMatMult(A = temp_prod,
                               B = J11_inv,
-                              n_cores = 1); rm(temp_prod)
+                              n_cores = 1)
   res <- list(VS.est_list = VS_est_list,
               AWA.est_list = AWA_est_list,
               J2_list = J2_list,

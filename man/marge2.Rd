@@ -7,17 +7,17 @@
 marge2(
   X_pred = NULL,
   Y = NULL,
+  Y.offset = NULL,
   M = 5,
   is.gee = FALSE,
   id.vec = NULL,
-  cor.structure = "exchangeable",
+  cor.structure = "ar1",
   approx.knot = TRUE,
-  n.knot.max = 15,
-  pen = 2,
+  n.knot.max = 20,
   tols_score = 1e-05,
   minspan = NULL,
   return.basis = FALSE,
-  return.wic = FALSE,
+  return.WIC = FALSE,
   return.GCV = FALSE
 )
 }
@@ -26,19 +26,19 @@ marge2(
 
 \item{Y}{The response variable. Defaults to NULL.}
 
+\item{Y.offset}{(Optional) An vector of per-cell size factors to be included in the final model fit as an offset. Defaults to NULL.}
+
 \item{M}{A set threshold for the number of basis functions to be used. Defaults to 5.}
 
 \item{is.gee}{Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.}
 
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
 
-\item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "exchangeable".}
+\item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".}
 
 \item{approx.knot}{(Optional) Should the set of candidate knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
 
-\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 15.}
-
-\item{pen}{(Optional) A set penalty used for the GCV (note: MARGE doesn't actually use this). Defaults to 2.}
+\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 20.}
 
 \item{tols_score}{(Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.}
 
@@ -46,7 +46,7 @@ marge2(
 
 \item{return.basis}{(Optional) Whether the basis model matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 
-\item{return.wic}{(Optional) Whether the WIC matrix and final WIC value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
+\item{return.WIC}{(Optional) Whether the WIC matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 
 \item{return.GCV}{(Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 }
@@ -56,6 +56,11 @@ An object of class \code{marge} containing the fitted model & other optional qua
 \description{
 MARS fitting function for negative binomial generalized linear models (GLMs) & generalized estimating equations (GEEs).
 }
+\details{
+\itemize{
+\item If models are being fit using an offset (as is recommended), it is assumed that the offset represents a library size factor (or similar quantity) generated using e.g., \code{\link{createCellOffset}} or \code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents a scaling factor divide by sequencing depth, the offset is formulated as \code{offset(log(1 / cell_offset))}. The inversion is necessary because the rate term, i.e. the sequencing depth, is the denominator of the estimated size factors.
+}
+}
 \examples{
 \dontrun{
   marge2(pseudotime_df,
@@ -63,6 +68,7 @@ MARS fitting function for negative binomial generalized linear models (GLMs) & g
          M = 3)
   marge2(pseudotime_df,
          Y = expr_vec,
+         Y.offset = size_factor_vec,
          is.gee = TRUE,
          id.vec = subject_vec,
          cor.structure = "exchangeable")
@@ -86,6 +92,8 @@ Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach
 \code{\link{backward_sel_WIC}}
 
 \code{\link{testDynamic}}
+
+\code{\link{createCellOffset}}
 
 \code{\link[MASS]{glm.nb}}
 

@@ -6,6 +6,8 @@
 \usage{
 clusterGenes(
   test.dyn.res = NULL,
+  pt = NULL,
+  size.factor.offset = NULL,
   clust.algo = "leiden",
   use.pca = FALSE,
   n.PC = 15,
@@ -14,6 +16,10 @@ clusterGenes(
 }
 \arguments{
 \item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
+
+\item{pt}{A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.}
+
+\item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
 
 \item{clust.algo}{The clustering method to use. Can be one of "hclust", "kmeans", "leiden". Defaults to "leiden".}
 
@@ -29,15 +35,24 @@ A data.frame of with three columns: \code{Gene}, \code{Lineage}, and \code{Clust
 \description{
 This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms. An approximately optimal clustering is determined by iterating over reasonable hyperparameter values & choosing the value with the highest mean silhouette score.
 }
+\details{
+\itemize{
+\item Due to some peculiarities of how the fitted values (on the link scale) are generated for \code{geeM} models, it's not necessary to multiply them by the offset as this is done internally. For GLM & GEE models, the opposite is true, and \code{size.factor.offset} must be provided in order to rescale the fitted values correctly.
+}
+}
 \examples{
 \dontrun{
-clusterGenes(gene_stats, clust.algo = "leiden")
+clusterGenes(gene_stats, pt = pt_df)
 clusterGenes(gene_stats,
+             pt = pt_df,
+             size.factor.offset = createCellOffset(sce_obj),
              clust.algo = "kmeans",
              use.pca = TRUE,
              n.PC = 10,
              lineages = "B")
-clusterGenes(gene_stats, lineages = c("A", "C"))
+clusterGenes(gene_stats,
+             pt = pt_df,
+             lineages = c("A", "C"))
 }
 }
 \seealso{

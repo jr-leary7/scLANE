@@ -8,17 +8,17 @@ plotModels(
   test.dyn.res = NULL,
   gene = NULL,
   pt = NULL,
-  gene.counts = NULL,
+  expr.mat = NULL,
+  size.factor.offset = NULL,
   is.gee = FALSE,
   is.glmm = FALSE,
   id.vec = NULL,
-  cor.structure = "exchangeable",
+  cor.structure = "ar1",
   ci.alpha = 0.05,
   plot.null = TRUE,
   plot.glm = TRUE,
   plot.gam = TRUE,
-  plot.marge = TRUE,
-  gam.degree = 3,
+  plot.scLANE = TRUE,
   filter.lineage = NULL,
   gg.theme = ggplot2::theme_classic(base_size = 14)
 )
@@ -30,7 +30,9 @@ plotModels(
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{gene.counts}{A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.}
+
+\item{size.factor.offset}{(Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.}
 
 \item{is.gee}{Should a GEE framework be used instead of the default GLM? Defaults to FALSE.}
 
@@ -38,7 +40,7 @@ plotModels(
 
 \item{id.vec}{If the GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
 
-\item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "exchangeable".}
+\item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".}
 
 \item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 
@@ -48,9 +50,7 @@ plotModels(
 
 \item{plot.gam}{(Optional) Should the fitted values from an NB GAM be plotted? Defaults to TRUE.}
 
-\item{plot.marge}{(Optional) Should the fitted values from the \code{marge} model be plotted? Defaults to TRUE.}
-
-\item{gam.degree}{(Optional) The basis spline degree used in \code{\link{nbGAM}}. Defaults to 3.}
+\item{plot.scLANE}{(Optional) Should the fitted values from the \code{scLANE} model be plotted? Defaults to TRUE.}
 
 \item{filter.lineage}{(Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.}
 
@@ -67,22 +67,21 @@ This function visualizes the fitted values of several types of models over the e
 plotModels(gene_stats,
            gene = "AURKA",
            pt = pt_df,
-           gene.counts = count_mat)
+           expr.mat = count_mat)
 plotModels(gene_stats,
-           gene = "BRCA2",
+           gene = "CD3E",
            pt = pt_df,
-           gene.counts = count_mat,
+           expr.mat = count_mat,
            ci.alpha = 0.1,
            filter.lineage = c("A", "C"))
 plotModels(gene_stats,
            gene = "CD14",
            pt = pt_df,
-           gene.counts = count_mat,
+           expr.mat = count_mat,
            is.glmm = TRUE,
            id.vec = subject_ids,
            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject
            plot.gam = TRUE,  # plots an NB GAMM with random intercepts per-subject
-           gam.degree = 5,
            gg.theme = ggplot2::theme_minimal())
 }
 }

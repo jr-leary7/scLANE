@@ -7,6 +7,7 @@
 fitGLMM(
   X_pred = NULL,
   Y = NULL,
+  Y.offset = NULL,
   id.vec = NULL,
   adaptive = FALSE,
   approx.knot = TRUE,
@@ -19,6 +20,8 @@ fitGLMM(
 \item{X_pred}{A matrix with one column containing cell ordering values. Defaults to NULL.}
 
 \item{Y}{A vector of raw single cell counts. Defaults to NULL.}
+
+\item{Y.offset}{(Optional) An offset to be included in the final model fit. Defaults to NULL.}
 
 \item{id.vec}{A vector of subject IDs. Defaults to NULL.}
 
@@ -42,6 +45,7 @@ Fits a negative binomial generalized linear mixed model using truncated power ba
 \dontrun{
 fitGLMM(X_pred = pt_df,
         Y = raw_counts,
+        Y.offset = size_factor_vec,
         id.vec = subject_vec)
 }
 }

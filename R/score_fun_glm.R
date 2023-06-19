@@ -44,7 +44,7 @@ score_fun_glm <- function(Y = NULL,
                                 n_cores = 1)
     # D_list_i <- t(XA) %*% (XA * c((mu.est^2 / V.est)))
     D_list_i <- eigenMapMatMult(A = t(XA),
-                                B = (XA * c((mu.est^2 / V.est))),
+                                B = (XA * c(mu.est^2 / V.est)),
                                 n_cores = 1)
     # inv.XVX_22 <- (D_list_i - t(B_list_i) %*% A_list_i %*% B_list_i)
     temp_prod <- eigenMapMatMult(A = t(B_list_i),
@@ -55,7 +55,7 @@ score_fun_glm <- function(Y = NULL,
                                  n_cores = 1)
     inv.XVX_22 <- (D_list_i - temp_prod); rm(temp_prod)
     # B.est <- t(((mu.est)) * VS.est_i) %*% XA
-    B.est <- eigenMapMatMult(A = t(((mu.est)) * VS.est_i),
+    B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i),
                              B = XA,
                              n_cores = 1)
     # score <- (B.est) %*% chol2inv(chol(inv.XVX_22)) %*% t(B.est)

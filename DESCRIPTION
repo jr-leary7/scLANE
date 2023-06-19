@@ -1,62 +1,77 @@
 Package: scLANE
 Type: Package
-Title: Model gene expression over pseudotime with spline-based NB GLMs, GEEs, & GLMMs
-Version: 0.6.2
+Title: Model gene expression dynamics with spline-based NB GLMs, GEEs, & GLMMs
+Version: 0.7.0
 Authors@R: c(person(given = "Jack", family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre")), 
              person(given = "Rhonda", family = "Bacher", email = "rbacher@ufl.edu", role = c("ctb", "fnd")))
-Description: This package uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime / latent time. Currently supports negative binomial GLMs, GEEs, & GLMMs. 
+Description: This package uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime or latent time. 
+             The modeling architectures currently supported are negative binomial GLMs, GEEs, & GLMMs. 
+             Downstream analysis functionalities include model comparison, dynamic gene clustering, smoothed counts generation, gene set enrichment testing, & visualization. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.1
 Depends: 
-  magrittr, 
-  glm2
+  glm2, 
+  magrittr
 Imports: 
-    dplyr,
-    foreach,
-    doParallel,
-    parallel,
+    geeM,
     MASS,
-    ggplot2,
+    dplyr,
     stats,
-    gamlss,
-    scales,
-    splines, 
-    bigstatsr,
-    broom,
+    utils, 
+    withr, 
     purrr,
     tidyr,
-    geeM,
-    glmmTMB, 
-    broom.mixed, 
-    tidyselect,
     furrr, 
+    gamlss,
+    scales,
     future, 
+    ggplot2,
+    splines, 
+    foreach,
+    glmmTMB, 
+    parallel,
+    bigstatsr,
     RcppEigen, 
+    doParallel,
+    tidyselect,
+    broom.mixed, 
     Rcpp (>= 1.0.7)
 URL: https://github.com/jr-leary7/scLANE
 BugReports: https://github.com/jr-leary7/scLANE/issues
 Suggests: 
-    rmarkdown,
-    knitr,
-    testthat (>= 3.0.0),
     covr, 
+    ggh4x, 
+    knitr,
+    irlba, 
+    rlang, 
+    igraph, 
+    Seurat, 
     bluster, 
     cluster, 
-    clusterProfiler, 
-    igraph, 
-    irlba, 
-    slingshot, 
     msigdbr, 
+    rmarkdown,
+    slingshot, 
+    BiocGenerics, 
     BiocNeighbors, 
-    rlang, 
-    Seurat, 
+    clusterProfiler, 
+    testthat (>= 3.0.0),
     SingleCellExperiment, 
-    SummarizedExperiment, 
-    BiocGenerics
+    SummarizedExperiment
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LinkingTo: 
-    RcppEigen,
-    Rcpp
+    Rcpp, 
+    RcppEigen
+biocViews:
+    RNASeq,
+    Software,
+    TimeCourse,
+    Sequencing,
+    Regression,
+    SingleCell, 
+    Visualization, 
+    GeneExpression,
+    Transcriptomics,
+    DifferentialExpression

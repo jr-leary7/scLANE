@@ -97,13 +97,20 @@ testDynamic <- function(expr.mat = NULL,
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (inherits(expr.mat, "SingleCellExperiment")) {
-    expr.mat <- as.matrix(t(BiocGenerics::counts(expr.mat)))
+    expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
+    expr.mat <- t(as.matrix(expr.mat))
   } else if (inherits(expr.mat, "Seurat")) {
-    expr.mat <- as.matrix(t(Seurat::GetAssayData(expr.mat,
-                                                 slot = "counts",
-                                                 assay = Seurat::DefaultAssay(expr.mat))))
+    expr.mat <- Seurat::GetAssayData(expr.mat,
+                                     slot = "counts",
+                                     assay = Seurat::DefaultAssay(expr.mat))
+    expr.mat <- t(as.matrix(expr.mat[genes, ]))
   }
   if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be coerceable to a matrix of integer counts.") }
+  if (is.null(genes)) {
+    genes <- colnames(expr.mat)
+  } else {
+    expr.mat <- expr.mat[, genes]
+  }
   # extract pseudotime dataframe if input is results from Slingshot
   if (inherits(pt, "SlingshotDataSet")) {
     pt <- as.data.frame(slingshot::slingPseudotime(pt))

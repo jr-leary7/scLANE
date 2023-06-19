@@ -96,7 +96,9 @@ getFittedValues <- function(test.dyn.res = NULL,
     final_df <- dplyr::filter(final_df, !lineage %in% filter.lineage)
   }
   if (length(genes) > 1) {
-    final_df <- dplyr::mutate(final_df, gene = factor(gene, levels = genes))
+    final_df <- dplyr::mutate(final_df,
+                              gene = as.character(gene),
+                              gene = factor(gene, levels = genes))
   }
   return(final_df)
 }

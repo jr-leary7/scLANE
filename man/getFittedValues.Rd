@@ -9,6 +9,7 @@ getFittedValues(
   genes = NULL,
   pt = NULL,
   expr.mat = NULL,
+  size.factor.offset = NULL,
   cell.meta.data = NULL,
   id.vec = NULL,
   ci.alpha = 0.05,
@@ -23,6 +24,8 @@ getFittedValues(
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
 \item{expr.mat}{A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.}
+
+\item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
 
 \item{cell.meta.data}{(Optional) A data.frame of metadata values for each cell (celltype label, subject characteristics, tissue type, etc.) that will be included in the result table. Defaults to NULL.}
 

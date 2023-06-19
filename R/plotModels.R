@@ -173,25 +173,20 @@ plotModels <- function(test.dyn.res = NULL,
                         if (is.glmm) {
                           gam_mod <- nbGAM(expr = x$COUNT,
                                            pt = x$PT,
-                                           id.vec = x$ID,
-                                           penalize.spline = TRUE)
+                                           id.vec = x$ID)
                         } else {
-                          gam_mod <- nbGAM(expr = x$COUNT,
-                                           pt = x$PT,
-                                           penalize.spline = TRUE)
+                          gam_mod <- nbGAM(expr = x$COUNT, pt = x$PT)
                         }
                       } else {
                         if (is.glmm) {
                           gam_mod <- nbGAM(expr = x$COUNT,
                                            Y.offset = x$CELL_OFFSET,
                                            pt = x$PT,
-                                           id.vec = x$ID,
-                                           penalize.spline = TRUE)
+                                           id.vec = x$ID)
                         } else {
                           gam_mod <- nbGAM(expr = x$COUNT,
                                            Y.offset = x$CELL_OFFSET,
-                                           pt = x$PT,
-                                           penalize.spline = TRUE)
+                                           pt = x$PT)
                         }
                       }
                       gam_preds <- data.frame(predict(gam_mod, type = "link", se.fit = TRUE)[1:2])

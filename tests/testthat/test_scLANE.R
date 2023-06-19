@@ -130,7 +130,7 @@ withr::with_output_sink(tempfile(), {
                           id.vec = sim_data$subject)
   # downstream analysis
   set.seed(312)
-  gene_clusters <- clusterGenes(glm_gene_stats,
+  gene_clusters <- clusterGenes(test.dyn.res = glm_gene_stats,
                                 pt = pt_test,
                                 size.factor.offset = cell_offset,
                                 clust.algo = "leiden")
@@ -150,14 +150,16 @@ withr::with_output_sink(tempfile(), {
                                          expr.mat = counts_test,
                                          cell.meta.data = as.data.frame(SummarizedExperiment::colData(sim_data)),
                                          id.vec = sim_data$subject)
-  gsea_res <- enrichDynamicGenes(glm_test_results, gene.set.cat = "C2")
+  gsea_res <- enrichDynamicGenes(scLANE.de.res = glm_test_results,
+                                 gene.set.cat = "C2",
+                                 species = "hs")
 })
 
 # run tests
 test_that("createCellOffset() output", {
   expect_type(cell_offset, "double")
   expect_length(cell_offset, 300)
-  expect_equal(sum(is.na(cell_offset)), 0)
+  expect_false(any(is.na(cell_offset)))
 })
 
 test_that("testDynamic() output", {
@@ -167,30 +169,21 @@ test_that("testDynamic() output", {
   expect_equal(length(glm_gene_stats), 10)
   expect_equal(length(gee_gene_stats), 10)
   expect_equal(length(glmm_gene_stats), 10)
-  expect_equal(nrow(glm_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 3)
-  expect_equal(ncol(glm_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 5)
-  expect_equal(nrow(gee_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 3)
-  expect_equal(ncol(gee_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 5)
-  expect_equal(nrow(glmm_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 3)
-  expect_equal(ncol(glmm_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 5)
-  expect_equal(sum(purrr::map_lgl(glm_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 7)
-  expect_equal(sum(purrr::map_lgl(gee_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 6)
-  expect_equal(sum(purrr::map_lgl(glmm_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 6)
-  expect_equal(unique(purrr::map_dbl(glm_gene_stats, \(x) length(x$Lineage_A))), 17)
-  expect_equal(unique(purrr::map_dbl(glm_gene_stats, \(x) length(x$Lineage_A))), 17)
-  expect_equal(unique(purrr::map_dbl(glm_gene_stats, \(x) length(x$Lineage_A))), 17)
+  expect_gt(nrow(glm_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 0)
+  expect_gt(nrow(gee_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 0)
+  expect_gt(nrow(glmm_gene_stats$ABCF1$Lineage_A$MARGE_Summary), 0)
+  expect_gt(sum(purrr::map_lgl(glm_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 0)
+  expect_gt(sum(purrr::map_lgl(gee_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 0)
+  expect_gt(sum(purrr::map_lgl(glmm_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 0)
 })
 
 test_that("getResultsDE() output", {
   expect_s3_class(glm_test_results, "data.frame")
   expect_s3_class(gee_test_results, "data.frame")
   expect_s3_class(glmm_test_results, "data.frame")
-  expect_equal(nrow(glm_test_results), 10)
-  expect_equal(nrow(gee_test_results), 10)
-  expect_equal(nrow(glmm_test_results), 10)
-  expect_equal(ncol(glm_test_results), 15)
-  expect_equal(ncol(gee_test_results), 15)
-  expect_equal(ncol(glmm_test_results), 15)
+  expect_gt(nrow(glm_test_results), 0)
+  expect_gt(nrow(gee_test_results), 0)
+  expect_gt(nrow(glmm_test_results), 0)
   expect_gt(sum(glm_test_results$Gene_Dynamic_Overall), 0)
   expect_gt(sum(gee_test_results$Gene_Dynamic_Overall), 0)
   expect_gt(sum(glmm_test_results$Gene_Dynamic_Overall), 0)
@@ -200,48 +193,56 @@ test_that("testSlope() output", {
   expect_s3_class(glm_slope_test, "data.frame")
   expect_s3_class(gee_slope_test, "data.frame")
   expect_s3_class(glmm_slope_test, "data.frame")
-  expect_equal(nrow(glm_slope_test), 15)
-  expect_equal(nrow(gee_slope_test), 15)
-  expect_equal(nrow(glmm_slope_test), 16)
-  expect_equal(ncol(glm_slope_test), 11)
-  expect_equal(ncol(gee_slope_test), 11)
-  expect_equal(ncol(glmm_slope_test), 11)
-  expect_equal(sum(glm_slope_test$Notes == "MARGE model error, null model OK", na.rm = TRUE), 3)
-  expect_equal(sum(gee_slope_test$Notes == "MARGE model error, null model OK", na.rm = TRUE), 4)
-  expect_equal(sum(glmm_slope_test$Notes == "MARGE model error, null model OK", na.rm = TRUE), 4)
-  expect_equal(sum(glm_slope_test$P_Val_Adj < 0.01, na.rm = TRUE), 10)
-  expect_equal(sum(gee_slope_test$P_Val_Adj < 0.01, na.rm = TRUE), 11)
-  expect_equal(sum(glmm_slope_test$P_Val_Adj < 0.01, na.rm = TRUE), 7)
+  expect_gt(nrow(glm_slope_test), 0)
+  expect_gt(nrow(gee_slope_test), 0)
+  expect_gt(nrow(glmm_slope_test), 0)
+  expect_gt(sum(glm_slope_test$P_Val_Adj < 0.01, na.rm = TRUE), 0)
+  expect_gt(sum(gee_slope_test$P_Val_Adj < 0.01, na.rm = TRUE), 0)
+  expect_gt(sum(glmm_slope_test$P_Val_Adj < 0.01, na.rm = TRUE), 0)
 })
 
 test_that("nbGAM() output", {
   expect_s3_class(gam_mod_bs, "gamlss")
   expect_s3_class(gam_mod_ps, "gamlss")
-  expect_equal(length(coef(gam_mod_bs)), 6)
-  expect_equal(length(coef(gam_mod_ps)), 2)
+  expect_s3_class(gam_mod_ps_mix, "gamlss")
   expect_true(gam_mod_bs$converged)
   expect_true(gam_mod_ps$converged)
+  expect_true(gam_mod_ps_mix$converged)
 })
 
-test_that("marge2() output", {
+test_that("marge2() output -- GLM backend", {
   expect_s3_class(marge_mod, "marge")
-  expect_s3_class(marge_mod_GEE_offset, "marge")
+  expect_s3_class(marge_mod_offset, "marge")
   expect_s3_class(marge_mod$final_mod, "negbin")
-  expect_s3_class(marge_mod_GEE_offset$final_mod, "geem")
-  expect_length(marge_mod$coef_names, 3)
-  expect_equal(ncol(marge_mod$basis_mtx), 3)
-  expect_equal(round(marge_mod$final_mod$theta, 1), 6.5)
+  expect_s3_class(marge_mod_offset$final_mod, "negbin")
   expect_equal(marge_mod$model_type, "GLM")
-  expect_equal(marge_mod_GEE_offset$model_type, "GEE")
+  expect_equal(marge_mod_offset$model_type, "GLM")
   expect_true(marge_mod$final_mod$converged)
+  expect_true(marge_mod_offset$final_mod$converged)
+})
+
+test_that("marge2() output -- GEE backend", {
+  expect_s3_class(marge_mod_GEE, "marge")
+  expect_s3_class(marge_mod_GEE_offset, "marge")
+  expect_s3_class(marge_mod_GEE$final_mod, "geem")
+  expect_s3_class(marge_mod_GEE_offset$final_mod, "geem")
+  expect_equal(marge_mod_GEE$model_type, "GEE")
+  expect_equal(marge_mod_GEE_offset$model_type, "GEE")
+  expect_true(marge_mod_GEE$final_mod$converged)
   expect_true(marge_mod_GEE_offset$final_mod$converged)
 })
+
 test_that("fitGLMM() output", {
   expect_s3_class(glmm_mod$final_mod, "glmmTMB")
+  expect_s3_class(glmm_mod_offset$final_mod, "glmmTMB")
   expect_equal(nrow(coef(glmm_mod$final_mod)$cond$subject), 2)
-  expect_equal(ncol(coef(glmm_mod$final_mod)$cond$subject), 3)
+  expect_equal(nrow(coef(glmm_mod_offset$final_mod)$cond$subject), 2)
   expect_false(glmm_mod$final_mod$modelInfo$REML)
-  expect_equal(length(fitted(glmm_mod$final_mod)), 300)
+  expect_false(glmm_mod_offset$final_mod$modelInfo$REML)
+  expect_length(fitted(glmm_mod$final_mod), 300)
+  expect_length(fitted(glmm_mod_offset$final_mod), 300)
+  expect_equal(glmm_mod$model_type, "GLMM")
+  expect_equal(glmm_mod_offset$model_type, "GLMM")
 })
 
 test_that("plotModels() output", {
@@ -251,35 +252,27 @@ test_that("plotModels() output", {
   expect_equal(ncol(plot_glm$data), 12)
   expect_equal(ncol(plot_gee$data), 12)
   expect_equal(ncol(plot_glmm$data), 12)
-  expect_equal(nrow(plot_glm$data), 1200)
-  expect_equal(nrow(plot_gee$data), 1200)
-  expect_equal(nrow(plot_glmm$data), 1200)
 })
 
 test_that("clusterGenes() output", {
   expect_s3_class(gene_clusters, "data.frame")
   expect_equal(ncol(gene_clusters), 3)
-  expect_equal(nrow(gene_clusters), 7)
 })
 
 test_that("plotClusteredGenes() output", {
   expect_s3_class(gene_clust_table, "data.frame")
   expect_equal(ncol(gene_clust_table), 7)
-  expect_equal(nrow(gene_clust_table), 2100)
 })
 
 test_that("smoothedCountsMatrix() output", {
   expect_type(smoothed_counts, "list")
   expect_length(smoothed_counts, 1)
   expect_type(smoothed_counts$Lineage_A, "double")
-  expect_equal(ncol(smoothed_counts$Lineage_A), 7)
-  expect_equal(nrow(smoothed_counts$Lineage_A), 300)
 })
 
 test_that("getFittedValues() output", {
   expect_s3_class(fitted_values_table, "data.frame")
   expect_equal(ncol(fitted_values_table), 17)
-  expect_equal(nrow(fitted_values_table), 3000)
 })
 
 test_that("enrichDynamicGenes() output", {

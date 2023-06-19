@@ -13,7 +13,8 @@ LazyData: true
 RoxygenNote: 7.2.1
 Depends: 
   glm2, 
-  magrittr
+  magrittr, 
+  R (>= 3.5.0)
 Imports: 
     geeM,
     MASS,

@@ -8,6 +8,7 @@ plotClusteredGenes(
   test.dyn.res = NULL,
   gene.clusters = NULL,
   pt = NULL,
+  size.factor.offset = NULL,
   parallel.exec = TRUE,
   n.cores = 2
 )
@@ -19,6 +20,8 @@ plotClusteredGenes(
 
 \item{pt}{A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
+\item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
+
 \item{parallel.exec}{Should \code{furrr} be used to speed up execution? Defaults to TRUE.}
 
 \item{n.cores}{If parallel execution is desired, how many cores should be utilized? Defaults to 2.}
@@ -29,14 +32,20 @@ A \code{data.frame} with ready-to-plot tidy data. Includes columns for gene name
 \description{
 Generate a table of per-lineage, per-cluster fitted values from \code{scLANE} to be used in visualizations.
 }
+\details{
+\itemize{
+\item Due to some peculiarities of how the fitted values (on the link scale) are generated for \code{geeM} models, it's not necessary to multiply them by the offset as this is done internally. For GLM & GEE models, the opposite is true, and \code{size.factor.offset} must be provided in order to rescale the fitted values correctly.
+}
+}
 \examples{
 \dontrun{
 plotClusteredGenes(test.dyn.res = gene_stats,
                    gene.clusters = gene_clusters,
                    pt = pt_df) \%>\%
-  ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE) +
+  ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) +
+  facet_wrap(~LINEAGE + CLUSTER) +
   geom_line() +
-  facet_wrap(~LINEAGE))
+  theme_classic()
 }
 }
 \seealso{

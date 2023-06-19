@@ -9,8 +9,9 @@ testDynamic(
   pt = NULL,
   genes = NULL,
   n.potential.basis.fns = 5,
+  size.factor.offset = NULL,
   is.gee = FALSE,
-  cor.structure = "exchangeable",
+  cor.structure = "ar1",
   is.glmm = FALSE,
   glmm.adaptive = FALSE,
   id.vec = NULL,
@@ -31,9 +32,11 @@ testDynamic(
 
 \item{n.potential.basis.fns}{(Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
 
+\item{size.factor.offset}{(Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.}
+
 \item{is.gee}{Should a GEE framework be used instead of the default GLM? Defaults to FALSE.}
 
-\item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", "unstructured", or "exchangeable". Defaults to "exchangeable".}
+\item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".}
 
 \item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
 
@@ -59,6 +62,12 @@ A list of lists, where each element is a gene and each gene contains sublists fo
 \description{
 This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 }
+\details{
+\itemize{
+\item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
+\item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
+}
+}
 \examples{
 \dontrun{
 testDynamic(expr.mat = raw_counts,
@@ -66,6 +75,7 @@ testDynamic(expr.mat = raw_counts,
             parallel.exec = TRUE)
 testDynamic(expr.mat = sce_obj,
             pt = slingshot_obj,
+            size.factor.offset = sizeFactors(sce_obj),
             genes = rownames(sce_obj)[1:100])
 testDynamic(expr.mat = raw_counts,
             pt = pseudotime_df,

@@ -3,6 +3,7 @@
 #' @name createSlopeTestData
 #' @author Jack Leary
 #' @description Creates a data.frame of \code{marge} model breakpoints, \emph{p}-values, and other info.
+#' @importFrom purrr map_dbl
 #' @param marge.model A \code{marge} model object, like those returned from \code{\link{marge2}}. Defaults to NULL.
 #' @param pt A data.frame containing pseudotime or latent time values. Defaults to NULL.
 #' @param is.gee Was the GEE framework used? Defaults to FALSE.
@@ -33,7 +34,7 @@ createSlopeTestData <- function(marge.model = NULL,
     p_vals <- NA_real_
     mod_notes <- "MARGE model error"
   } else {
-    if (!is.glmm && length(coef(marge.model$final_mod)) == 1) {
+    if (!is.glmm && length(marge.model$marge_coef_names) == 1) {
       rounded_brkpts <- NA_real_
       brkpts <- NA_real_
       brkpt_dirs <- NA_character_
@@ -44,7 +45,7 @@ createSlopeTestData <- function(marge.model = NULL,
       model_breakpoints_rounded <- extractBreakpoints(marge.model, directions = TRUE)
       rounded_brkpts <- model_breakpoints_rounded$Breakpoint
       brkpt_dirs <- model_breakpoints_rounded$Direction
-      brkpts <- sapply(rounded_brkpts, \(x) pt[, 1][which.min(abs(pt[, 1] - x))])
+      brkpts <- purrr::map_dbl(rounded_brkpts, \(x) pt[, 1][which.min(abs(pt[, 1] - x))])
       # extract p-values for coefficients other than intercept
       if (is.gee) {
         p_vals <- summary(marge.model$final_mod)$p[-1]

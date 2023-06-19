@@ -4,10 +4,10 @@
 \alias{max_span}
 \title{Truncates the predictor variable value to exclude extreme values in knots selection.}
 \usage{
-max_span(X_pred = NULL, q = NULL, alpha = 0.05)
+max_span(X_red = NULL, q = NULL, alpha = 0.05)
 }
 \arguments{
-\item{X_pred}{: a vector of values for the predictor variable.}
+\item{X_red}{: a vector of values for the predictor variable.}
 
 \item{q}{: the number of predictors used.}
 

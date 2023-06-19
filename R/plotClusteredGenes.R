@@ -11,8 +11,13 @@
 #' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param gene.clusters The data.frame returned by \code{\link{clusterGenes}}. Defaults to NULL.
 #' @param pt A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.
+#' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param parallel.exec Should \code{furrr} be used to speed up execution? Defaults to TRUE.
 #' @param n.cores If parallel execution is desired, how many cores should be utilized? Defaults to 2.
+#' @details
+#' \itemize{
+#' \item Due to some peculiarities of how the fitted values (on the link scale) are generated for \code{geeM} models, it's not necessary to multiply them by the offset as this is done internally. For GLM & GEE models, the opposite is true, and \code{size.factor.offset} must be provided in order to rescale the fitted values correctly.
+#' }
 #' @return A \code{data.frame} with ready-to-plot tidy data. Includes columns for gene name, pseudotime lineage, cell name, fitted values on link & response scale, pseudotime, & gene cluster.
 #' @seealso \code{\link{clusterGenes}}
 #' @export
@@ -21,14 +26,16 @@
 #' plotClusteredGenes(test.dyn.res = gene_stats,
 #'                    gene.clusters = gene_clusters,
 #'                    pt = pt_df) %>%
-#'   ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE) +
+#'   ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) +
+#'   facet_wrap(~LINEAGE + CLUSTER) +
 #'   geom_line() +
-#'   facet_wrap(~LINEAGE))
+#'   theme_classic()
 #' }
 
 plotClusteredGenes <- function(test.dyn.res = NULL,
                                gene.clusters = NULL,
                                pt = NULL,
+                               size.factor.offset = NULL,
                                parallel.exec = TRUE,
                                n.cores = 2) {
   # check inputs
@@ -49,7 +56,6 @@ plotClusteredGenes <- function(test.dyn.res = NULL,
                                       CELL = character(),
                                       FITTED_LINK = numeric(),
                                       FITTED = numeric(),
-                                      # EXP = numeric(),
                                       PT = numeric())
       } else {
         fitted_vals_mat <- data.frame(GENE = y,
@@ -57,8 +63,10 @@ plotClusteredGenes <- function(test.dyn.res = NULL,
                                       CELL = rownames(pt)[!is.na(pt[, l])],
                                       FITTED_LINK = x[[lineage_name]]$MARGE_Preds$marge_link_fit,
                                       FITTED = exp(x[[lineage_name]]$MARGE_Preds$marge_link_fit),
-                                      # EXP = gene.counts[!is.na(pt[, l]), y],  -- maybe bring this back in later, but not needed right now
                                       PT = pt[!is.na(pt[, l]), l])
+        if (!is.null(size.factor.offset)) {
+          fitted_vals_mat <- dplyr::mutate(fitted_vals_mat, FITTED = FITTED * unname(size.factor.offset)[!is.na(pt[, l])])
+        }
       }
       df_list[[l]] <- fitted_vals_mat
     }
@@ -66,7 +74,8 @@ plotClusteredGenes <- function(test.dyn.res = NULL,
     return(df_temp)
   }) -> all_genes
   gene_res <- purrr::reduce(all_genes, rbind) %>%
-              dplyr::inner_join(gene.clusters, by = c("GENE" = "Gene", "LINEAGE" = "Lineage")) %>%
+              dplyr::inner_join(gene.clusters,
+                                by = c("GENE" = "Gene", "LINEAGE" = "Lineage")) %>%
               dplyr::rename(CLUSTER = Cluster) %>%
               dplyr::mutate(CLUSTER = as.factor(CLUSTER))
   return(gene_res)

@@ -115,6 +115,9 @@ testDynamic <- function(expr.mat = NULL,
   if (inherits(pt, "SlingshotDataSet")) {
     pt <- as.data.frame(slingshot::slingPseudotime(pt))
   }
+  if (inherits(pt, "tbl") || inherits(pt, "tbl_df")) {
+    pt <- as.data.frame(pt)
+  }
   if (!inherits(pt, "data.frame")) { stop("pt must be of class data.frame.") }
   # set pseudotime lineage column names automatically to prevent user error (uses e.g., "Lineage_A", "Lineage_B", etc.)
   n_lineages <- ncol(pt)
@@ -180,7 +183,7 @@ testDynamic <- function(expr.mat = NULL,
     if (!is.null(log.file) && i %in% print_nums) {
       withr::with_output_sink(log.file,
                               code = {
-                                cat(paste(Sys.time(), "- Starting iteration:", 20, "\n"))
+                                cat(paste(Sys.time(), "- Starting iteration:", i, "\n"))
                               },
                               append = TRUE)
     }

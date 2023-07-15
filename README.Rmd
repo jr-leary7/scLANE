@@ -1,6 +1,11 @@
 ---
 output: 
-  github_document
+  github_document:
+    toc: true
+    toc_depth: 2
+    fig_width: 9
+    fig_height: 6
+    dev: png
 always_allow_html: true
 ---
 
@@ -23,7 +28,6 @@ knitr::opts_chunk$set(message = FALSE,
 [![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![release](https://img.shields.io/github/v/release/jr-leary7/scLANE?color=purple)
-![downloads](https://img.shields.io/github/downloads/jr-leary7/scLANE/total?color=blue)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
 ![last commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 <!-- badges: end -->
@@ -89,7 +93,7 @@ plotPCA(sim_data, colour_by = "subject")
 plotPCA(sim_data, colour_by = "cell_time_normed")
 ```
 
-## Differential Expression Testing
+## Trajectory DE Testing
 
 Since we have multi-subject data, we can use any of the three model backends to run our DE testing. We'll start with the simplest model, the GLM, then work our way through the other options in order of increasing complexity. We first prepare our inputs - a dense matrix with cells as rows & genes as columns (i.e., transposed from the way it's stored in `SingleCellExperiment` & `Seurat` objects), a dataframe containing our cell ordering, a set of genes to build models for, and a vector of per-cell size factors to be used as offsets during estimation. In reality, it's usually unnecessary to fit a model for every single gene in a dataset, as trajectories are usually estimated using a subset of the entire set of genes (usually a few thousand most highly variable genes). For the purpose of demonstration, we'll select 50 genes each from the dynamic and non-dynamic populations. **Note**: in this case we're working with a single pseudotime lineage, though in real datasets several lineages often exist; in order to fit models for a subset of lineages simply remove the corresponding columns from the cell ordering dataframe passed as input to `testDynamic()`. 
 

@@ -1,4 +1,21 @@
 
+- <a href="#sclane" id="toc-sclane"><code>scLANE</code></a>
+  - <a href="#installation" id="toc-installation">Installation</a>
+  - <a href="#model-structure" id="toc-model-structure">Model Structure</a>
+- <a href="#usage" id="toc-usage">Usage</a>
+  - <a href="#input-data" id="toc-input-data">Input Data</a>
+  - <a href="#trajectory-de-testing"
+    id="toc-trajectory-de-testing">Trajectory DE Testing</a>
+  - <a href="#downstream-analysis--visualization"
+    id="toc-downstream-analysis--visualization">Downstream Analysis &amp;
+    Visualization</a>
+- <a href="#conclusions--best-practices"
+  id="toc-conclusions--best-practices">Conclusions &amp; Best
+  Practices</a>
+- <a href="#contact-information" id="toc-contact-information">Contact
+  Information</a>
+- <a href="#references" id="toc-references">References</a>
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # `scLANE`
@@ -10,7 +27,6 @@
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![release](https://img.shields.io/github/v/release/jr-leary7/scLANE?color=purple)
-![downloads](https://img.shields.io/github/downloads/jr-leary7/scLANE/total?color=blue)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
 ![last
 commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
@@ -139,7 +155,7 @@ plotPCA(sim_data, colour_by = "cell_time_normed")
 
 <img src="man/figures/README-plot-sims-2.png" width="100%" />
 
-## Differential Expression Testing
+## Trajectory DE Testing
 
 Since we have multi-subject data, we can use any of the three model
 backends to run our DE testing. We’ll start with the simplest model, the
@@ -184,7 +200,7 @@ de_test_glm <- testDynamic(expr.mat = counts_mat,
                            n.potential.basis.fns = 5, 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 26.322 secs"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 26.588 secs"
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -280,7 +296,7 @@ de_test_gee <- testDynamic(expr.mat = counts_mat,
                            cor.structure = "ar1", 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.105 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.849 mins"
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -374,7 +390,7 @@ de_test_glmm <- testDynamic(expr.mat = counts_mat,
                             id.vec = sim_data$subject, 
                             n.cores = 2, 
                             track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.343 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 5.306 mins"
 ```
 
 Like the GLM backend, the GLMM backend use a likelihood ratio test to
@@ -518,13 +534,13 @@ slice_sample(gene_clust_table, n = 5) %>%
                col.names = c("Gene", "Lineage", "Cell", "Fitted (link)", "Fitted (response)", "Pseudotime", "Cluster"))
 ```
 
-| Gene   | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
-|:-------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
-| SFMBT2 | A       | 63   |        -2.677 |             0.043 |      0.158 | 1       |
-| UBIAD1 | A       | 945  |        -2.227 |             0.188 |      0.362 | 1       |
-| TSPAN1 | A       | 106  |         0.279 |             0.807 |      0.265 | 1       |
-| CPA3   | A       | 79   |        -4.372 |             0.120 |      0.198 | 1       |
-| WAPAL  | A       | 1150 |         0.755 |             1.023 |      0.875 | 1       |
+| Gene    | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
+|:--------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
+| CKAP4   | A       | 1130 |         0.933 |             1.458 |      0.825 | 2       |
+| CBX6    | A       | 607  |         1.396 |             2.407 |      0.517 | 2       |
+| NLGN4Y  | A       | 390  |        -2.941 |             0.056 |      0.975 | 1       |
+| MPG     | A       | 1150 |        -0.147 |             0.415 |      0.875 | 1       |
+| TRAPPC1 | A       | 91   |         0.538 |             1.683 |      0.228 | 2       |
 
 The results can then be plotted as desired using `ggplot2` or another
 visualization package. Upon visual inspection, the genes seem to cluster

@@ -70,18 +70,23 @@ plotModels <- function(test.dyn.res = NULL,
                        plot.gam = TRUE,
                        plot.scLANE = TRUE,
                        filter.lineage = NULL,
-                       gg.theme = ggplot2::theme_classic(base_size = 14)) {
+                       gg.theme = ggplot2::theme_classic(base_size = 14,
+                                                         base_line_size = 0.75,
+                                                         base_rect_size = 0.75)) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt) || is.null(gene) || is.null(test.dyn.res)) { stop("You forgot one or more of the arguments to plotModels().") }
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (inherits(expr.mat, "SingleCellExperiment")) {
-    expr.mat <- as.matrix(t(BiocGenerics::counts(expr.mat)))
+    expr.mat <- as.matrix(BiocGenerics::counts(expr.mat))
   } else if (inherits(expr.mat, "Seurat")) {
-    expr.mat <- as.matrix(t(Seurat::GetAssayData(expr.mat,
-                                                 slot = "counts",
-                                                 assay = Seurat::DefaultAssay(expr.mat))))
+    expr.mat <- as.matrix(Seurat::GetAssayData(expr.mat,
+                                               slot = "counts",
+                                               assay = Seurat::DefaultAssay(expr.mat)))
+  } else if (inherits(expr.mat, "dgCMatrix")) {
+    expr.mat <- as.matrix(expr.mat)
   }
   if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be coerceable to a matrix of integer counts.") }
+  expr.mat <- t(expr.mat)
   # generate parameters for CIs
   Z <- stats::qnorm(ci.alpha / 2, lower.tail = FALSE)
   # select sublist for gene of interest
@@ -277,13 +282,13 @@ plotModels <- function(test.dyn.res = NULL,
     }
     p <- p +
          ggplot2::geom_line(mapping = ggplot2::aes(y = PRED),
-                            size = 0.75,
+                            linewidth = 0.75,
                             color = "black",
                             show.legend = FALSE) +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(ymin = CI_LL, ymax = CI_UL),
                               fill = "grey50",
                               alpha = 0.4,
-                              size = 0,
+                              linewidth = 0,
                               show.legend = FALSE) +
          ggplot2::scale_y_continuous(labels = scales::label_comma()) +
          ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) +
@@ -301,17 +306,17 @@ plotModels <- function(test.dyn.res = NULL,
                              size = 0.5,
                              show.legend = ifelse(ncol(pt) > 1, TRUE, FALSE))
     if (requireNamespace("ggh4x", quietly = TRUE)) {
-      p <- p + ggh4x::facet_nested_wrap(~paste0("Lineage ", LINEAGE) + MODEL)
+      p <- p + ggh4x::facet_nested_wrap(~paste0("Lineage ", LINEAGE) + MODEL, )
     } else {
       p <- p + ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL)
     }
     p <- p +
          ggplot2::geom_line(mapping = ggplot2::aes(y = PRED),
-                            size = 0.75,
+                            linewidth = 0.75,
                             color = "black") +
          ggplot2::geom_ribbon(mapping = ggplot2::aes(ymin = CI_LL, ymax = CI_UL),
                               alpha = 0.4,
-                              size = 0,
+                              linewidth = 0,
                               color = "grey") +
          ggplot2::scale_y_continuous(labels = scales::label_comma()) +
          ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) +

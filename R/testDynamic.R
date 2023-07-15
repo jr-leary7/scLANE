@@ -16,7 +16,7 @@
 #' @importFrom stats predict logLik deviance offset
 #' @importFrom geeM geem
 #' @importFrom glmmTMB glmmTMB nbinom2
-#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.
+#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param pt Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.
 #' @param genes A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.
 #' @param n.potential.basis.fns (Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
@@ -59,20 +59,20 @@
 #'             parallel.exec = TRUE,
 #'             n.cores = 8,
 #'             n.potential.basis.fns = 7)
-#' testDynamic(expr.mat = raw_counts,
+#' testDynamic(expr.mat = counts(sce_obj),
 #'             pt = pseudotime_df,
 #'             is.gee = TRUE,
-#'             id.vec = my_subject_ids,
+#'             id.vec = colData(sce_obj)$subject_id,
 #'             cor.structure = "ar1",
 #'             parallel.exec = TRUE,
 #'             n.cores = 8,
 #'             n.potential.basis.fns = 7)
-#' testDynamic(expr.mat = raw_counts,
+#' testDynamic(expr.mat = seu_obj,
 #'             pt = pseudotime_df,
 #'             parallel.exec = TRUE,
 #'             n.cores = 8,
 #'             is.glmm = TRUE,
-#'             id.vec = my_subject_ids,
+#'             id.vec = seu_obj$subject_id,
 #'             log.file = "scLANE_log.txt",
 #'             log.iter = 10)
 #' }
@@ -98,14 +98,17 @@ testDynamic <- function(expr.mat = NULL,
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
-    expr.mat <- t(as.matrix(expr.mat))
+    expr.mat <- as.matrix(expr.mat)
   } else if (inherits(expr.mat, "Seurat")) {
     expr.mat <- Seurat::GetAssayData(expr.mat,
                                      slot = "counts",
                                      assay = Seurat::DefaultAssay(expr.mat))
-    expr.mat <- t(as.matrix(expr.mat[genes, ]))
+    expr.mat <- as.matrix(expr.mat[genes, ])
+  } else if (inherits(expr.mat, "dgCMatrix")) {
+    expr.mat <- as.matrix(expr.mat)
   }
   if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be coerceable to a matrix of integer counts.") }
+  expr.mat <- t(expr.mat)  # transpose to cell x gene matrix
   if (is.null(genes)) {
     genes <- colnames(expr.mat)
   } else {

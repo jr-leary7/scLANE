@@ -160,9 +160,7 @@ plotPCA(sim_data, colour_by = "cell_time_normed")
 Since we have multi-subject data, we can use any of the three model
 backends to run our DE testing. We’ll start with the simplest model, the
 GLM, then work our way through the other options in order of increasing
-complexity. We first prepare our inputs - a dense matrix with cells as
-rows & genes as columns (i.e., transposed from the way it’s stored in
-`SingleCellExperiment` & `Seurat` objects), a dataframe containing our
+complexity. We first prepare our inputs - a dataframe containing our
 cell ordering, a set of genes to build models for, and a vector of
 per-cell size factors to be used as offsets during estimation. In
 reality, it’s usually unnecessary to fit a model for every single gene
@@ -179,7 +177,6 @@ dataframe passed as input to `testDynamic()`.
 set.seed(312)
 gene_sample <- c(sample(rownames(sim_data)[rowData(sim_data)$geneStatus_overall == "Dynamic"], size = 50), 
                  sample(rownames(sim_data)[rowData(sim_data)$geneStatus_overall == "NotDynamic"], size = 50))
-counts_mat <- as.matrix(t(counts(sim_data)[gene_sample, ]))
 order_df <- data.frame(X = sim_data$cell_time_normed)
 cell_offset <- createCellOffset(sim_data)
 ```
@@ -193,14 +190,13 @@ have one lineage. Parallel processing is turned on by default, and we
 use 2 cores here to speed up runtime.
 
 ``` r
-de_test_glm <- testDynamic(expr.mat = counts_mat, 
+de_test_glm <- testDynamic(sim_data, 
                            pt = order_df, 
                            genes = gene_sample, 
                            size.factor.offset = cell_offset, 
-                           n.potential.basis.fns = 5, 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 26.588 secs"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 26.572 secs"
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -286,17 +282,16 @@ structure](https://rdrr.io/cran/nlme/man/corAR1.html), which is the
 default for the GEE backend.
 
 ``` r
-de_test_gee <- testDynamic(expr.mat = counts_mat, 
+de_test_gee <- testDynamic(sim_data, 
                            pt = order_df, 
                            genes = gene_sample, 
                            size.factor.offset = cell_offset, 
-                           n.potential.basis.fns = 5, 
                            is.gee = TRUE, 
                            id.vec = sim_data$subject, 
                            cor.structure = "ar1", 
                            n.cores = 2, 
                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.849 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.129 mins"
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -368,19 +363,19 @@ caret::confusionMatrix(factor(de_res_gee$Gene_Dynamic_Overall, levels = c(0, 1))
 We re-run the DE tests a final time using the GLMM backend. This is the
 most complex model architecture we support, and is the trickiest to
 interpret. We recommend using it when you’re most interested in how a
-trajectory differs between subjects e.g., if the subjects can be
-stratified by groups such as Treatment & Control and you expect the
-Treatment group to have a different progression through the biological
-process. Executing the function with the GLMM backend differs only in
-that we switch the `is.glmm` flag to `TRUE` and no longer need to
-specify a working correlation structure. **Note**: the GLMM backend is
-still under development, as we are working on further reducing runtime
-and increasing the odds of the underlying optimization process
-converging successfully. As such, updates will be frequent and
-functionality / results may shift slightly.
+trajectory differs between subjects e.g., if the subjects belong to
+groups like Treatment & Control, and you expect the Treatment group to
+experience a different progression through the biological process.
+Executing the function with the GLMM backend differs only in that we
+switch the `is.glmm` flag to `TRUE` and no longer need to specify a
+working correlation structure. **Note**: the GLMM backend is still under
+development, as we are working on further reducing runtime and
+increasing the odds of the underlying optimization process converging
+successfully. As such, updates will be frequent and functionality /
+results may shift slightly.
 
 ``` r
-de_test_glmm <- testDynamic(expr.mat = counts_mat, 
+de_test_glmm <- testDynamic(sim_data, 
                             pt = order_df, 
                             genes = gene_sample, 
                             size.factor.offset = cell_offset, 
@@ -390,10 +385,10 @@ de_test_glmm <- testDynamic(expr.mat = counts_mat,
                             id.vec = sim_data$subject, 
                             n.cores = 2, 
                             track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 5.306 mins"
+#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.603 mins"
 ```
 
-Like the GLM backend, the GLMM backend use a likelihood ratio test to
+Like the GLM backend, the GLMM backend uses a likelihood ratio test to
 compare the null & alternate models. We fit the two nested models using
 maximum likelihood estimation instead of
 [REML](https://en.wikipedia.org/wiki/Restricted_maximum_likelihood) in
@@ -419,7 +414,7 @@ select(de_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Ove
 
 The GLMM backend performs about as well as the GEE backend. Like with
 the GEE backend, it’s more appropriate to use these more complex models
-when you expect expression dynamics to differ between subjects, with the
+if expression dynamics might differ between subjects, with the
 difference being that you should use the GEE backend if you’re
 interested in population-level trends & the GLMM backend if you’re
 interested in per-subject trends. Since the dynamics in our simulated
@@ -483,7 +478,7 @@ the same trend as the `scLANE` model, though the fitted trend from
 plotModels(de_test_glm, 
            gene = "JARID2", 
            pt = order_df, 
-           expr.mat = counts_mat, 
+           expr.mat = sim_data, 
            size.factor.offset = cell_offset)
 ```
 
@@ -496,7 +491,7 @@ lineage & color the points by subject ID instead of by lineage.
 plotModels(de_test_glmm, 
            gene = "WAPAL", 
            pt = order_df, 
-           expr.mat = counts_mat, 
+           expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
            is.glmm = TRUE, 
            plot.null = FALSE, 
@@ -557,7 +552,7 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
        color = "Leiden\nCluster", 
        title = "Unsupervised Clustering of Gene Patterns") + 
   theme_classic(base_size = 14) + 
-  guides(color = guide_legend(override.aes = list(size = 3, alpha = 1)))
+  guides(color = guide_legend(override.aes = list(linewidth = 3, alpha = 1)))
 ```
 
 <img src="man/figures/README-plot-clust-1.png" width="100%" />

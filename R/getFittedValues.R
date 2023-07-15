@@ -10,7 +10,7 @@
 #' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to NULL.
 #' @param genes A character vector of genes to generate fitted values for. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
-#' @param expr.mat A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.
+#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param cell.meta.data (Optional) A data.frame of metadata values for each cell (celltype label, subject characteristics, tissue type, etc.) that will be included in the result table. Defaults to NULL.
 #' @param id.vec (Optional) A vector of subject IDs used in fitting GEE or GLMM models. Defaults to NULL.
@@ -23,8 +23,8 @@
 #' getFittedValues(gene_stats,
 #'                 genes = c("Neurog3", "Epcam", "Krt19"),
 #'                 pt = pt_df,
-#'                 expr.mat = gene_counts,
-#'                 cell.meta.data = seurat_object@meta.data,
+#'                 expr.mat = seu_obj,
+#'                 cell.meta.data = seu_obj@meta.data,
 #'                 ci.alpha = 0.05)
 #' }
 
@@ -39,6 +39,25 @@ getFittedValues <- function(test.dyn.res = NULL,
                             filter.lineage = NULL) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt) || is.null(genes) || is.null(test.dyn.res)) { stop("You forgot one or more of the arguments to getFittedValues().") }
+  # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
+  if (inherits(expr.mat, "SingleCellExperiment")) {
+    expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
+    expr.mat <- as.matrix(expr.mat)
+  } else if (inherits(expr.mat, "Seurat")) {
+    expr.mat <- Seurat::GetAssayData(expr.mat,
+                                     slot = "counts",
+                                     assay = Seurat::DefaultAssay(expr.mat))
+    expr.mat <- as.matrix(expr.mat[genes, ])
+  } else if (inherits(expr.mat, "dgCMatrix")) {
+    expr.mat <- as.matrix(expr.mat)
+  }
+  if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be coerceable to a matrix of integer counts.") }
+  expr.mat <- t(expr.mat)  # transpose to cell x gene matrix
+  if (is.null(genes)) {
+    genes <- colnames(expr.mat)
+  } else {
+    expr.mat <- expr.mat[, genes]
+  }
   # generate parameters for CIs
   Z <- stats::qnorm(ci.alpha / 2, lower.tail = FALSE)
   # select sublist for gene of interest

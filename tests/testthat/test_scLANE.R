@@ -1,6 +1,6 @@
 # load data & prepare for testing
 load(system.file("testdata/sim_test_data.RData", package = "scLANE"))
-cell_offset <- createCellOffset(expr.mat = sim_data)
+cell_offset <- createCellOffset(sim_data)
 genes_to_test <- c(rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "Dynamic"][1:5],
                    rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "NotDynamic"][1:5])
 counts_test <- t(as.matrix(SingleCellExperiment::counts(sim_data)[genes_to_test, ]))
@@ -9,14 +9,16 @@ pt_test <- data.frame(PT = sim_data$cell_time_normed)
 # generate results w/ all functions of interest
 withr::with_output_sink(tempfile(), {
   # run GLM, GEE, & GLMM tests
-  glm_gene_stats <- testDynamic(expr.mat = counts_test,
+  glm_gene_stats <- testDynamic(sim_data,
                                 pt = pt_test,
+                                genes = genes_to_test,
                                 n.potential.basis.fns = 5,
                                 size.factor.offset = cell_offset,
                                 n.cores = 2,
                                 track.time = TRUE)
-  gee_gene_stats <- testDynamic(expr.mat = counts_test,
+  gee_gene_stats <- testDynamic(sim_data,
                                 pt = pt_test,
+                                genes = genes_to_test,
                                 n.potential.basis.fns = 5,
                                 size.factor.offset = cell_offset,
                                 is.gee = TRUE,
@@ -24,8 +26,9 @@ withr::with_output_sink(tempfile(), {
                                 id.vec = sim_data$subject,
                                 n.cores = 2,
                                 track.time = TRUE)
-  glmm_gene_stats <- testDynamic(expr.mat = counts_test,
+  glmm_gene_stats <- testDynamic(sim_data,
                                  pt = pt_test,
+                                 genes = genes_to_test,
                                  size.factor.offset = cell_offset,
                                  n.potential.basis.fns = 3,
                                  is.glmm = TRUE,
@@ -112,11 +115,11 @@ withr::with_output_sink(tempfile(), {
                          size.factor.offset = cell_offset,
                          gene = "ABR",
                          pt = pt_test,
-                         expr.mat = counts_test)
+                         expr.mat = sim_data)
   plot_gee <- plotModels(test.dyn.res = gee_gene_stats,
                          gene = "ABR",
                          pt = pt_test,
-                         expr.mat = counts_test,
+                         expr.mat = sim_data,
                          size.factor.offset = cell_offset,
                          is.gee = TRUE,
                          id.vec = sim_data$subject,
@@ -125,7 +128,7 @@ withr::with_output_sink(tempfile(), {
                           size.factor.offset = cell_offset,
                           gene = "ABR",
                           pt = pt_test,
-                          expr.mat = counts_test,
+                          expr.mat = sim_data,
                           is.glmm = TRUE,
                           id.vec = sim_data$subject)
   # downstream analysis
@@ -147,7 +150,7 @@ withr::with_output_sink(tempfile(), {
   fitted_values_table <- getFittedValues(test.dyn.res = glm_gene_stats,
                                          genes = names(glm_gene_stats),
                                          pt = pt_test,
-                                         expr.mat = counts_test,
+                                         expr.mat = sim_data,
                                          cell.meta.data = as.data.frame(SummarizedExperiment::colData(sim_data)),
                                          id.vec = sim_data$subject)
   gsea_res <- enrichDynamicGenes(scLANE.de.res = glm_test_results,

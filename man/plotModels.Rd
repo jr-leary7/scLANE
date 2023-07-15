@@ -20,7 +20,8 @@ plotModels(
   plot.gam = TRUE,
   plot.scLANE = TRUE,
   filter.lineage = NULL,
-  gg.theme = ggplot2::theme_classic(base_size = 14)
+  gg.theme = ggplot2::theme_classic(base_size = 14, base_line_size = 0.75, base_rect_size
+    = 0.75)
 )
 }
 \arguments{

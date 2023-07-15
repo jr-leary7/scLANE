@@ -24,7 +24,7 @@ testDynamic(
 )
 }
 \arguments{
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
 
 \item{pt}{Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.}
 
@@ -82,20 +82,20 @@ testDynamic(expr.mat = raw_counts,
             parallel.exec = TRUE,
             n.cores = 8,
             n.potential.basis.fns = 7)
-testDynamic(expr.mat = raw_counts,
+testDynamic(expr.mat = counts(sce_obj),
             pt = pseudotime_df,
             is.gee = TRUE,
-            id.vec = my_subject_ids,
+            id.vec = colData(sce_obj)$subject_id,
             cor.structure = "ar1",
             parallel.exec = TRUE,
             n.cores = 8,
             n.potential.basis.fns = 7)
-testDynamic(expr.mat = raw_counts,
+testDynamic(expr.mat = seu_obj,
             pt = pseudotime_df,
             parallel.exec = TRUE,
             n.cores = 8,
             is.glmm = TRUE,
-            id.vec = my_subject_ids,
+            id.vec = seu_obj$subject_id,
             log.file = "scLANE_log.txt",
             log.iter = 10)
 }

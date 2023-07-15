@@ -23,7 +23,7 @@ getFittedValues(
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{expr.mat}{A matrix of integer expression values for each cell & gene. Must have genes as columns & cells as rows, with column names being gene names. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
 
 \item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
 
@@ -46,8 +46,8 @@ Generate a table of expression counts, model fitted values, celltype metadata, e
 getFittedValues(gene_stats,
                 genes = c("Neurog3", "Epcam", "Krt19"),
                 pt = pt_df,
-                expr.mat = gene_counts,
-                cell.meta.data = seurat_object@meta.data,
+                expr.mat = seu_obj,
+                cell.meta.data = seu_obj@meta.data,
                 ci.alpha = 0.05)
 }
 }

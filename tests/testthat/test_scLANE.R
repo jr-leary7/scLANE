@@ -147,6 +147,8 @@ withr::with_output_sink(tempfile(), {
                                           size.factor.offset = cell_offset,
                                           parallel.exec = TRUE,
                                           n.cores = 2)
+  sorted_genes <- sortGenesHeatmap(heatmap.mat = smoothed_counts$Lineage_A,
+                                   pt.vec = pt_test$PT)
   fitted_values_table <- getFittedValues(test.dyn.res = glm_gene_stats,
                                          genes = names(glm_gene_stats),
                                          pt = pt_test,
@@ -274,6 +276,11 @@ test_that("smoothedCountsMatrix() output", {
   expect_type(smoothed_counts, "list")
   expect_length(smoothed_counts, 1)
   expect_type(smoothed_counts$Lineage_A, "double")
+})
+
+test_that("sortGenesHeatmap() output", {
+  expect_type(sorted_genes, "character")
+  expect_length(sorted_genes, ncol(smoothed_counts$Lineage_A))
 })
 
 test_that("getFittedValues() output", {

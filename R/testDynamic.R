@@ -512,7 +512,7 @@ testDynamic <- function(expr.mat = NULL,
           }, silent = TRUE)
         } else {
           null_sumy_df <- try({
-            as.data.frame(broom.mixed::tidy(null_mod)) # saves a few bytes by converting from tibble
+            as.data.frame(broom.mixed::tidy(null_mod))  # saves a few bytes by converting from tibble
           }, silent = TRUE)
           null_pred_df <- try({
             data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
@@ -631,11 +631,11 @@ testDynamic <- function(expr.mat = NULL,
     total_time_numeric <- as.numeric(total_time)
     print(paste0("testDynamic evaluated ",
                  length(genes),
-                 " genes with ",
+                 " genes across ",
                   n_lineages,
                  " ",
                  ifelse(n_lineages == 1, "lineage ", "lineages "),
-                 "apiece in ",
+                 "in ",
                  round(total_time_numeric, 3),
                  " ",
                  total_time_units))

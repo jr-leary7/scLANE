@@ -120,7 +120,7 @@ fitGLMM <- function(X_pred = NULL,
     } else {
       glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),
                                    data = glmm_basis_df,
-                                   offset = log(Y.offset),
+                                   offset = log(1 / Y.offset),
                                    family = glmmTMB::nbinom2(link = "log"),
                                    se = TRUE,
                                    REML = FALSE)

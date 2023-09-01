@@ -7,11 +7,11 @@
 max_span(X_red = NULL, q = NULL, alpha = 0.05)
 }
 \arguments{
-\item{X_red}{: a vector of values for the predictor variable.}
+\item{X_red}{A vector of values for the predictor variable.}
 
-\item{q}{: the number of predictors used.}
+\item{q}{The number of predictors used.}
 
-\item{alpha}{: see Friedman (1991) equation (45). The default is 0.05.}
+\item{alpha}{See Friedman (1991) equation (45). Defaults to 0.05.}
 }
 \value{
 \code{max_span} returns a vector of truncated predictor variable values.

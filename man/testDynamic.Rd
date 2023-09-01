@@ -18,9 +18,7 @@ testDynamic(
   parallel.exec = TRUE,
   n.cores = 2,
   approx.knot = TRUE,
-  track.time = FALSE,
-  log.file = NULL,
-  log.iter = 100
+  track.time = FALSE
 )
 }
 \arguments{
@@ -51,10 +49,6 @@ testDynamic(
 \item{approx.knot}{(Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.}
 
 \item{track.time}{(Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
-
-\item{log.file}{(Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL.}
-
-\item{log.iter}{(Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 100.}
 }
 \value{
 A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
@@ -95,9 +89,7 @@ testDynamic(expr.mat = seu_obj,
             parallel.exec = TRUE,
             n.cores = 8,
             is.glmm = TRUE,
-            id.vec = seu_obj$subject_id,
-            log.file = "scLANE_log.txt",
-            log.iter = 10)
+            id.vec = seu_obj$subject_id)
 }
 }
 \seealso{

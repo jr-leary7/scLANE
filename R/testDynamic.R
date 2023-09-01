@@ -30,8 +30,6 @@
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
 #' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
-#' @param log.file (Optional) A string indicating a \code{.txt} file to which iteration tracking should be written. Can be useful for debugging. Defaults to NULL.
-#' @param log.iter (Optional) If logging is enabled, how often should iterations be printed to the logfile. Defaults to 100.
 #' @details
 #' \itemize{
 #' \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
@@ -72,9 +70,7 @@
 #'             parallel.exec = TRUE,
 #'             n.cores = 8,
 #'             is.glmm = TRUE,
-#'             id.vec = seu_obj$subject_id,
-#'             log.file = "scLANE_log.txt",
-#'             log.iter = 10)
+#'             id.vec = seu_obj$subject_id)
 #' }
 
 testDynamic <- function(expr.mat = NULL,
@@ -90,9 +86,7 @@ testDynamic <- function(expr.mat = NULL,
                         parallel.exec = TRUE,
                         n.cores = 2,
                         approx.knot = TRUE,
-                        track.time = FALSE,
-                        log.file = NULL,
-                        log.iter = 100) {
+                        track.time = FALSE) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
@@ -134,10 +128,11 @@ testDynamic <- function(expr.mat = NULL,
   if (is.null(genes)) {
     genes <- colnames(expr.mat)
   }
-  # set up parallel execution & time tracking
+  # set up time tracking
   if (track.time) {
     start_time <- Sys.time()
   }
+  # set up parallel processing
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
     doParallel::registerDoParallel(cl)
@@ -150,16 +145,9 @@ testDynamic <- function(expr.mat = NULL,
   expr.mat <- bigstatsr::as_FBM(expr.mat,
                                 type = "integer",
                                 is_read_only = TRUE)
-  # set up logging to .txt file if desired
-  print_nums <- seq(0, length(genes), log.iter)[-1]
-  if (!is.null(log.file)) {
-    if (!substr(log.file, nchar(log.file) - 3, nchar(log.file)) == ".txt") {
-      log.file <- paste0(log.file, ".txt")
-    }
-  }
   # build list of objects to prevent from being sent to parallel workers
   necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "print_nums",
-                      "n_lineages", "id.vec", "cor.structure", "is.gee", "log.file", "log.iter", "glmm.adaptive", "size.factor.offset")
+                      "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
                    ls()[-which(ls() %in% necessary_vars)])
@@ -183,13 +171,6 @@ testDynamic <- function(expr.mat = NULL,
                                  .packages = package_list,
                                  .noexport = no_export,
                                  .verbose = FALSE) %dopar% {
-    if (!is.null(log.file) && i %in% print_nums) {
-      withr::with_output_sink(log.file,
-                              code = {
-                                cat(paste(Sys.time(), "- Starting iteration:", i, "\n"))
-                              },
-                              append = TRUE)
-    }
     lineage_list <- vector("list", n_lineages)
     for (j in seq(n_lineages)) {
       lineage_cells <- which(!is.na(pt[, j]))
@@ -565,7 +546,7 @@ testDynamic <- function(expr.mat = NULL,
                                                        is.glmm = is.glmm) %>%
                           dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
                           dplyr::relocate(Gene, Lineage)
-        # compute LRT stat using asymptotic Chi-squared approximation
+        # compute test stat using asymptotic Chi-squared approximation
         if (is.gee) {
           test_res <- scLANE::waldTestGEE(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
         } else {
@@ -602,7 +583,7 @@ testDynamic <- function(expr.mat = NULL,
                                   Null_Preds = null_pred_df,
                                   MARGE_Slope_Data = marge_slope_df)
       } else {
-        stop(paste0("Conditions for marge or null model fits not met for gene ",
+        stop(paste0("Conditions for scLANE or null model fits not met for gene ",
                     genes[i],
                     " on lineage ",
                     j))

@@ -13,7 +13,7 @@ marge2(
   id.vec = NULL,
   cor.structure = "ar1",
   approx.knot = TRUE,
-  n.knot.max = 20,
+  n.knot.max = 50,
   tols_score = 1e-05,
   minspan = NULL,
   return.basis = FALSE,
@@ -28,17 +28,17 @@ marge2(
 
 \item{Y.offset}{(Optional) An vector of per-cell size factors to be included in the final model fit as an offset. Defaults to NULL.}
 
-\item{M}{A set threshold for the number of basis functions to be used. Defaults to 5.}
+\item{M}{A set threshold for the maximum number of basis functions to be chosen. Defaults to 5.}
 
 \item{is.gee}{Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.}
 
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
 
-\item{cor.structure}{If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".}
+\item{cor.structure}{If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".}
 
-\item{approx.knot}{(Optional) Should the set of candidate knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.}
+\item{approx.knot}{(Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.}
 
-\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 20.}
+\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses random sampling (don't worry, a random seed is set internally) to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.}
 
 \item{tols_score}{(Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.}
 
@@ -58,7 +58,7 @@ MARS fitting function for negative binomial generalized linear models (GLMs) & g
 }
 \details{
 \itemize{
-\item If models are being fit using an offset (as is recommended), it is assumed that the offset represents a library size factor (or similar quantity) generated using e.g., \code{\link{createCellOffset}} or \code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents a scaling factor divide by sequencing depth, the offset is formulated as \code{offset(log(1 / cell_offset))}. The inversion is necessary because the rate term, i.e. the sequencing depth, is the denominator of the estimated size factors.
+\item If models are being fit using an offset (as is recommended), it is assumed that the offset represents a library size factor (or similar quantity) generated using e.g., \code{\link{createCellOffset}} or \code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents a scaling factor divided by sequencing depth, the offset is formulated as \code{offset(log(1 / cell_offset))}. The inversion is necessary because the rate term, i.e. the sequencing depth, is the denominator of the estimated size factors.
 }
 }
 \examples{

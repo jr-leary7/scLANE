@@ -16,12 +16,12 @@
 #' @param X_pred A matrix of the predictor variables. Defaults to NULL.
 #' @param Y The response variable. Defaults to NULL.
 #' @param Y.offset (Optional) An vector of per-cell size factors to be included in the final model fit as an offset. Defaults to NULL.
-#' @param M A set threshold for the number of basis functions to be used. Defaults to 5.
+#' @param M A set threshold for the maximum number of basis functions to be chosen. Defaults to 5.
 #' @param is.gee Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
-#' @param cor.structure If \code{is.gee = TRUE}, must be a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
-#' @param approx.knot (Optional) Should the set of candidate knots be reduce in order to speed up computation? This has little effect on the final fit, but can improve computation time significantly. Defaults to TRUE.
-#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to set this number of unique values from the reduced set of all candidate knots. Defaults to 20.
+#' @param cor.structure If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
+#' @param approx.knot (Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.
+#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses random sampling (don't worry, a random seed is set internally) to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
 #' @param minspan (Optional) A set minimum span value. Defaults to NULL.
 #' @param return.basis (Optional) Whether the basis model matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.
@@ -29,7 +29,7 @@
 #' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @details
 #' \itemize{
-#' \item If models are being fit using an offset (as is recommended), it is assumed that the offset represents a library size factor (or similar quantity) generated using e.g., \code{\link{createCellOffset}} or \code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents a scaling factor divide by sequencing depth, the offset is formulated as \code{offset(log(1 / cell_offset))}. The inversion is necessary because the rate term, i.e. the sequencing depth, is the denominator of the estimated size factors.
+#' \item If models are being fit using an offset (as is recommended), it is assumed that the offset represents a library size factor (or similar quantity) generated using e.g., \code{\link{createCellOffset}} or \code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents a scaling factor divided by sequencing depth, the offset is formulated as \code{offset(log(1 / cell_offset))}. The inversion is necessary because the rate term, i.e. the sequencing depth, is the denominator of the estimated size factors.
 #' }
 #' @return An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
@@ -69,7 +69,7 @@ marge2 <- function(X_pred = NULL,
                    id.vec = NULL,
                    cor.structure = "ar1",
                    approx.knot = TRUE,
-                   n.knot.max = 20,
+                   n.knot.max = 50,
                    tols_score = 1e-5,
                    minspan = NULL,
                    return.basis = FALSE,
@@ -78,7 +78,7 @@ marge2 <- function(X_pred = NULL,
   # check inputs
   if (is.null(X_pred) || is.null(Y)) { stop("Some required inputs to marge2() are missing.") }
   if (is.gee & is.null(id.vec)) { stop("id.vec in marge2() must be non-null if is.gee = TRUE.") }
-  if (is.gee & (!cor.structure %in% c("independence", "exchangeable", "ar1", "unstructured"))) { stop("cor.structure in marge2() must be a known type if is.gee = TRUE.") }
+  if (is.gee & (!cor.structure %in% c("independence", "exchangeable", "ar1"))) { stop("cor.structure in marge2() must be a known type if is.gee = TRUE.") }
   if (is.gee & is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running marge2() with is.gee = TRUE.") }
 
   # Algorithm 2 (forward pass) as in Friedman (1991). Uses score statistics instead of RSS, etc.
@@ -166,7 +166,8 @@ marge2 <- function(X_pred = NULL,
         X_red2 <- max_span(X_red = X, q = q)
         X_red <- intersect(X_red1, X_red2)
         if (length(X_red) > n.knot.max) {
-          X_red <- seq(min(X_red), max(X_red), length.out = n.knot.max)
+          set.seed(as.integer(length(X_red)))
+          X_red <- sample(X_red, size = n.knot.max)
         }
       } else {
         # original candidate knot selection from 2017 Stoklosa & Warton paper
@@ -186,7 +187,8 @@ marge2 <- function(X_pred = NULL,
       in.set <- ifelse(ncol(B) > 1, sum(!var_name_vec %in% var_name), 0)
 
       for (t in seq(length(X_red))) {
-        b1_new <- matrix(tp1(x = X,  t = X_red[t]), ncol = 1)  # Pairs of truncated functions.
+        # pairs of truncated functions
+        b1_new <- matrix(tp1(x = X,  t = X_red[t]), ncol = 1)
         b2_new <- matrix(tp2(x = X, t = X_red[t]), ncol = 1)
 
         score_knot_both_int <- NULL

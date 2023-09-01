@@ -7,13 +7,13 @@
 min_span(X_red = NULL, q = NULL, minspan = NULL, alpha = 0.05)
 }
 \arguments{
-\item{X_red}{: a vector of reduced predictor variable values. Defaults to NULL.}
+\item{X_red}{A vector of reduced predictor variable values. Defaults to NULL.}
 
-\item{q}{: the number of predictor variables used. Defaults to NULL.}
+\item{q}{The number of predictor variables used. Defaults to NULL.}
 
-\item{minspan}{: the set minimum span value. Defaults to \code{round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))}.}
+\item{minspan}{The set minimum span value. Defaults to \code{round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))}.}
 
-\item{alpha}{: see Friedman (1991) equation (43). The default is 0.05.}
+\item{alpha}{See Friedman (1991) equation (43). Defaults to 0.05.}
 }
 \value{
 \code{min_span} returns a vector of truncated predictor variable values.

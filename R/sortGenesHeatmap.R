@@ -1,4 +1,4 @@
-#' Generate a table of fitted values and celltype metadata for genes of interest.
+#' Sort genes by where their peak expression occurs across pseudotime.
 #'
 #' @name sortGenesHeatmap
 #' @author Jack Leary
@@ -9,6 +9,7 @@
 #' @param heatmap.mat A matrix of raw or smoothed expression values with genes as columns and cells as rows. Defaults to NULL.
 #' @param pt.vec A numeric vector of pseudotime values for each cell i.e., for each row in the heatmap matrix. Defaults to NULL.
 #' @return A character vector of genes sorted by their peak expression values over pseudotime.
+#' @seealso \code{\link{smoothedCountsMatrix}}
 #' @export
 #' @examples
 #' \dontrun{

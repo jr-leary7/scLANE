@@ -6,7 +6,23 @@ genes_to_test <- c(rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$ge
 counts_test <- t(as.matrix(SingleCellExperiment::counts(sim_data)[genes_to_test, ]))
 pt_test <- data.frame(PT = sim_data$cell_time_normed)
 
-# generate results w/ all functions of interest
+# test internal functions used in model fitting
+max_span_res <- max_span(X_red = pt_test[, 1], q = 1)
+min_span_res <- min_span(X_red = pt_test[, 1], q = 1)
+Y_exp <- sim_data@assays@data$counts[genes_to_test[1], ]
+stat_out_res <- stat_out(Y = Y_exp,
+                         B1 = matrix(rnorm(ncol(sim_data)), nrow = ncol(sim_data), ncol = 1),
+                         TSS = sum((Y_exp - mean(Y_exp))^2),
+                         GCV.null = sum((Y_exp - mean(Y_exp))^2) / (ncol(sim_data) * (1 - (1 / ncol(sim_data)))^2))
+null_stat_glm <- stat_out_score_glm_null(Y = Y_exp,
+                                         B_null = rep(1, ncol(sim_data)))
+null_stat_gee <- stat_out_score_gee_null(Y = Y_exp,
+                                         B_null = matrix(1, ncol = 1, nrow = ncol(sim_data)),
+                                         id.vec = sim_data$subject,
+                                         cor.structure = "ar1",
+                                         theta.hat = 1)
+
+# generate scLANE results w/ all three model architectures
 withr::with_output_sink(tempfile(), {
   # run GLM, GEE, & GLMM tests
   glm_gene_stats <- testDynamic(sim_data,
@@ -161,6 +177,17 @@ withr::with_output_sink(tempfile(), {
 })
 
 # run tests
+test_that("internal marge functions", {
+  expect_type(min_span_res, "double")
+  expect_type(max_span_res, "double")
+  expect_type(stat_out_res, "list")
+  expect_type(null_stat_glm, "list")
+  expect_type(null_stat_gee, "list")
+  expect_length(stat_out_res, 4)
+  expect_length(null_stat_glm, 5)
+  expect_length(null_stat_gee, 8)
+})
+
 test_that("createCellOffset() output", {
   expect_type(cell_offset, "double")
   expect_length(cell_offset, 300)

@@ -1,10 +1,10 @@
 #' A truncation function applied on the predictor variable for knot selection.
 #'
 #' @name min_span
-#' @param X_red : a vector of reduced predictor variable values. Defaults to NULL.
-#' @param q : the number of predictor variables used. Defaults to NULL.
-#' @param minspan : the set minimum span value. Defaults to \code{round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))}.
-#' @param alpha : see Friedman (1991) equation (43). The default is 0.05.
+#' @param X_red A vector of reduced predictor variable values. Defaults to NULL.
+#' @param q The number of predictor variables used. Defaults to NULL.
+#' @param minspan The set minimum span value. Defaults to \code{round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))}.
+#' @param alpha See Friedman (1991) equation (43). Defaults to 0.05.
 #' @details  This function selects a minimum span between the knots to mitigate runs of correlated noise in the input data and hence avoiding estimation issues, this equation comes from Friedman (1991) equation 43.
 #' @return \code{min_span} returns a vector of truncated predictor variable values.
 #' @author Jakub Stoklosa and David I. Warton.
@@ -20,7 +20,7 @@ min_span <- function(X_red = NULL,
   N <- length(X_red)
   x <- sort(X_red)
   if (is.null(minspan)) {
-    minspan <- round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))
+    minspan <- round(-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5)
   }
   # run function
   x_new <- min(x, na.rm = TRUE)

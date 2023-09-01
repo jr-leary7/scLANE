@@ -1,9 +1,9 @@
 #' Truncates the predictor variable value to exclude extreme values in knots selection.
 #'
 #' @name max_span
-#' @param X_red : a vector of values for the predictor variable.
-#' @param q : the number of predictors used.
-#' @param alpha : see Friedman (1991) equation (45). The default is 0.05.
+#' @param X_red A vector of values for the predictor variable.
+#' @param q The number of predictors used.
+#' @param alpha See Friedman (1991) equation (45). Defaults to 0.05.
 #' @details Note that this equation comes from Friedman (1991) equation (45).
 #' @return \code{max_span} returns a vector of truncated predictor variable values.
 #' @author Jakub Stoklosa and David I. Warton.
@@ -18,10 +18,8 @@ max_span <- function(X_red = NULL,
   x <- sort(unique(X_red))
   maxspan <- round((3 - log2(alpha / q)))
   x_new <- x[-c(1:maxspan, floor(N - maxspan + 1):N)]
-  if (length(x_new) > 0) {
-    res <- x_new
-  } else {
-    res <- x
+  if (length(x_new) == 0) {
+    x_new <- x
   }
-  return(res)
+  return(x_new)
 }

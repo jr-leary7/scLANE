@@ -2,7 +2,7 @@
 % Please edit documentation in R/sortGenesHeatmap.R
 \name{sortGenesHeatmap}
 \alias{sortGenesHeatmap}
-\title{Generate a table of fitted values and celltype metadata for genes of interest.}
+\title{Sort genes by where their peak expression occurs across pseudotime.}
 \usage{
 sortGenesHeatmap(heatmap.mat = NULL, pt.vec = NULL)
 }
@@ -23,6 +23,9 @@ smoothed_counts <- smoothedCountsMatrix(gene_stats, pt = pt_df)
 sortGenesheatmap(heatmap.mat = smoothed_counts$Lineage_A,
                  pt.vec = pt_df[!is.na(pt_df$Lineage_A), ]$Lineage_A)
 }
+}
+\seealso{
+\code{\link{smoothedCountsMatrix}}
 }
 \author{
 Jack Leary

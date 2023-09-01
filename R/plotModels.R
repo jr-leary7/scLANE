@@ -276,7 +276,8 @@ plotModels <- function(test.dyn.res = NULL,
                              size = 0.5)
     if (requireNamespace("ggh4x", quietly = TRUE)) {
       p <- p + ggh4x::facet_nested_wrap(~paste0("Lineage ", LINEAGE) + MODEL + ID,
-                                        nrow = length(levels(counts_df$MODEL)))
+                                        nrow = length(levels(counts_df$MODEL)),
+                                        strip = ggh4x::strip_nested(background_x = list(ggplot2::element_rect(linewidth = gg.theme$line$linewidth))))
     } else {
       p <- p + ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL + ID)
     }
@@ -298,7 +299,9 @@ plotModels <- function(test.dyn.res = NULL,
                        fill = "Subject",
                        title = gene) +
          gg.theme +
-         ggplot2::theme(plot.title = ggplot2::element_text(face = "italic")) +
+         ggplot2::theme(plot.title = ggplot2::element_text(face = "italic"),
+                        strip.clip = "off",
+                        strip.background = ggplot2::element_rect(linewidth = gg.theme$line$linewidth)) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, alpha = 1)))
   } else {
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
@@ -306,7 +309,8 @@ plotModels <- function(test.dyn.res = NULL,
                              size = 0.5,
                              show.legend = ifelse(ncol(pt) > 1, TRUE, FALSE))
     if (requireNamespace("ggh4x", quietly = TRUE)) {
-      p <- p + ggh4x::facet_nested_wrap(~paste0("Lineage ", LINEAGE) + MODEL, )
+      p <- p + ggh4x::facet_nested_wrap(~paste0("Lineage ", LINEAGE) + MODEL,
+                                        strip = ggh4x::strip_nested(background_x = list(ggplot2::element_rect(linewidth = gg.theme$line$linewidth))))
     } else {
       p <- p + ggplot2::facet_wrap(~paste0("Lineage ", LINEAGE) + MODEL)
     }
@@ -326,7 +330,9 @@ plotModels <- function(test.dyn.res = NULL,
                        fill = "Lineage",
                        title = gene) +
          gg.theme +
-         ggplot2::theme(plot.title = ggplot2::element_text(face = "italic")) +
+         ggplot2::theme(plot.title = ggplot2::element_text(face = "italic"),
+                        strip.clip = "off",
+                        strip.background = ggplot2::element_rect(linewidth = gg.theme$line$linewidth)) +
          ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 4, alpha = 1)))
   }
   return(p)

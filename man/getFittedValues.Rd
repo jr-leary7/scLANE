@@ -10,6 +10,7 @@ getFittedValues(
   pt = NULL,
   expr.mat = NULL,
   size.factor.offset = NULL,
+  log1p.norm = TRUE,
   cell.meta.data = NULL,
   id.vec = NULL,
   ci.alpha = 0.05,
@@ -27,6 +28,8 @@ getFittedValues(
 
 \item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
 
+\item{log1p.norm}{(Optional) Should log1p-normalized versions of expression & model predictions be returned as well? Defaults to TRUE.}
+
 \item{cell.meta.data}{(Optional) A data.frame of metadata values for each cell (celltype label, subject characteristics, tissue type, etc.) that will be included in the result table. Defaults to NULL.}
 
 \item{id.vec}{(Optional) A vector of subject IDs used in fitting GEE or GLMM models. Defaults to NULL.}
@@ -36,7 +39,7 @@ getFittedValues(
 \item{filter.lineage}{(Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.}
 }
 \value{
-A data.frame containing expression, fitted values, and metadata.
+A data.frame containing depth- and log1p-normalized expression, model predictions, and cell-level metadata.
 }
 \description{
 Generate a table of expression counts, model fitted values, celltype metadata, etc. in order to create custom plots of gene dynamics.

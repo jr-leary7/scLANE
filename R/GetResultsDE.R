@@ -38,7 +38,7 @@ getResultsDE <- function(test.dyn.res = NULL,
                                                    dplyr::mutate(dplyr::across(tidyselect::everything(), \(z) unname(unlist(z))))
                                                })
                               }) %>%
-               dplyr::arrange(P_Val) %>%
+               dplyr::arrange(P_Val, Test_Stat) %>%
                dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),
                              Gene_Dynamic_Lineage = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0, missing = 0)) %>%
                dplyr::with_groups(Gene,

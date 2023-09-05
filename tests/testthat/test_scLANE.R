@@ -168,6 +168,7 @@ withr::with_output_sink(tempfile(), {
   fitted_values_table <- getFittedValues(test.dyn.res = glm_gene_stats,
                                          genes = names(glm_gene_stats),
                                          pt = pt_test,
+                                         size.factor.offset = cell_offset,
                                          expr.mat = sim_data,
                                          cell.meta.data = as.data.frame(SummarizedExperiment::colData(sim_data)),
                                          id.vec = sim_data$subject)
@@ -312,7 +313,7 @@ test_that("sortGenesHeatmap() output", {
 
 test_that("getFittedValues() output", {
   expect_s3_class(fitted_values_table, "data.frame")
-  expect_equal(ncol(fitted_values_table), 17)
+  expect_equal(ncol(fitted_values_table), 25)
 })
 
 test_that("enrichDynamicGenes() output", {

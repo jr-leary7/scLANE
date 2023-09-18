@@ -106,7 +106,7 @@ getFittedValues <- function(test.dyn.res = NULL,
                            }
                            if (log1p.norm) {
                              gene_df <- dplyr::mutate(gene_df,
-                                                      expression_log1p = log1p(rna),
+                                                      rna_log1p = log1p(rna),
                                                       scLANE_pred_log1p = log1p(scLANE_pred),
                                                       scLANE_ci_ll_log1p = log1p(scLANE_ci_ll),
                                                       scLANE_ci_ul_log1p = log1p(scLANE_ci_ul))

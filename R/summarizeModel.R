@@ -24,9 +24,7 @@ summarizeModel <- function(marge.model = NULL, pt=NULL) {
                      Slope.Segment = NA_real_,
                      Trend.Segment = NA_real_)
     
-  } else {
-  
-  # if (!inherits(marge.model$final_mod, "marge")) { stop("Input to summarizeModel() must be of class marge.") }
+    } else {
   
   # extract model equation & slopes
   coef_df <- data.frame(coef_name = names(coef(marge.model$final_mod)),
@@ -35,7 +33,10 @@ summarizeModel <- function(marge.model = NULL, pt=NULL) {
   coef_df <- coef_df[-which(coef_df$coef_name == "Intercept"),]
   
   coef_df <- cbind(coef_df, extractBreakpoints(marge.model))
-
+  
+  coef_df <- coef_df[order(coef_df$Breakpoint, coef_df$Direction),]
+  coef_df
+  
   MIN <- min(pt[,1])
   MAX <- max(pt[,1])
 
@@ -46,6 +47,8 @@ summarizeModel <- function(marge.model = NULL, pt=NULL) {
       c(MIN, y)
     }
   }, coef_df$Direction, coef_df$Breakpoint)
+  coef_ranges
+  # coef_ranges <- coef_ranges[,order(colnames(coef_ranges))]
   
   num_segments <- length(unique(coef_df$Breakpoint)) + 1
   mod_seg <- list()
@@ -57,7 +60,7 @@ summarizeModel <- function(marge.model = NULL, pt=NULL) {
       mod_seg[[i]] <- c(coef_df$Breakpoint[i-1], coef_df$Breakpoint[i])
     }
   }
-  
+  coef_ranges <- t(coef_ranges)
   mod_seg_overlaps <- lapply(mod_seg, function(x) {
     overlap_ind <- c()
     for(i in 1:nrow(coef_ranges)) {
@@ -87,9 +90,11 @@ summarizeModel <- function(marge.model = NULL, pt=NULL) {
   seg_trends[seg_slopes==0] <- 0
   
 
-  mod_summ <- list(Breakpoint = coef_df$Breakpoint, 
+  mod_summ <- list(Breakpoint = unique(coef_df$Breakpoint), 
        Slope.Segment = seg_slopes,
        Trend.Segment = seg_trends)
+  mod_summ
+  
   }
   return(mod_summ)
 }

@@ -18,7 +18,15 @@ summarizeModel <- function(marge.model = NULL, pt=NULL) {
    # check inputs
   if (is.null(marge.model)) { stop("Please provide a non-NULL input argument for marge.model.") }
   if (is.null(pt)) { stop("Please provide a non-NULL input argument for pt.") }
-  if (!inherits(marge.model, "marge")) { stop("Input to summarizeModel() must be of class marge.") }
+  
+  if (inherits(marge.model, "try-error")) {
+    mod_summ <- list(Breakpoint = NA_real_, 
+                     Slope.Segment = NA_real_,
+                     Trend.Segment = NA_real_)
+    
+  } else {
+  
+  # if (!inherits(marge.model$final_mod, "marge")) { stop("Input to summarizeModel() must be of class marge.") }
   
   # extract model equation & slopes
   coef_df <- data.frame(coef_name = names(coef(marge.model$final_mod)),
@@ -82,6 +90,6 @@ summarizeModel <- function(marge.model = NULL, pt=NULL) {
   mod_summ <- list(Breakpoint = coef_df$Breakpoint, 
        Slope.Segment = seg_slopes,
        Trend.Segment = seg_trends)
- 
+  }
   return(mod_summ)
 }

@@ -25,6 +25,15 @@
 
 waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
   # check inputs
+  if (inherits(mod.1, "try-error") || inherits(mod.0, "try-error")) {
+    res <- list(Wald_Stat = NA,
+                DF = NA,
+                P_Val = NA,
+                Notes = "No test performed due to model failure.")
+    return(res)
+  }
+  
+  mod.1 <- mod.1$final_mod
   if (is.null(mod.1) || is.null(mod.0) || !(inherits(mod.1, "geem") && inherits(mod.0, "geem"))) { stop("You must provide two geeM models to wald_test_gee().") }
   if (length(coef(mod.1)) <= length(coef(mod.0))) {
     # can't calculate Wald statistic if both models are intercept-only
@@ -57,7 +66,7 @@ waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
     res <- list(Wald_Stat = wald_test_stat,
                 DF = length(coef_diff),
                 P_Val = p_value,
-                Note = wald_note)
+                Notes = wald_note)
   }
   return(res)
 }

@@ -166,7 +166,7 @@ marge2 <- function(X_pred = NULL,
         X_red2 <- max_span(X_red = X, q = q)
         X_red <- intersect(X_red1, X_red2)
         if (length(X_red) > n.knot.max) {
-          set.seed(as.integer(length(X_red)))
+          # set.seed(as.integer(length(X_red)))
           X_red <- sample(X_red, size = n.knot.max)
         }
       } else {

@@ -21,8 +21,21 @@ modelLRT <- function(mod.1 = NULL,
                      mod.0 = NULL,
                      is.glmm = FALSE) {
   # check inputs
+  if (inherits(mod.1, "try-error") || inherits(mod.0, "try-error")) {
+    res <- list(Alt_Mod_LL = NA,
+                Null_Mod_LL = NA,
+                LRT_Stat = NA,
+                DF = NA,
+                P_Val = NA,
+                Model_Type = NA,
+                Notes = "No test performed due to model failure.")
+    return(res)
+  }
+  
+  mod.1 <- mod.1$final_mod
+  
   if (is.null(mod.1) || is.null(mod.0)) { stop("You must provide two models to compare.") }
-  LRT_notes <- NULL
+  LRT_notes <- NA_character_
   # compute LRT
   if (is.glmm) {
     if (!(inherits(mod.1, "glmmTMB") && inherits(mod.0, "glmmTMB"))) { stop("Models must be of class glmmTMB.") }

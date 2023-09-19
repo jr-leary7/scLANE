@@ -110,7 +110,7 @@ cell_offset <- createCellOffset(sim_data)
 Running `testDynamic()` provides us with a nested list containing model output & DE test results for each gene over each pseudotime / latent time lineage. In this case, since we have a true cell ordering we only have one lineage. Parallel processing is turned on by default, and we use 2 cores here to speed up runtime. 
 
 ```{r glm-models, results='hold'}
-de_test_glm <- testDynamic(sim_data, 
+de_test_glm <- testDynamic(expr.mat = sim_data, 
                            pt = order_df, 
                            genes = gene_sample, 
                            size.factor.offset = cell_offset, 
@@ -149,7 +149,7 @@ The function call is essentially the same when using the GLM backend, with the e
 ```{r gee-models, results='hold'}
 de_test_gee <- testDynamic(sim_data, 
                            pt = order_df, 
-                           genes = gene_sample, 
+                           genes = gene_sample[1:5], 
                            size.factor.offset = cell_offset, 
                            is.gee = TRUE, 
                            id.vec = sim_data$subject, 
@@ -187,7 +187,7 @@ We re-run the DE tests a final time using the GLMM backend. This is the most com
 ```{r glmm-models}
 de_test_glmm <- testDynamic(sim_data, 
                             pt = order_df, 
-                            genes = gene_sample, 
+                            genes = gene_sample[1:5], 
                             size.factor.offset = cell_offset, 
                             n.potential.basis.fns = 3, 
                             is.glmm = TRUE, 
@@ -237,7 +237,7 @@ When plotting the models generated using the GLMM backend, we split by lineage &
 
 ```{r plot-models-glmm, fig.width=9, fig.height=9}
 plotModels(de_test_glmm, 
-           gene = "WAPAL", 
+           gene = "JARID2", 
            pt = order_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 

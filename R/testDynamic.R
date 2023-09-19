@@ -173,35 +173,25 @@ testDynamic <- function(expr.mat = NULL,
                                  .verbose = FALSE) %dopar% {
     lineage_list <- vector("list", n_lineages)
     for (j in seq(n_lineages)) {
+      
       lineage_cells <- which(!is.na(pt[, j]))
-      # run original MARGE model using one of GLM, GEE, or GLMM backends
-      if (is.gee) {
-        marge_mod <- try(
-          { scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
+      
+      # run MARGE model using one of GLM, GEE, or GLMM backends
+     
+      if (!is.glmm) {
+      marge_mod <- try({ scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
                            Y = expr.mat[lineage_cells, i],
                            Y.offset = size.factor.offset[lineage_cells],
                            is.gee = is.gee,
                            id.vec = id.vec[lineage_cells],
                            cor.structure = cor.structure,
                            M = n.potential.basis.fns,
-                           approx.knot = approx.knot) },
-          silent = TRUE
-        )
-      } else if (is.glmm) {
-        if (glmm.adaptive) {
-          marge_mod <- try(
-            { scLANE::fitGLMM(X_pred = pt[lineage_cells, j, drop = FALSE],
-                              Y = expr.mat[lineage_cells, i],
-                              Y.offset = size.factor.offset[lineage_cells],
-                              id.vec = id.vec[lineage_cells],
-                              M.glm = n.potential.basis.fns,
-                              approx.knot = approx.knot,
-                              adaptive = glmm.adaptive) },
-            silent = TRUE
-          )
-        } else {
-          marge_mod <- try(
-            { scLANE::fitGLMM(X_pred = pt[lineage_cells, j, drop = FALSE],
+                           approx.knot = approx.knot,
+                           return.basis = TRUE) },
+          silent = TRUE)
+      }
+      if (is.glmm) {
+        marge_mod <- try({ scLANE::fitGLMM(X_pred = pt[lineage_cells, j, drop = FALSE],
                               Y = expr.mat[lineage_cells, i],
                               Y.offset = size.factor.offset[lineage_cells],
                               id.vec = id.vec[lineage_cells],
@@ -209,20 +199,10 @@ testDynamic <- function(expr.mat = NULL,
                               approx.knot = approx.knot,
                               adaptive = glmm.adaptive,
                               return.basis = TRUE) },
-            silent = TRUE
-          )
-        }
-      } else {
-        marge_mod <- try(
-          { scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
-                           Y = expr.mat[lineage_cells, i, drop = FALSE],
-                           Y.offset = size.factor.offset[lineage_cells],
-                           M = n.potential.basis.fns,
-                           approx.knot = approx.knot,
-                           return.basis = TRUE) },
-          silent = TRUE
-        )
+            silent = TRUE)
       }
+    
+    
       # build formula for null model
       null_mod_df <- data.frame(Y_null = expr.mat[lineage_cells, i],
                                 Intercept = 1)
@@ -241,6 +221,7 @@ testDynamic <- function(expr.mat = NULL,
         null_mod_formula <- paste0(null_mod_formula, " + offset(log(1 / n_offset))")
       }
       null_mod_formula <- stats::as.formula(null_mod_formula)
+      
       # fit null model for comparison via Wald or LR test
       if (is.gee) {
         theta_hat <- MASS::theta.mm(y = null_mod_df$Y_null,
@@ -275,323 +256,84 @@ testDynamic <- function(expr.mat = NULL,
         )
       }
       # slim down GLM object if not a GEE / GLMM model (which are much smaller for some reason)
-      if (!(is.gee || is.glmm) && !inherits(null_mod, "try-error")) {
+      if (!(is.gee || is.glmm)) {
         null_mod <- scLANE::stripGLM(glm.obj = null_mod)
       }
-      # prepare results if there were errors in both null and MARGE models
-      if (inherits(marge_mod, "try-error") && inherits(null_mod, "try-error")) {
-        mod_status <- "MARGE model error, null model error"
-        # generate empty dataframe for slope test
-        slope_data_error <- data.frame(Gene = genes[i],
-                                       Lineage = LETTERS[j],
-                                       Breakpoint = NA_real_,
-                                       Rounded_Breakpoint = NA_real_,
-                                       Direction = NA_character_,
-                                       P_Val = NA_real_,
-                                       Notes = mod_status)
-        # create lineage result list
-        lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = LETTERS[j],
-                                  Test_Stat = NA_real_,
-                                  Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
-                                  Test_Stat_Note = NA_character_,
-                                  P_Val = NA_real_,
-                                  LogLik_MARGE = NA_real_,
-                                  LogLik_Null = NA_real_,
-                                  Dev_MARGE = NA_real_,
-                                  Dev_Null = NA_real_,
-                                  Model_Status = mod_status,
-                                  MARGE_Fit_Notes = NA_character_,
-                                  MARGE_Summary = NA,
-                                  Null_Summary = NA,
-                                  MARGE_Preds = NA,
-                                  Null_Preds = NA,
-                                  MARGE_Slope_Data = slope_data_error)
-      # prepare results if there were errors in MARGE model but not in null model
-      } else if (inherits(marge_mod, "try-error") && !inherits(null_mod, "try-error")) {
+      
+      # model fit status:
+      if (inherits(marge_mod, "try-error")) {
+        if (inherits(null_mod, "try-error")) {
+          mod_status <- "MARGE model error, null model error"
+        } else {
         mod_status <- "MARGE model error, null model OK"
-        # generate empty dataframe for slope test
-        slope_data_error <- data.frame(Gene = genes[i],
-                                       Lineage = LETTERS[j],
-                                       Breakpoint = NA_real_,
-                                       Rounded_Breakpoint = NA_real_,
-                                       Direction = NA_character_,
-                                       P_Val = NA_real_,
-                                       Notes = mod_status)
-        # generate null model summary table & fitted values w/ standard errors (need to do so manually for GEE)
-        if (is.gee) {
-          null_sumy_df <- try({
-            null_gee_summary <- summary(null_mod)
-            data.frame(term = null_gee_summary$coefnames,
-                       estimate = unname(null_gee_summary$beta),
-                       `std.error` = unname(null_gee_summary$se.robust),
-                       statistic = unname(null_gee_summary$wald.test),
-                       `p.value` = unname(null_gee_summary$p))
-          }, silent = TRUE)
-          null_pred_df <- try({
-            robust_vcov_mat <- as.matrix(null_mod$var)
-            data.frame(null_link_fit = predict(null_mod),
-                       null_link_se = sqrt(apply((tcrossprod(null_mod$X, robust_vcov_mat)) * null_mod$X, 1, sum)))  # wow I love math
-          }, silent = TRUE)
-        } else if (is.glmm) {
-          null_sumy_df <- try({
-            null_glmm_summary <- as.data.frame(broom.mixed::tidy(null_mod, effects = "fixed"))
-            data.frame(term = null_glmm_summary$term,
-                       estimate = null_glmm_summary$estimate[1],
-                       `std.error` = null_glmm_summary$std.error[1],
-                       statistic = null_glmm_summary$statistic[1],
-                       `p.value` = null_glmm_summary$p.value[1])
-          }, silent = TRUE)
-          null_pred_df <- try({
-            data.frame(predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
-          }, silent = TRUE)
-        } else {
-          null_sumy_df <- try({
-            as.data.frame(broom.mixed::tidy(null_mod)) # saves a few bytes by converting from tibble
-          }, silent = TRUE)
-          null_pred_df <- try({
-            data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
-          }, silent = TRUE)
         }
-        # create lineage result list
-        lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = LETTERS[j],
-                                  Test_Stat = NA_real_,
-                                  Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
-                                  Test_Stat_Note = NA_character_,
-                                  P_Val = NA_real_,
-                                  LogLik_MARGE = NA_real_,
-                                  LogLik_Null = ifelse(is.gee, NA_real_, as.numeric(stats::logLik(null_mod))),
-                                  Dev_MARGE = NA_real_,
-                                  Dev_Null = ifelse((is.gee || is.glmm), NA_real_, stats::deviance(null_mod)),
-                                  Model_Status = mod_status,
-                                  MARGE_Fit_Notes = NA_character_,
-                                  MARGE_Summary = NA,
-                                  Null_Summary = null_sumy_df,
-                                  MARGE_Preds = NA,
-                                  Null_Preds = null_pred_df,
-                                  MARGE_Slope_Data = slope_data_error)
-      # prepare results if there were errors in null model but not in marge model
-      } else if (!inherits(marge_mod, "try-error") && inherits(null_mod, "try-error")) {
-        mod_status <- "MARGE model OK, null model error"
-        # generate marge model summary stat table & fitted values w/ standard errors (need to do so manually for GEE)
-        if (is.gee) {
-          robust_vcov_mat <- as.matrix(marge_mod$final_mod$var)
-          marge_pred_df <- try({
-            data.frame(marge_link_fit = predict(marge_mod$final_mod),
-                       marge_link_se = sqrt(apply((tcrossprod(marge_mod$final_mod$X, robust_vcov_mat)) * marge_mod$final_mod$X, 1, sum)))
-          }, silent = TRUE)
-          marge_sumy_df <- try({
-            marge_gee_summary <- summary(marge_mod$final_mod)
-            data.frame(term = marge_gee_summary$coefnames,
-                       estimate = unname(marge_gee_summary$beta),
-                       `std.error` = unname(marge_gee_summary$se.robust),
-                       statistic = unname(marge_gee_summary$wald.test),
-                       `p.value` = unname(marge_gee_summary$p))
-          }, silent = TRUE)
-        } else if (is.glmm) {
-          marge_pred_df <- try({
-            data.frame(predict(marge_mod$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit)
-          }, silent = TRUE)
-          marge_sumy_df <- try({
-            marge_glmm_summary <- broom.mixed::tidy(marge_mod$final_mod, effects = "fixed")
-            data.frame(term = marge_mod$marge_coef_names,  # use marge-style hinge function names instead of X1, X2, ..., XP (makes interpretability easier)
-                       estimate = marge_glmm_summary$estimate,
-                       `std.error` = marge_glmm_summary$std.error,
-                       statistic = marge_glmm_summary$statistic,
-                       `p.value` = marge_glmm_summary$p.value)
-          }, silent = TRUE)
+      } else {
+        if (inherits(null_mod, "try-error")) {
+          mod_status <- "MARGE model OK, null model error"
         } else {
-          marge_pred_df <- try({
-            data.frame(stats::predict(marge_mod$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit)
-          }, silent = TRUE)
-          marge_sumy_df <- try({
-            as.data.frame(broom.mixed::tidy(marge_mod$final_mod)) %>%
-              lapply(unname) %>%
-              as.data.frame()
-          }, silent = TRUE)
+          mod_status <- "MARGE model OK, null model OK"
         }
-        # create slope test input table
-        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod,
-                                                       pt = pt[lineage_cells, j, drop = FALSE],
-                                                       is.gee = is.gee,
-                                                       is.glmm = is.glmm) %>%
-                          dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
-                          dplyr::relocate(Gene, Lineage)
-        # get log-likelihood for GLMM or GLM cases
-        if (is.glmm) {
-          ll_marge <- -marge_mod$final_mod$fit$objective
-        } else if (!(is.gee || is.glmm)) {
-          ll_marge <- as.numeric(stats::logLik(marge_mod$final_mod))
-        } else {
-          ll_marge <- NA_real_
-        }
-        # check positive-definiteness of Hessian for GLMM -- might have an effect on LRT stat / accompanying p-value
-        if (is.glmm) {
-          if (!marge_mod$final_mod$sdr$pdHess) {
-            marge_fit_notes <- "Non-positive definite Hessian in GLMM, probably due to shallow log-likelihood. Be careful!"
-          } else {
-            marge_fit_notes <- NA_character_
-          }
-        } else {
-          marge_fit_notes <- NA_character_
-        }
-        # create lineage result list
-        lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = LETTERS[j],
-                                  Test_Stat = NA_real_,
-                                  Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
-                                  Test_Stat_Note = NA_character_,
-                                  P_Val = NA_real_,
-                                  LogLik_MARGE = ll_marge,
-                                  LogLik_Null = NA_real_,
-                                  Dev_MARGE = ifelse((is.gee || is.glmm), NA_real_, stats::deviance(marge_mod$final_mod)),
-                                  Dev_Null = NA_real_,
-                                  Model_Status = mod_status,
-                                  MARGE_Fit_Notes = marge_fit_notes,
-                                  MARGE_Summary = marge_sumy_df,
-                                  Null_Summary = NA,
-                                  MARGE_Preds = marge_pred_df,
-                                  Null_Preds = NA,
-                                  MARGE_Slope_Data = marge_slope_df)
+      }
+      
+     ## prepare results
+       
+     null_sumy <- scLANE:::pull.null.sumy(null_mod, is.gee, is.glmm)
+     marge_sumy <- scLANE:::pull.marge.sumy(marge_mod, is.gee, is.glmm)
+      
+     marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod,
+                                                    pt = pt[lineage_cells, j, drop = FALSE],
+                                                    is.gee = is.gee,
+                                                    is.glmm = is.glmm)
+     marge_slope_df <- marge_slope_df %>% 
+                        dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
+                        dplyr::relocate(Gene, Lineage)
+     
+     
+    marge_dynamic_df <- scLANE:::summarizeModel(marge.model = marge_mod,
+                                       pt = pt[lineage_cells, j, drop = FALSE])
+                 
+     marge_dynamic_df <- data.frame(t(unlist(marge_dynamic_df))) %>% 
+                           dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
+                           dplyr::relocate(Gene, Lineage)
+                 
+     lineage_list[[j]] <- list(Gene = genes[i],
+                               Lineage = LETTERS[j],
+                               Test_Stat = NA_real_,
+                               Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+                               Test_Stat_Note = NA_character_,
+                               P_Val = NA_real_,
+                               LogLik_MARGE = marge_sumy$ll_marge,
+                               LogLik_Null = null_sumy$null_ll,
+                               Dev_MARGE = marge_sumy$marge_dev,
+                               Dev_Null = null_sumy$null_dev,
+                               Model_Status = mod_status,
+                               MARGE_Fit_Notes = marge_sumy$marge_fit_notes,
+                               MARGE_Summary = marge_sumy$marge_sumy_df,
+                               Null_Summary = null_sumy$null_sumy_df,
+                               MARGE_Preds = marge_sumy$marge_pred_df,
+                               Null_Preds = null_sumy$null_pred_df,
+                               MARGE_Slope_Data = marge_slope_df,
+                               Gene_Dynamics = marge_dynamic_df)
 
-      # prepare results if neither model had errors
-      } else if (!inherits(marge_mod, "try-error") && !inherits(null_mod, "try-error")) {
-        mod_status <- "MARGE model OK, null model OK"
-        # generate null model summary table & fitted values w/ standard errors (need to do so manually for GEE)
+     # compute test stat using asymptotic Chi-squared approximation
         if (is.gee) {
-          null_sumy_df <- try({
-            null_gee_summary <- summary(null_mod)
-            data.frame(term = null_gee_summary$coefnames,
-                       estimate = unname(null_gee_summary$beta),
-                       `std.error` = unname(null_gee_summary$se.robust),
-                       statistic = unname(null_gee_summary$wald.test),
-                       `p.value` = unname(null_gee_summary$p))
-          }, silent = TRUE)
-          null_pred_df <- try({
-            robust_vcov_mat <- as.matrix(null_mod$var)
-            data.frame(null_link_fit = predict(null_mod),
-                       # can maybe replace below line with null_link_se = unname(summary(null_mod)$se.robust) for a little more speed w/ big N ?
-                       null_link_se = sqrt(apply((tcrossprod(null_mod$X, robust_vcov_mat)) * null_mod$X, 1, sum)))  # wow I love math
-          }, silent = TRUE)
-        } else if (is.glmm) {
-          null_sumy_df <- try({
-            null_glmm_summary <- as.data.frame(broom.mixed::tidy(null_mod, effects = "fixed"))
-            data.frame(term = null_glmm_summary$term,
-                       estimate = null_glmm_summary$estimate[1],
-                       `std.error` = null_glmm_summary$std.error[1],
-                       statistic = null_glmm_summary$statistic[1],
-                       `p.value` = null_glmm_summary$p.value[1])
-          }, silent = TRUE)
-          null_pred_df <- try({
-            data.frame(predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
-          }, silent = TRUE)
+          test_res <- scLANE::waldTestGEE(mod.1 = marge_mod, mod.0 = null_mod)
         } else {
-          null_sumy_df <- try({
-            as.data.frame(broom.mixed::tidy(null_mod))  # saves a few bytes by converting from tibble
-          }, silent = TRUE)
-          null_pred_df <- try({
-            data.frame(stats::predict(null_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
-          }, silent = TRUE)
-        }
-        # generate marge model summary stat table & fitted values w/ standard errors (need to do so manually for GEE)
-        if (is.gee) {
-          robust_vcov_mat <- as.matrix(marge_mod$final_mod$var)
-          marge_pred_df <- try({
-            data.frame(marge_link_fit = predict(marge_mod$final_mod),
-                       marge_link_se = sqrt(apply((tcrossprod(marge_mod$final_mod$X, robust_vcov_mat)) * marge_mod$final_mod$X, 1, sum)))
-          }, silent = TRUE)
-          marge_sumy_df <- try({
-            marge_gee_summary <- summary(marge_mod$final_mod)
-            data.frame(term = marge_gee_summary$coefnames,
-                       estimate = unname(marge_gee_summary$beta),
-                       `std.error` = unname(marge_gee_summary$se.robust),
-                       statistic = unname(marge_gee_summary$wald.test),
-                       `p.value` = unname(marge_gee_summary$p))
-          }, silent = TRUE)
-        } else if (is.glmm) {
-          marge_pred_df <- try({
-            data.frame(predict(marge_mod$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit)
-          }, silent = TRUE)
-          marge_sumy_df <- try({
-            marge_glmm_summary <- broom.mixed::tidy(marge_mod$final_mod, effects = "fixed")
-            data.frame(term = marge_mod$coef_names,  # use hinge function names instead of X1, X2, ..., XP (makes interpretability easier)
-                       estimate = marge_glmm_summary$estimate,
-                       `std.error` = marge_glmm_summary$std.error,
-                       statistic = marge_glmm_summary$statistic,
-                       `p.value` = marge_glmm_summary$p.value)
-          }, silent = TRUE)
-        } else {
-          marge_pred_df <- try({
-            data.frame(stats::predict(marge_mod$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
-              dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit)
-          }, silent = TRUE)
-          marge_sumy_df <- try({
-            as.data.frame(broom.mixed::tidy(marge_mod$final_mod)) %>%
-              lapply(unname) %>%
-              as.data.frame()
-          }, silent = TRUE)
-        }
-        # create slope test input table
-        marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod,
-                                                       pt = pt[lineage_cells, j, drop = FALSE],
-                                                       is.gee = is.gee,
-                                                       is.glmm = is.glmm) %>%
-                          dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
-                          dplyr::relocate(Gene, Lineage)
-        # compute test stat using asymptotic Chi-squared approximation
-        if (is.gee) {
-          test_res <- scLANE::waldTestGEE(mod.1 = marge_mod$final_mod, mod.0 = null_mod)
-        } else {
-          test_res <- scLANE::modelLRT(mod.1 = marge_mod$final_mod,
+          test_res <- scLANE::modelLRT(mod.1 = marge_mod,
                                        mod.0 = null_mod,
                                        is.glmm = is.glmm)
         }
-        # check positive-definiteness of Hessian for GLMM -- might have an effect on LRT stat / accompanying p-value
-        if (is.glmm) {
-          if (!marge_mod$final_mod$sdr$pdHess) {
-            marge_fit_notes <- "Non-positive definite Hessian in GLMM, probably due to shallow log-likelihood. Be careful!"
-          } else {
-            marge_fit_notes <- NA_character_
-          }
-        } else {
-          marge_fit_notes <- NA_character_
-        }
+    
         # create lineage result list
-        lineage_list[[j]] <- list(Gene = genes[i],
-                                  Lineage = LETTERS[j],
-                                  Test_Stat = ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat),
-                                  Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
-                                  Test_Stat_Note = test_res$Notes,
-                                  P_Val = test_res$P_Val,
-                                  LogLik_MARGE = ifelse(is.gee, NA_real_, test_res$Alt_Mod_LL),
-                                  LogLik_Null = ifelse(is.gee, NA_real_, test_res$Null_Mod_LL),
-                                  Dev_MARGE = ifelse((is.gee || is.glmm), NA_real_, stats::deviance(marge_mod$final_mod)),
-                                  Dev_Null = ifelse((is.gee || is.glmm), NA_real_, stats::deviance(null_mod)),
-                                  Model_Status = mod_status,
-                                  MARGE_Fit_Notes = marge_fit_notes,
-                                  MARGE_Summary = marge_sumy_df,
-                                  Null_Summary = null_sumy_df,
-                                  MARGE_Preds = marge_pred_df,
-                                  Null_Preds = null_pred_df,
-                                  MARGE_Slope_Data = marge_slope_df)
-      } else {
-        stop(paste0("Conditions for scLANE or null model fits not met for gene ",
-                    genes[i],
-                    " on lineage ",
-                    j))
-      }
-    }
+       lineage_list[[j]]$Test_Stat = ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat)
+       lineage_list[[j]]$Test_Stat_Note = test_res$Notes
+       lineage_list[[j]]$P_Val = test_res$P_Val
+    }    
     names(lineage_list) <- paste0("Lineage_", LETTERS[1:n_lineages])
     lineage_list
   }
+  
+  
   # end parallelization & clean up
   withr::with_output_sink(tempfile(), {
     if (parallel.exec) {
@@ -603,6 +345,7 @@ testDynamic <- function(expr.mat = NULL,
     rm(cl)
     gc(verbose = FALSE, full = TRUE)
   })
+  
   # prepare results
   names(test_stats) <- genes
   if (track.time) {

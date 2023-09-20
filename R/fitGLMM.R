@@ -82,14 +82,20 @@ fitGLMM <- function(X_pred = NULL,
                                    Y = Y,
                                    subject = id.vec,
                                    .before = 1)
-
+    if (is.null(Y.offset)) {
+      glmm_mod <- glmmTMB::glmmTMB(mod_formula,
+                                   data = glmm_basis_df,
+                                   family = glmmTMB::nbinom2(link = "log"),
+                                   se = TRUE,
+                                   REML = FALSE)
+    } else {
       glmm_mod <- glmmTMB::glmmTMB(mod_formula,
                                    data = glmm_basis_df,
                                    offset = log(1 / Y.offset),
                                    family = glmmTMB::nbinom2(link = "log"),
                                    se = TRUE,
                                    REML = FALSE)
-    
+    }
   } else {
     glmm_basis_df <- data.frame(X1 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
                                 X2 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)),
@@ -105,14 +111,20 @@ fitGLMM <- function(X_pred = NULL,
                     paste0("h_PT_", round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
                     paste0("h_", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4), "_PT"),
                     paste0("h_PT_", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)))
-
-
+    if (is.null(Y.offset)) {
+      glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),
+                                   data = glmm_basis_df,
+                                   family = glmmTMB::nbinom2(link = "log"),
+                                   se = TRUE,
+                                   REML = FALSE)
+    } else {
       glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),
                                    data = glmm_basis_df,
                                    offset = log(1 / Y.offset),
                                    family = glmmTMB::nbinom2(link = "log"),
                                    se = TRUE,
                                    REML = FALSE)
+    }
   }
   # set up results
   marge_style_names <- c("B_finalIntercept", marge_style_names)

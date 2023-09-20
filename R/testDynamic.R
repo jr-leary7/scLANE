@@ -89,6 +89,7 @@ testDynamic <- function(expr.mat = NULL,
                         track.time = FALSE) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
+
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
@@ -108,6 +109,7 @@ testDynamic <- function(expr.mat = NULL,
   } else {
     expr.mat <- expr.mat[, genes]
   }
+
   # extract pseudotime dataframe if input is results from Slingshot
   if (inherits(pt, "SlingshotDataSet")) {
     pt <- as.data.frame(slingshot::slingPseudotime(pt))
@@ -116,22 +118,22 @@ testDynamic <- function(expr.mat = NULL,
     pt <- as.data.frame(pt)
   }
   if (!inherits(pt, "data.frame")) { stop("pt must be of class data.frame.") }
+
   # set pseudotime lineage column names automatically to prevent user error (uses e.g., "Lineage_A", "Lineage_B", etc.)
   n_lineages <- ncol(pt)
   colnames(pt) <- paste0("Lineage_", LETTERS[1:n_lineages])
+
   # ensure subject ID vector meets criteria for GEE / GLMM fitting
   if ((is.gee || is.glmm) && is.null(id.vec)) { stop("You must provide a vector of IDs if you're using GEE / GLMM backends.") }
   if ((is.gee || is.glmm) && is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running testDynamic() with the GEE / GLMM backends.") }
   cor.structure <- tolower(cor.structure)
   if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a specified correlation structure.") }
-  # fit models for all genes if otherwise unspecified
-  if (is.null(genes)) {
-    genes <- colnames(expr.mat)
-  }
+
   # set up time tracking
   if (track.time) {
     start_time <- Sys.time()
   }
+
   # set up parallel processing
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
@@ -141,10 +143,12 @@ testDynamic <- function(expr.mat = NULL,
     cl <- foreach::registerDoSEQ()
     set.seed(312)
   }
+
   # convert dense counts matrix to file-backed matrix
   expr.mat <- bigstatsr::as_FBM(expr.mat,
                                 type = "integer",
                                 is_read_only = TRUE)
+
   # build list of objects to prevent from being sent to parallel workers
   necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "print_nums",
                       "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
@@ -163,6 +167,7 @@ testDynamic <- function(expr.mat = NULL,
   if (is.glmm) {
     package_list <- c(package_list, "glmmTMB")
   }
+
   # build models per-lineage per-gene, parallelize over genes
   test_stats <- foreach::foreach(i = seq_along(genes),
                                  .combine = "list",
@@ -170,39 +175,39 @@ testDynamic <- function(expr.mat = NULL,
                                  .maxcombine = ifelse(length(genes) > 1, length(genes), 2),
                                  .packages = package_list,
                                  .noexport = no_export,
+                                 .errorhandling = "pass",
                                  .verbose = FALSE) %dopar% {
     lineage_list <- vector("list", n_lineages)
     for (j in seq(n_lineages)) {
-      
+      # pull cells assigned to lineage j
       lineage_cells <- which(!is.na(pt[, j]))
-      
+
       # run MARGE model using one of GLM, GEE, or GLMM backends
-     
       if (!is.glmm) {
-      marge_mod <- try({ scLANE::marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
-                           Y = expr.mat[lineage_cells, i],
-                           Y.offset = size.factor.offset[lineage_cells],
-                           is.gee = is.gee,
-                           id.vec = id.vec[lineage_cells],
-                           cor.structure = cor.structure,
-                           M = n.potential.basis.fns,
-                           approx.knot = approx.knot,
-                           return.basis = TRUE) },
-          silent = TRUE)
+        marge_mod <- try({
+          marge2(X_pred = pt[lineage_cells, j, drop = FALSE],
+                 Y = expr.mat[lineage_cells, i],
+                 Y.offset = size.factor.offset[lineage_cells],
+                 is.gee = is.gee,
+                 id.vec = id.vec[lineage_cells],
+                 cor.structure = cor.structure,
+                 M = n.potential.basis.fns,
+                 approx.knot = approx.knot,
+                 return.basis = TRUE)
+        }, silent = TRUE)
+      } else if (is.glmm) {
+        marge_mod <- try({
+          fitGLMM(X_pred = pt[lineage_cells, j, drop = FALSE],
+                  Y = expr.mat[lineage_cells, i],
+                  Y.offset = size.factor.offset[lineage_cells],
+                  id.vec = id.vec[lineage_cells],
+                  M.glm = n.potential.basis.fns,
+                  approx.knot = approx.knot,
+                  adaptive = glmm.adaptive,
+                  return.basis = TRUE)
+        }, silent = TRUE)
       }
-      if (is.glmm) {
-        marge_mod <- try({ scLANE::fitGLMM(X_pred = pt[lineage_cells, j, drop = FALSE],
-                              Y = expr.mat[lineage_cells, i],
-                              Y.offset = size.factor.offset[lineage_cells],
-                              id.vec = id.vec[lineage_cells],
-                              M.glm = n.potential.basis.fns,
-                              approx.knot = approx.knot,
-                              adaptive = glmm.adaptive,
-                              return.basis = TRUE) },
-            silent = TRUE)
-      }
-    
-    
+
       # build formula for null model
       null_mod_df <- data.frame(Y_null = expr.mat[lineage_cells, i],
                                 Intercept = 1)
@@ -221,46 +226,44 @@ testDynamic <- function(expr.mat = NULL,
         null_mod_formula <- paste0(null_mod_formula, " + offset(log(1 / n_offset))")
       }
       null_mod_formula <- stats::as.formula(null_mod_formula)
-      
+
       # fit null model for comparison via Wald or LR test
       if (is.gee) {
         theta_hat <- MASS::theta.mm(y = null_mod_df$Y_null,
                                     mu = mean(null_mod_df$Y_null),
                                     dfr = length(null_mod_df$subject) - 1)
-        null_mod <- try(
-          { geeM::geem(null_mod_formula,
-                       id = null_mod_df$subject,
-                       data = null_mod_df,
-                       family = MASS::negative.binomial(theta_hat),
-                       corstr = cor.structure) },
-          silent = TRUE
-        )
+        null_mod <- try({
+          geeM::geem(null_mod_formula,
+                     id = null_mod_df$subject,
+                     data = null_mod_df,
+                     family = MASS::negative.binomial(theta_hat),
+                     corstr = cor.structure)
+        }, silent = TRUE)
       } else if (is.glmm) {
-        null_mod <- try(
-          { glmmTMB::glmmTMB(null_mod_formula,
-                             data = null_mod_df,
-                             family = glmmTMB::nbinom2(link = "log"),
-                             se = TRUE) },
-          silent = TRUE
-        )
+        null_mod <- try({
+          glmmTMB::glmmTMB(null_mod_formula,
+                           data = null_mod_df,
+                           family = glmmTMB::nbinom2(link = "log"),
+                           se = TRUE)
+        }, silent = TRUE)
       } else {
-        null_mod <- try(
-          { MASS::glm.nb(null_mod_formula,
-                         data = null_mod_df,
-                         method = "glm.fit2",
-                         y = FALSE,
-                         model = FALSE,
-                         init.theta = 1,
-                         link = log) },
-          silent = TRUE
-        )
+        null_mod <- try({
+          MASS::glm.nb(null_mod_formula,
+                       data = null_mod_df,
+                       method = "glm.fit2",
+                       y = FALSE,
+                       model = FALSE,
+                       init.theta = 1,
+                       link = log)
+        }, silent = TRUE)
       }
+
       # slim down GLM object if not a GEE / GLMM model (which are much smaller for some reason)
       if (!(is.gee || is.glmm)) {
         null_mod <- scLANE::stripGLM(glm.obj = null_mod)
       }
-      
-      # model fit status:
+
+      # record model fit status
       if (inherits(marge_mod, "try-error")) {
         if (inherits(null_mod, "try-error")) {
           mod_status <- "MARGE model error, null model error"
@@ -274,28 +277,33 @@ testDynamic <- function(expr.mat = NULL,
           mod_status <- "MARGE model OK, null model OK"
         }
       }
-      
-     ## prepare results
-       
+
+     # summarize hinge function coefficients
      null_sumy <- scLANE:::pull.null.sumy(null_mod, is.gee, is.glmm)
      marge_sumy <- scLANE:::pull.marge.sumy(marge_mod, is.gee, is.glmm)
-      
+
+     # perform slope test
      marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod,
                                                     pt = pt[lineage_cells, j, drop = FALSE],
                                                     is.gee = is.gee,
                                                     is.glmm = is.glmm)
-     marge_slope_df <- marge_slope_df %>% 
-                        dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
-                        dplyr::relocate(Gene, Lineage)
-     
-     
-    marge_dynamic_df <- scLANE:::summarizeModel(marge.model = marge_mod,
-                                       pt = pt[lineage_cells, j, drop = FALSE])
-                 
-     marge_dynamic_df <- data.frame(t(unlist(marge_dynamic_df))) %>% 
-                           dplyr::mutate(Gene = genes[i], Lineage = LETTERS[j]) %>%
-                           dplyr::relocate(Gene, Lineage)
-                 
+     marge_slope_df <-  dplyr::mutate(marge_slope_df,
+                                      Gene = genes[i],
+                                      Lineage = LETTERS[j],
+                                      .before = 1)
+     # solve values of slopes across pseudotime intervals -- TODO: add support for GLMM backend
+     if (!is.glmm) {
+       marge_dynamic_df <- scLANE:::summarizeModel(marge.model = marge_mod,
+                                                   pt = pt[lineage_cells, j, drop = FALSE])
+       marge_dynamic_df <- data.frame(t(unlist(marge_dynamic_df))) %>%
+                           dplyr::mutate(Gene = genes[i],
+                                         Lineage = LETTERS[j],
+                                         .before = 1)
+     } else {
+       marge_dynamic_df <- NULL
+     }
+
+     # format results list
      lineage_list[[j]] <- list(Gene = genes[i],
                                Lineage = LETTERS[j],
                                Test_Stat = NA_real_,
@@ -316,38 +324,65 @@ testDynamic <- function(expr.mat = NULL,
                                Gene_Dynamics = marge_dynamic_df)
 
      # compute test stat using asymptotic Chi-squared approximation
-        if (is.gee) {
-          test_res <- scLANE::waldTestGEE(mod.1 = marge_mod, mod.0 = null_mod)
-        } else {
-          test_res <- scLANE::modelLRT(mod.1 = marge_mod,
-                                       mod.0 = null_mod,
-                                       is.glmm = is.glmm)
-        }
-    
-        # create lineage result list
-       lineage_list[[j]]$Test_Stat = ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat)
-       lineage_list[[j]]$Test_Stat_Note = test_res$Notes
-       lineage_list[[j]]$P_Val = test_res$P_Val
-    }    
+     if (is.gee) {
+       test_res <- waldTestGEE(mod.1 = marge_mod, mod.0 = null_mod)
+     } else {
+       test_res <- modelLRT(mod.1 = marge_mod,
+                            mod.0 = null_mod,
+                            is.glmm = is.glmm)
+     }
+     # add test stats to result list
+     lineage_list[[j]]$Test_Stat = ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat)
+     lineage_list[[j]]$Test_Stat_Note = test_res$Notes
+     lineage_list[[j]]$P_Val = test_res$P_Val
+    }
     names(lineage_list) <- paste0("Lineage_", LETTERS[1:n_lineages])
     lineage_list
   }
-  
-  
-  # end parallelization & clean up
+
+  # end parallelization & clean up each worker node
   withr::with_output_sink(tempfile(), {
     if (parallel.exec) {
       parallel::clusterEvalQ(cl, expr = {
-        rm(list = ls(all.names = TRUE)); gc(verbose = FALSE, full = TRUE)
+        gc(verbose = FALSE, full = TRUE)
       })
       parallel::stopCluster(cl)
     }
     rm(cl)
     gc(verbose = FALSE, full = TRUE)
   })
-  
-  # prepare results
+  # clean up errors w/ proper formatting
   names(test_stats) <- genes
+  test_stats <- purrr::imap(test_stats, \(x, y) {
+    if (inherits(x, "simpleError")) {
+      reformatted_results <- purrr::map(seq(n_lineages), \(z) {
+        list(Gene = y,
+             Lineage = LETTERS[z],
+             Test_Stat = NA_real_,
+             Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+             Test_Stat_Note = NA_character_,
+             P_Val = NA_real_,
+             LogLik_MARGE = NA_real_,
+             LogLik_Null = NA_real_,
+             Dev_MARGE = NA_real_,
+             Dev_Null = NA_real_,
+             Model_Status = "MARGE model error, null model error",
+             MARGE_Fit_Notes = NA_character_,
+             MARGE_Summary = NULL,
+             Null_Summary = NULL,
+             MARGE_Preds = NULL,
+             Null_Preds = NULL,
+             MARGE_Slope_Data = NULL,
+             Gene_Dynamics = NULL)
+      })
+      names(reformatted_results) <- paste0("Lineage_", LETTERS[1:n_lineages])
+      return(reformatted_results)
+    } else {
+      return(x)
+    }
+  })
+
+  # return results
   if (track.time) {
     end_time <- Sys.time()
     total_time <- end_time - start_time

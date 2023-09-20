@@ -9,19 +9,24 @@ summarizeModel(marge.model = NULL, pt = NULL)
 \arguments{
 \item{marge.model}{The fitted model output from \code{\link{marge2}} (this function is internally called by \code{\link{testDynamic}}). Defaults to NULL.}
 
-\item{pseudotime_df}{The predictor matrix of pseudotime. Defaults to NULL.}
+\item{pt}{The predictor matrix of pseudotime. Defaults to NULL.}
 }
 \value{
 A data.frame of the model coefficients, cutpoint intervals, and formatted equations.
 }
 \description{
-This function summarizes the model for each gene and allows for quantiative interpretation of fitted gene dynamics..
+This function summarizes the model for each gene and allows for quantiative interpretation of fitted gene dynamics.
 }
 \examples{
 \dontrun{
-summarizeModel(marge.model = marge_mod)
+summarizeModel(marge.model = marge_mod, pt = pt_df)
 }
+}
+\seealso{
+\code{\link{marge2}}
 }
 \author{
-Jack Leary & Rhonda Bacher
+Jack Leary
+
+Rhonda Bacher
 }

@@ -1,7 +1,7 @@
 Package: scLANE
 Type: Package
 Title: Model gene expression dynamics with spline-based NB GLMs, GEEs, & GLMMs
-Version: 0.7.2
+Version: 0.7.3
 Authors@R: c(person(given = "Jack", family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre")), 
              person(given = "Rhonda", family = "Bacher", email = "rbacher@ufl.edu", role = c("ctb", "fnd")))
 Description: This package uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime or latent time. 
@@ -10,7 +10,7 @@ Description: This package uses truncated power basis spline models to build flex
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.2.1
 Depends: 
   glm2, 
   magrittr, 

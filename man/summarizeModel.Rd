@@ -4,22 +4,29 @@
 \alias{summarizeModel}
 \title{Represent a \code{marge} model as a series of piecewise equations.}
 \usage{
-summarizeModel(marge.model = NULL)
+summarizeModel(marge.model = NULL, pt = NULL)
 }
 \arguments{
 \item{marge.model}{The fitted model output from \code{\link{marge2}} (this function is internally called by \code{\link{testDynamic}}). Defaults to NULL.}
+
+\item{pt}{The predictor matrix of pseudotime. Defaults to NULL.}
 }
 \value{
 A data.frame of the model coefficients, cutpoint intervals, and formatted equations.
 }
 \description{
-This function converts a \code{marge} model from using truncated power basis functions to a more interpretable series of piecewise linear equations over a set of empirically chosen cutpoint intervals. Note that the function assumes that pseudotime has been normalized to exist over \eqn{[0, 1]}.
+This function summarizes the model for each gene and allows for quantiative interpretation of fitted gene dynamics.
 }
 \examples{
 \dontrun{
-summarizeModel(marge.model = marge_mod)
+summarizeModel(marge.model = marge_mod, pt = pt_df)
 }
+}
+\seealso{
+\code{\link{marge2}}
 }
 \author{
 Jack Leary
+
+Rhonda Bacher
 }

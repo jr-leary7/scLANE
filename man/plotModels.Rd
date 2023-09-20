@@ -20,8 +20,7 @@ plotModels(
   plot.gam = TRUE,
   plot.scLANE = TRUE,
   filter.lineage = NULL,
-  gg.theme = ggplot2::theme_classic(base_size = 14, base_line_size = 0.75, base_rect_size
-    = 0.75)
+  gg.theme = theme_scLANE()
 )
 }
 \arguments{
@@ -55,7 +54,7 @@ plotModels(
 
 \item{filter.lineage}{(Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.}
 
-\item{gg.theme}{(Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.}
+\item{gg.theme}{(Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{\link{theme_scLANE}}.}
 }
 \value{
 A \code{ggplot} object.

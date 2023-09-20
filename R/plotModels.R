@@ -29,7 +29,7 @@
 #' @param plot.gam (Optional) Should the fitted values from an NB GAM be plotted? Defaults to TRUE.
 #' @param plot.scLANE (Optional) Should the fitted values from the \code{scLANE} model be plotted? Defaults to TRUE.
 #' @param filter.lineage (Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.
-#' @param gg.theme (Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{theme_classic(base_size = 14)}.
+#' @param gg.theme (Optional) A \code{ggplot2} theme to be added to the plot. Defaults to \code{\link{theme_scLANE}}.
 #' @return A \code{ggplot} object.
 #' @export
 #' @examples
@@ -70,9 +70,7 @@ plotModels <- function(test.dyn.res = NULL,
                        plot.gam = TRUE,
                        plot.scLANE = TRUE,
                        filter.lineage = NULL,
-                       gg.theme = ggplot2::theme_classic(base_size = 14,
-                                                         base_line_size = 0.75,
-                                                         base_rect_size = 0.75)) {
+                       gg.theme = theme_scLANE()) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt) || is.null(gene) || is.null(test.dyn.res)) { stop("You forgot one or more of the arguments to plotModels().") }
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix

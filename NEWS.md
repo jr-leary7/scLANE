@@ -2,6 +2,7 @@
 
 * Added a function named `sortGenesHeatmap()` that aids in the creation of expression cascade heatmaps by sorting genes according to where in pseudotime their peak expression is. 
 * Changed the parameter `approx.knot` in the `testDynamic()` function to use (stochasticity-controlled) subsampling instead of `seq()` to reduce candidate knot space. 
+* Added `summarizeModels()` to sum up slopes across pseudotime intervals
 
 # scLANE 0.7.1
 

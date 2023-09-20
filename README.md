@@ -1,20 +1,15 @@
 
-- <a href="#sclane" id="toc-sclane"><code>scLANE</code></a>
-  - <a href="#installation" id="toc-installation">Installation</a>
-  - <a href="#model-structure" id="toc-model-structure">Model Structure</a>
-- <a href="#usage" id="toc-usage">Usage</a>
-  - <a href="#input-data" id="toc-input-data">Input Data</a>
-  - <a href="#trajectory-de-testing"
-    id="toc-trajectory-de-testing">Trajectory DE Testing</a>
-  - <a href="#downstream-analysis--visualization"
-    id="toc-downstream-analysis--visualization">Downstream Analysis &amp;
-    Visualization</a>
-- <a href="#conclusions--best-practices"
-  id="toc-conclusions--best-practices">Conclusions &amp; Best
-  Practices</a>
-- <a href="#contact-information" id="toc-contact-information">Contact
-  Information</a>
-- <a href="#references" id="toc-references">References</a>
+- [`scLANE`](#sclane)
+  - [Installation](#installation)
+  - [Model Structure](#model-structure)
+- [Usage](#usage)
+  - [Input Data](#input-data)
+  - [Trajectory DE Testing](#trajectory-de-testing)
+  - [Downstream Analysis &
+    Visualization](#downstream-analysis--visualization)
+- [Conclusions & Best Practices](#conclusions--best-practices)
+- [Contact Information](#contact-information)
+- [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -140,20 +135,24 @@ sim_data <- simulate_multi_subject(ref.dataset = panc,
 ```
 
 The PCA embeddings show us a pretty simple trajectory that’s strongly
-correlated with the first principal component, and we can also see that
-the trajectory is conserved cleanly across subjects.
+correlated with the first principal component.
 
 ``` r
-plotPCA(sim_data, colour_by = "subject")
+plotPCA(sim_data, colour_by = "cell_time_normed") + 
+  theme_scLANE()
 ```
 
-<img src="man/figures/README-plot-sims-1.png" width="100%" />
+<img src="man/figures/README-plot-sims-pt-1.png" width="100%" />
+
+We also see that the data are not clustered by subject, which indicates
+that gene dynamics are mostly homogeneous across subjects.
 
 ``` r
-plotPCA(sim_data, colour_by = "cell_time_normed")
+plotPCA(sim_data, colour_by = "subject") + 
+  theme_scLANE()
 ```
 
-<img src="man/figures/README-plot-sims-2.png" width="100%" />
+<img src="man/figures/README-plot-sims-subj-1.png" width="100%" />
 
 ## Trajectory DE Testing
 
@@ -190,13 +189,13 @@ have one lineage. Parallel processing is turned on by default, and we
 use 2 cores here to speed up runtime.
 
 ``` r
-de_test_glm <- testDynamic(sim_data, 
-                           pt = order_df, 
-                           genes = gene_sample, 
-                           size.factor.offset = cell_offset, 
-                           n.cores = 2, 
-                           track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 26.572 secs"
+scLANE_models_glm <- testDynamic(sim_data, 
+                                 pt = order_df, 
+                                 genes = gene_sample, 
+                                 size.factor.offset = cell_offset, 
+                                 n.cores = 2, 
+                                 track.time = TRUE)
+#> [1] "testDynamic evaluated 100 genes across 1 lineage in 29.86 secs"
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -207,8 +206,8 @@ The GLM backend uses a simple likelihood ratio test to compare the null
 distributed](https://en.wikipedia.org/wiki/Likelihood-ratio_test).
 
 ``` r
-de_res_glm <- getResultsDE(de_test_glm)
-select(de_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
+scLANE_res_glm <- getResultsDE(scLANE_models_glm)
+select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
   slice_head(n = 5) %>% 
   knitr::kable(format = "pipe", 
                digits = 3, 
@@ -217,11 +216,11 @@ select(de_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Over
 
 | Gene   | Lineage | LRT Stat. | P-value | Adj. P-value | Predicted Dynamic Status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| MPG    | A       |   423.205 |       0 |            0 |                        1 |
-| WAPAL  | A       |   357.396 |       0 |            0 |                        1 |
-| JARID2 | A       |   352.701 |       0 |            0 |                        1 |
-| ERGIC3 | A       |   294.433 |       0 |            0 |                        1 |
-| PFDN2  | A       |   259.405 |       0 |            0 |                        1 |
+| MPG    | A       |   430.567 |       0 |            0 |                        1 |
+| WAPAL  | A       |   358.718 |       0 |            0 |                        1 |
+| JARID2 | A       |   352.197 |       0 |            0 |                        1 |
+| ERGIC3 | A       |   291.170 |       0 |            0 |                        1 |
+| PFDN2  | A       |   259.313 |       0 |            0 |                        1 |
 
 After creating a reference table of the ground truth status of each
 gene - `1` denotes a dynamic gene and `0` a non-dynamic one - and adding
@@ -232,11 +231,11 @@ matrix](https://en.wikipedia.org/wiki/Confusion_matrix).
 ``` r
 gene_status_df <- data.frame(gene = gene_sample, 
                              True_Gene_Status = ifelse(rowData(sim_data)[gene_sample, ]$geneStatus_overall == "Dynamic", 1, 0))
-de_res_glm <- inner_join(de_res_glm, 
-                         gene_status_df, 
-                         by = c("Gene" = "gene"))
-caret::confusionMatrix(factor(de_res_glm$Gene_Dynamic_Overall, levels = c(0, 1)), 
-                       factor(de_res_glm$True_Gene_Status, levels = c(0, 1)), 
+scLANE_res_glm <- inner_join(scLANE_res_glm, 
+                             gene_status_df, 
+                             by = c("Gene" = "gene"))
+caret::confusionMatrix(factor(scLANE_res_glm$Gene_Dynamic_Overall, levels = c(0, 1)), 
+                       factor(scLANE_res_glm$True_Gene_Status, levels = c(0, 1)), 
                        positive = "1")
 #> Confusion Matrix and Statistics
 #> 
@@ -282,16 +281,16 @@ structure](https://rdrr.io/cran/nlme/man/corAR1.html), which is the
 default for the GEE backend.
 
 ``` r
-de_test_gee <- testDynamic(sim_data, 
-                           pt = order_df, 
-                           genes = gene_sample, 
-                           size.factor.offset = cell_offset, 
-                           is.gee = TRUE, 
-                           id.vec = sim_data$subject, 
-                           cor.structure = "ar1", 
-                           n.cores = 2, 
-                           track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.129 mins"
+scLANE_models_gee <- testDynamic(sim_data, 
+                                 pt = order_df, 
+                                 genes = gene_sample, 
+                                 size.factor.offset = cell_offset, 
+                                 is.gee = TRUE, 
+                                 id.vec = sim_data$subject, 
+                                 cor.structure = "ar1", 
+                                 n.cores = 2, 
+                                 track.time = TRUE)
+#> [1] "testDynamic evaluated 100 genes across 1 lineage in 3.671 mins"
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -300,21 +299,21 @@ estimator](https://online.stat.psu.edu/stat504/lesson/12/12.3), and a
 Wald test is used to compare the null & alternate models.
 
 ``` r
-de_res_gee <- getResultsDE(de_test_gee)
-select(de_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
+scLANE_res_gee <- getResultsDE(scLANE_models_gee)
+select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
                col.names = c("Gene", "Lineage", "Wald Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
 ```
 
-| Gene   | Lineage | Wald Stat. | P-value | Adj. P-value | Predicted Dynamic Status |
-|:-------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| JARID2 | A       |   4878.136 |       0 |            0 |                        1 |
-| RAB1B  | A       |   1953.951 |       0 |            0 |                        1 |
-| IDH3G  | A       |    837.506 |       0 |            0 |                        1 |
-| RPL9   | A       |    502.350 |       0 |            0 |                        1 |
-| MFSD2B | A       |    747.233 |       0 |            0 |                        1 |
+| Gene    | Lineage | Wald Stat. | P-value | Adj. P-value | Predicted Dynamic Status |
+|:--------|:--------|-----------:|--------:|-------------:|-------------------------:|
+| KLHDC10 | A       |     79.087 |       0 |            0 |                        1 |
+| SPCS3   | A       |     86.248 |       0 |            0 |                        1 |
+| MRPL20  | A       |    101.487 |       0 |            0 |                        1 |
+| TSPAN1  | A       |    111.245 |       0 |            0 |                        1 |
+| GGNBP2  | A       |    117.029 |       0 |            0 |                        1 |
 
 We create the same confusion matrix as before. Empirically speaking,
 when the underlying dynamics don’t differ much between subjects, GEEs
@@ -323,18 +322,18 @@ GLMs. This is shown below, where the GEE backend has decent accuracy,
 but the false negative rate is higher than that of the GLM backend.
 
 ``` r
-de_res_gee <- inner_join(de_res_gee, 
-                         gene_status_df, 
-                         by = c("Gene" = "gene"))
-caret::confusionMatrix(factor(de_res_gee$Gene_Dynamic_Overall, levels = c(0, 1)), 
-                       factor(de_res_gee$True_Gene_Status, levels = c(0, 1)), 
+scLANE_res_gee <- inner_join(scLANE_res_gee, 
+                             gene_status_df, 
+                             by = c("Gene" = "gene"))
+caret::confusionMatrix(factor(scLANE_res_gee$Gene_Dynamic_Overall, levels = c(0, 1)), 
+                       factor(scLANE_res_gee$True_Gene_Status, levels = c(0, 1)), 
                        positive = "1")
 #> Confusion Matrix and Statistics
 #> 
 #>           Reference
 #> Prediction  0  1
-#>          0 47 16
-#>          1  3 34
+#>          0 46 15
+#>          1  4 35
 #>                                           
 #>                Accuracy : 0.81            
 #>                  95% CI : (0.7193, 0.8816)
@@ -343,15 +342,15 @@ caret::confusionMatrix(factor(de_res_gee$Gene_Dynamic_Overall, levels = c(0, 1))
 #>                                           
 #>                   Kappa : 0.62            
 #>                                           
-#>  Mcnemar's Test P-Value : 0.005905        
+#>  Mcnemar's Test P-Value : 0.02178         
 #>                                           
-#>             Sensitivity : 0.6800          
-#>             Specificity : 0.9400          
-#>          Pos Pred Value : 0.9189          
-#>          Neg Pred Value : 0.7460          
+#>             Sensitivity : 0.7000          
+#>             Specificity : 0.9200          
+#>          Pos Pred Value : 0.8974          
+#>          Neg Pred Value : 0.7541          
 #>              Prevalence : 0.5000          
-#>          Detection Rate : 0.3400          
-#>    Detection Prevalence : 0.3700          
+#>          Detection Rate : 0.3500          
+#>    Detection Prevalence : 0.3900          
 #>       Balanced Accuracy : 0.8100          
 #>                                           
 #>        'Positive' Class : 1               
@@ -375,17 +374,17 @@ successfully. As such, updates will be frequent and functionality /
 results may shift slightly.
 
 ``` r
-de_test_glmm <- testDynamic(sim_data, 
-                            pt = order_df, 
-                            genes = gene_sample, 
-                            size.factor.offset = cell_offset, 
-                            n.potential.basis.fns = 3, 
-                            is.glmm = TRUE, 
-                            glmm.adaptive = TRUE, 
-                            id.vec = sim_data$subject, 
-                            n.cores = 2, 
-                            track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes with 1 lineage apiece in 3.603 mins"
+scLANE_models_glmm <- testDynamic(sim_data, 
+                                  pt = order_df, 
+                                  genes = gene_sample, 
+                                  size.factor.offset = cell_offset, 
+                                  n.potential.basis.fns = 3, 
+                                  is.glmm = TRUE, 
+                                  glmm.adaptive = TRUE, 
+                                  id.vec = sim_data$subject, 
+                                  n.cores = 2, 
+                                  track.time = TRUE)
+#> [1] "testDynamic evaluated 100 genes across 1 lineage in 3.493 mins"
 ```
 
 Like the GLM backend, the GLMM backend uses a likelihood ratio test to
@@ -396,8 +395,8 @@ order to perform this test; the null model in this case is a negative
 binomial GLMM with a random intercept for each subject.
 
 ``` r
-de_res_glmm <- getResultsDE(de_test_glmm)
-select(de_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
+scLANE_res_glmm <- getResultsDE(scLANE_models_glmm)
+select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
@@ -406,11 +405,11 @@ select(de_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Ove
 
 | Gene   | Lineage | LRT Stat. | P-value | Adj. P-value | Predicted Dynamic Status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| TBCC   | A       |  4819.416 |       0 |            0 |                        1 |
-| WAPAL  | A       |   372.648 |       0 |            0 |                        1 |
-| JARID2 | A       |   323.706 |       0 |            0 |                        1 |
-| CBX6   | A       |   254.366 |       0 |            0 |                        1 |
-| ISOC2  | A       |   212.115 |       0 |            0 |                        1 |
+| WAPAL  | A       |   366.154 |       0 |            0 |                        1 |
+| JARID2 | A       |   328.033 |       0 |            0 |                        1 |
+| CBX6   | A       |   255.565 |       0 |            0 |                        1 |
+| ISOC2  | A       |   225.666 |       0 |            0 |                        1 |
+| PFDN2  | A       |   212.453 |       0 |            0 |                        1 |
 
 The GLMM backend performs about as well as the GEE backend. Like with
 the GEE backend, it’s more appropriate to use these more complex models
@@ -422,36 +421,36 @@ data are strongly conserved across subjects, it follows that the simpler
 GLMs perform the best.
 
 ``` r
-de_res_glmm <- inner_join(de_res_glmm, 
-                          gene_status_df, 
-                          by = c("Gene" = "gene"))
-caret::confusionMatrix(factor(de_res_glmm$Gene_Dynamic_Overall, levels = c(0, 1)), 
-                       factor(de_res_glmm$True_Gene_Status, levels = c(0, 1)), 
+scLANE_res_glmm <- inner_join(scLANE_res_glmm, 
+                              gene_status_df, 
+                              by = c("Gene" = "gene"))
+caret::confusionMatrix(factor(scLANE_res_glmm$Gene_Dynamic_Overall, levels = c(0, 1)), 
+                       factor(scLANE_res_glmm$True_Gene_Status, levels = c(0, 1)), 
                        positive = "1")
 #> Confusion Matrix and Statistics
 #> 
 #>           Reference
 #> Prediction  0  1
-#>          0 50 19
-#>          1  0 31
+#>          0 49 17
+#>          1  1 33
 #>                                           
-#>                Accuracy : 0.81            
-#>                  95% CI : (0.7193, 0.8816)
+#>                Accuracy : 0.82            
+#>                  95% CI : (0.7305, 0.8897)
 #>     No Information Rate : 0.5             
-#>     P-Value [Acc > NIR] : 1.351e-10       
+#>     P-Value [Acc > NIR] : 3.074e-11       
 #>                                           
-#>                   Kappa : 0.62            
+#>                   Kappa : 0.64            
 #>                                           
-#>  Mcnemar's Test P-Value : 3.636e-05       
+#>  Mcnemar's Test P-Value : 0.000407        
 #>                                           
-#>             Sensitivity : 0.6200          
-#>             Specificity : 1.0000          
-#>          Pos Pred Value : 1.0000          
-#>          Neg Pred Value : 0.7246          
+#>             Sensitivity : 0.6600          
+#>             Specificity : 0.9800          
+#>          Pos Pred Value : 0.9706          
+#>          Neg Pred Value : 0.7424          
 #>              Prevalence : 0.5000          
-#>          Detection Rate : 0.3100          
-#>    Detection Prevalence : 0.3100          
-#>       Balanced Accuracy : 0.8100          
+#>          Detection Rate : 0.3300          
+#>    Detection Prevalence : 0.3400          
+#>       Balanced Accuracy : 0.8200          
 #>                                           
 #>        'Positive' Class : 1               
 #> 
@@ -475,7 +474,7 @@ the same trend as the `scLANE` model, though the fitted trend from
 `scLANE` is smoother & of course more interpretable.
 
 ``` r
-plotModels(de_test_glm, 
+plotModels(scLANE_models_glm, 
            gene = "JARID2", 
            pt = order_df, 
            expr.mat = sim_data, 
@@ -488,7 +487,7 @@ When plotting the models generated using the GLMM backend, we split by
 lineage & color the points by subject ID instead of by lineage.
 
 ``` r
-plotModels(de_test_glmm, 
+plotModels(scLANE_models_glmm, 
            gene = "WAPAL", 
            pt = order_df, 
            expr.mat = sim_data, 
@@ -513,11 +512,11 @@ fitted values per-gene, per-lineage over pseudotime along with the
 accompanying cluster labels.
 
 ``` r
-gene_clusters <- clusterGenes(de_test_glm, 
+gene_clusters <- clusterGenes(scLANE_models_glm, 
                               pt = order_df, 
                               size.factor.offset = cell_offset, 
                               clust.algo = "leiden")
-gene_clust_table <- plotClusteredGenes(de_test_glm, 
+gene_clust_table <- plotClusteredGenes(scLANE_models_glm, 
                                        gene.clusters = gene_clusters, 
                                        pt = order_df, 
                                        size.factor.offset = cell_offset, 
@@ -529,13 +528,13 @@ slice_sample(gene_clust_table, n = 5) %>%
                col.names = c("Gene", "Lineage", "Cell", "Fitted (link)", "Fitted (response)", "Pseudotime", "Cluster"))
 ```
 
-| Gene    | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
-|:--------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
-| CKAP4   | A       | 1130 |         0.933 |             1.458 |      0.825 | 2       |
-| CBX6    | A       | 607  |         1.396 |             2.407 |      0.517 | 2       |
-| NLGN4Y  | A       | 390  |        -2.941 |             0.056 |      0.975 | 1       |
-| MPG     | A       | 1150 |        -0.147 |             0.415 |      0.875 | 1       |
-| TRAPPC1 | A       | 91   |         0.538 |             1.683 |      0.228 | 2       |
+| Gene   | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
+|:-------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
+| MFSD2B | A       | 9    |        -2.823 |             0.302 |      0.022 | 1       |
+| DLC1   | A       | 853  |        -2.091 |             0.142 |      0.132 | 1       |
+| SMG1   | A       | 244  |        -0.975 |             0.200 |      0.610 | 1       |
+| TPT1   | A       | 39   |         4.272 |            35.151 |      0.098 | 2       |
+| PCF11  | A       | 441  |        -0.917 |             0.311 |      0.102 | 1       |
 
 The results can then be plotted as desired using `ggplot2` or another
 visualization package. Upon visual inspection, the genes seem to cluster
@@ -544,15 +543,13 @@ based on whether they are more dynamic or more static over pseudotime.
 ``` r
 ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
   facet_wrap(~paste0("Cluster ", CLUSTER)) + 
-  geom_line(alpha = 0.75) + 
+  geom_line(alpha = 0.75, show.legend = FALSE) + 
   scale_y_continuous(labels = scales::label_number(accuracy = 1)) + 
   scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) + 
   labs(x = "Pseudotime", 
        y = "Fitted Values", 
-       color = "Leiden\nCluster", 
-       title = "Unsupervised Clustering of Gene Patterns") + 
-  theme_classic(base_size = 14) + 
-  guides(color = guide_legend(override.aes = list(linewidth = 3, alpha = 1)))
+       title = "Leiden clustering of gene dynamics") + 
+  theme_scLANE()
 ```
 
 <img src="man/figures/README-plot-clust-1.png" width="100%" />
@@ -573,8 +570,8 @@ distinct(gene_clust_table, GENE, CLUSTER) %>%
 
 | Leiden Cluster | Dynamic Gene Frequency |
 |:---------------|-----------------------:|
-| 1              |                  0.568 |
-| 2              |                  0.960 |
+| 1              |                  0.476 |
+| 2              |                  0.968 |
 
 # Conclusions & Best Practices
 

@@ -2,10 +2,10 @@
 #'
 #' @name clusterGenes
 #' @author Jack Leary
-#' @description This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms. An approximately optimal clustering is determined by iterating over reasonable hyperparameter values & choosing the value with the highest mean silhouette score.
+#' @description This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms. An approximately optimal clustering is determined by iterating over reasonable hyperparameter values & choosing the value with the highest mean silhouette score based on the cosine distance.
 #' @import magrittr
 #' @importFrom purrr map discard map2 reduce
-#' @importFrom stats setNames hclust cutree kmeans dist
+#' @importFrom stats setNames hclust cutree kmeans as.dist
 #' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param pt A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
@@ -19,6 +19,7 @@
 #' }
 #' @return A data.frame of with three columns: \code{Gene}, \code{Lineage}, and \code{Cluster}.
 #' @seealso \code{\link{testDynamic}}
+#' @seealso \code{\link{embedGenes}}
 #' @seealso \code{\link{plotClusteredGenes}}
 #' @export
 #' @examples
@@ -74,80 +75,65 @@ clusterGenes <- function(test.dyn.res = NULL,
                                              n = n.PC,
                                              center = TRUE,
                                              scale. = TRUE)
+      dist_matrix <- stats::as.dist(1 - coop::tcosine(x = fitted_vals_pca$x))
+    } else {
+      dist_matrix <- stats::as.dist(1 - coop::tcosine(x = fitted_vals_mat))
     }
     # hierarchical clustering routine w/ Ward's linkage
     if (clust.algo  == "hclust") {
-      if (use.pca) {
-        hclust_tree <- stats::hclust(stats::dist(fitted_vals_pca$x), method = "ward.D2")
-      } else {
-        hclust_tree <- stats::hclust(stats::dist(fitted_vals_mat), method = "ward.D2")
-      }
+      hclust_tree <- stats::hclust(dist_matrix, method = "ward.D2")
       k_vals <- c(2:10)
       sil_vals <- vector("numeric", 9L)
+      clust_list <- vector("list", 9L)
       for (k in seq_along(k_vals)) {
         clust_res <- stats::cutree(hclust_tree, k = k_vals[k])
-        if (use.pca) {
-          sil_res <- cluster::silhouette(clust_res, stats::dist(fitted_vals_pca$x))
-        } else {
-          sil_res <- cluster::silhouette(clust_res, stats::dist(fitted_vals_mat))
-        }
-        sil_vals[k] <- mean(sil_res[, 3])  # silhouette widths stored in third column
+        sil_res <- cluster::silhouette(clust_res, dist_matrix)
+        sil_vals[k] <- mean(sil_res[, 3])
+        clust_list[[k]] <- clust_res
       }
-      k_to_use <- k_vals[which.max(sil_vals)]
-      clust_res <- stats::cutree(hclust_tree, k = k_to_use)
       gene_clusters <- data.frame(Gene = rownames(fitted_vals_mat),
                                   Lineage = lineages[l],
-                                  Cluster = clust_res)
+                                  Cluster = clust_list[[which.max(sil_vals)]])
     # k-means clustering routine w/ Hartigan-Wong algorithm
     } else if (clust.algo == "kmeans") {
       k_vals <- c(2:10)
       sil_vals <- vector("numeric", 9L)
+      clust_list <- vector("list", 9L)
       for (k in seq_along(k_vals)) {
         if (use.pca) {
           clust_res <- stats::kmeans(fitted_vals_pca$x,
                                      centers = k_vals[k],
                                      nstart = 5,
                                      algorithm = "Hartigan-Wong")
-          sil_res <- cluster::silhouette(clust_res$cluster, stats::dist(fitted_vals_pca$x))
         } else {
           clust_res <- stats::kmeans(fitted_vals_mat,
                                      centers = k_vals[k],
                                      nstart = 5,
                                      algorithm = "Hartigan-Wong")
-          sil_res <- cluster::silhouette(clust_res$cluster, stats::dist(fitted_vals_mat))
         }
-        sil_vals[k] <- mean(sil_res[, 3])  # silhouette widths stored in third column
-      }
-      k_to_use <- k_vals[which.max(sil_vals)]
-      if (use.pca) {
-        clust_res <- stats::kmeans(fitted_vals_pca$x,
-                                   centers = k_to_use,
-                                   nstart = 10,
-                                   algorithm = "Hartigan-Wong")
-      } else {
-        clust_res <- stats::kmeans(fitted_vals_mat,
-                                   centers = k_to_use,
-                                   nstart = 10,
-                                   algorithm = "Hartigan-Wong")
+        clust_list[[k]] <- clust_res
+        sil_res <- cluster::silhouette(clust_res$cluster, dist_matrix)
+        sil_vals[k] <- mean(sil_res[, 3])
       }
       gene_clusters <- data.frame(Gene = rownames(fitted_vals_mat),
                                   Lineage = lineages[l],
-                                  Cluster = clust_res$cluster)
+                                  Cluster = clust_list[[which.max(sil_vals)]]$cluster)
     # Leiden clustering routine
     } else if (clust.algo == "leiden") {
       if (use.pca) {
         fitted_vals_graph <- bluster::makeSNNGraph(x = fitted_vals_pca$x,
-                                                   k = 30,
+                                                   k = 20,
                                                    type = "jaccard",
-                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Euclidean"))
+                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"))
       } else {
         fitted_vals_graph <- bluster::makeSNNGraph(x = fitted_vals_mat,
-                                                   k = 30,
+                                                   k = 20,
                                                    type = "jaccard",
-                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Euclidean"))
+                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"))
       }
       res_vals <- seq(0.1, 1, by = 0.1)
       sil_vals <- vector("numeric", 10L)
+      clust_list <- vector("list", 10L)
       for (r in seq_along(res_vals)) {
         clust_res <- igraph::cluster_leiden(graph = fitted_vals_graph,
                                             objective_function = "modularity",
@@ -155,21 +141,14 @@ clusterGenes <- function(test.dyn.res = NULL,
         if (clust_res$nb_clusters == 1) {
           sil_vals[r] <- 0
         } else {
-          if (use.pca) {
-            sil_res <- cluster::silhouette(clust_res$membership, stats::dist(fitted_vals_pca$x))
-          } else {
-            sil_res <- cluster::silhouette(clust_res$membership, stats::dist(fitted_vals_mat))
-          }
+          sil_res <- cluster::silhouette(clust_res$membership, dist_matrix)
           sil_vals[r] <- mean(sil_res[, 3])
         }
+        clust_list[[r]] <- clust_res$membership
       }
-      res_to_use <- res_vals[which.max(sil_vals)]
-      clust_res <- igraph::cluster_leiden(graph = fitted_vals_graph,
-                                          objective_function = "modularity",
-                                          resolution_parameter = res_to_use)
       gene_clusters <- data.frame(Gene = rownames(fitted_vals_mat),
                                   Lineage = lineages[l],
-                                  Cluster = clust_res$membership)
+                                  Cluster = clust_list[[which.max(sil_vals)]])
     }
     gene_cluster_list[[l]] <- gene_clusters
   }

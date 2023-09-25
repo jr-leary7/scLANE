@@ -43,6 +43,8 @@ URL: https://github.com/jr-leary7/scLANE
 BugReports: https://github.com/jr-leary7/scLANE/issues
 Suggests: 
     covr, 
+    coop,
+    uwot, 
     ggh4x, 
     knitr,
     irlba, 

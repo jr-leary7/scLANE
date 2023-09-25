@@ -8,7 +8,7 @@
 #' @importFrom stats as.dist
 #' @description Embed genes in dimension-reduced space given a smoothed counts matrix.
 #' @param smoothed.counts The output from \code{\link{smoothedCountsMatrix}}. Defaults to NULL.
-#' @param genes A character vector of genes to embed. If not specified, all genes in \code{test.dyn.res} are used. Defaults to NULL.
+#' @param genes A character vector of genes to embed. If not specified, all genes in \code{smoothed.counts} are used. Defaults to NULL.
 #' @param pc.embed (Optional) How many PCs should be used to cluster the genes and run UMAP? Defaults to 30.
 #' @param pcs.return (Optional) How many principal components should be included in the output? Defaults to 2.
 #' @param cluster.genes (Optional) Should genes be clustered in PCA space using the Leiden algorithm? Defaults to TRUE.
@@ -34,10 +34,12 @@ embedGenes <- function(smoothed.counts = NULL,
                        random.seed = 312) {
   # check inputs
   if (is.null(smoothed.counts)) { stop("You forgot to provide a smoothed counts matrix to embedGenes().") }
+  genes <- colnames(smoothed.counts)
+  smoothed.counts <- t(smoothed.counts)
   # embeddings
   set.seed(random.seed)
-  smoothed_counts_pca <- irlba::prcomp_irlba(t(smoothed.counts),
-                                             pc.embed = pc.embed,
+  smoothed_counts_pca <- irlba::prcomp_irlba(smoothed.counts,
+                                             n = pc.embed,
                                              center = TRUE,
                                              scale. = TRUE)
   smoothed_counts_umap <- uwot::umap(smoothed_counts_pca$x,
@@ -69,7 +71,7 @@ embedGenes <- function(smoothed.counts = NULL,
   # prepare results
   pca_df <- as.data.frame(smoothed_counts_pca$x[, seq(pcs.return)])
   colnames(pca_df) <- paste0("pc", seq(pcs.return))
-  gene_clust_df <- data.frame(gene = colnames(smoothed.counts),
+  gene_clust_df <- data.frame(gene = genes,
                               leiden = clust_runs[[best_clustering]]$clusters,
                               umap1 = smoothed_counts_umap[, 1],
                               umap2 = smoothed_counts_umap[, 2])

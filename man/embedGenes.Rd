@@ -18,7 +18,7 @@ embedGenes(
 \arguments{
 \item{smoothed.counts}{The output from \code{\link{smoothedCountsMatrix}}. Defaults to NULL.}
 
-\item{genes}{A character vector of genes to embed. If not specified, all genes in \code{test.dyn.res} are used. Defaults to NULL.}
+\item{genes}{A character vector of genes to embed. If not specified, all genes in \code{smoothed.counts} are used. Defaults to NULL.}
 
 \item{pc.embed}{(Optional) How many PCs should be used to cluster the genes and run UMAP? Defaults to 30.}
 

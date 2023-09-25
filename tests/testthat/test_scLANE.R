@@ -1,8 +1,8 @@
 # load data & prepare for testing
 load(system.file("testdata/sim_test_data.RData", package = "scLANE"))
 cell_offset <- createCellOffset(sim_data)
-genes_to_test <- c(rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "Dynamic"][1:5],
-                   rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "NotDynamic"][1:5])
+genes_to_test <- c(rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "Dynamic"][1:10],
+                   rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "NotDynamic"][1:10])
 counts_test <- t(as.matrix(SingleCellExperiment::counts(sim_data)[genes_to_test, ]))
 pt_test <- data.frame(PT = sim_data$cell_time_normed)
 
@@ -41,7 +41,7 @@ withr::with_output_sink(tempfile(), {
                                 cor.structure = "ar1",
                                 id.vec = sim_data$subject,
                                 n.cores = 2,
-                                track.time = TRUE)
+                                track.time = FALSE)
   glmm_gene_stats <- testDynamic(sim_data,
                                  pt = pt_test,
                                  genes = genes_to_test,
@@ -149,12 +149,20 @@ withr::with_output_sink(tempfile(), {
                           id.vec = sim_data$subject)
   # downstream analysis
   set.seed(312)
-  gene_clusters <- clusterGenes(test.dyn.res = glm_gene_stats,
-                                pt = pt_test,
-                                size.factor.offset = cell_offset,
-                                clust.algo = "leiden")
+  gene_clusters_leiden <- clusterGenes(test.dyn.res = glm_gene_stats,
+                                       pt = pt_test,
+                                       size.factor.offset = cell_offset,
+                                       clust.algo = "leiden")
+  gene_clusters_kmeans <- clusterGenes(test.dyn.res = glm_gene_stats,
+                                       pt = pt_test,
+                                       size.factor.offset = cell_offset,
+                                       clust.algo = "kmeans")
+  gene_clusters_hclust <- clusterGenes(test.dyn.res = glm_gene_stats,
+                                       pt = pt_test,
+                                       size.factor.offset = cell_offset,
+                                       clust.algo = "hclust")
   gene_clust_table <- plotClusteredGenes(glm_gene_stats,
-                                         gene.clusters = gene_clusters,
+                                         gene.clusters = gene_clusters_leiden,
                                          size.factor.offset = cell_offset,
                                          pt = pt_test,
                                          n.cores = 2)
@@ -163,6 +171,11 @@ withr::with_output_sink(tempfile(), {
                                           size.factor.offset = cell_offset,
                                           parallel.exec = TRUE,
                                           n.cores = 2)
+  gene_embedding <- embedGenes(smoothed.counts = smoothed_counts$Lineage_A,
+                               pc.embed = 5,
+                               pcs.return = 2,
+                               k.param = 5,
+                               random.seed = 312)
   sorted_genes <- sortGenesHeatmap(heatmap.mat = smoothed_counts$Lineage_A,
                                    pt.vec = pt_test$PT)
   fitted_values_table <- getFittedValues(test.dyn.res = glm_gene_stats,
@@ -201,9 +214,9 @@ test_that("testDynamic() output", {
   expect_s3_class(glm_gene_stats, "scLANE")
   expect_s3_class(gee_gene_stats, "scLANE")
   expect_s3_class(glmm_gene_stats, "scLANE")
-  expect_length(glm_gene_stats, 10)
-  expect_length(gee_gene_stats, 10)
-  expect_length(glmm_gene_stats, 10)
+  expect_length(glm_gene_stats, 20)
+  expect_length(gee_gene_stats, 20)
+  expect_length(glmm_gene_stats, 20)
   expect_s3_class(glm_gene_stats$ABCF1$Lineage_A$MARGE_Summary, "data.frame")
   expect_s3_class(gee_gene_stats$ABCF1$Lineage_A$MARGE_Summary, "data.frame")
   expect_s3_class(glmm_gene_stats$ABCF1$Lineage_A$MARGE_Summary, "data.frame")
@@ -293,8 +306,12 @@ test_that("plotModels() output", {
 })
 
 test_that("clusterGenes() output", {
-  expect_s3_class(gene_clusters, "data.frame")
-  expect_equal(ncol(gene_clusters), 3)
+  expect_s3_class(gene_clusters_leiden, "data.frame")
+  expect_s3_class(gene_clusters_kmeans, "data.frame")
+  expect_s3_class(gene_clusters_hclust, "data.frame")
+  expect_equal(ncol(gene_clusters_leiden), 3)
+  expect_equal(ncol(gene_clusters_kmeans), 3)
+  expect_equal(ncol(gene_clusters_hclust), 3)
 })
 
 test_that("plotClusteredGenes() output", {
@@ -306,6 +323,11 @@ test_that("smoothedCountsMatrix() output", {
   expect_type(smoothed_counts, "list")
   expect_length(smoothed_counts, 1)
   expect_type(smoothed_counts$Lineage_A, "double")
+})
+
+test_that("embedGenes() output", {
+  expect_s3_class(gene_embedding, "data.frame")
+  expect_equal(ncol(gene_embedding), 6)
 })
 
 test_that("sortGenesHeatmap() output", {

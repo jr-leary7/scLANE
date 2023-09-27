@@ -12,7 +12,7 @@
 #' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom utils tail
 #' @importFrom purrr map_chr
-#' @importFrom stats fitted coef offset as.formula
+#' @importFrom stats quantile fitted coef offset as.formula
 #' @param X_pred A matrix of the predictor variables. Defaults to NULL.
 #' @param Y The response variable. Defaults to NULL.
 #' @param Y.offset (Optional) An vector of per-cell size factors to be included in the final model fit as an offset. Defaults to NULL.
@@ -165,8 +165,10 @@ marge2 <- function(X_pred = NULL,
         X_red1 <- min_span(X_red = X, q = q, minspan = minspan)
         X_red2 <- max_span(X_red = X, q = q)
         X_red <- intersect(X_red1, X_red2)
+        q05 <- stats::quantile(X_pred[, v], 0.05)
+        q95 <- stats::quantile(X_pred[, v], 0.95)
+        X_red <- X_red[X_red > q05 & X_red < q95]
         if (length(X_red) > n.knot.max) {
-          # set.seed(as.integer(length(X_red)))
           X_red <- sample(X_red, size = n.knot.max)
         }
       } else {

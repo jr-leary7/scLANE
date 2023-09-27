@@ -4,49 +4,31 @@
 \alias{enrichDynamicGenes}
 \title{Perform GSEA on dynamic genes identified by \code{scLANE}.}
 \usage{
-enrichDynamicGenes(
-  scLANE.de.res = NULL,
-  lineage = NULL,
-  species = "hs",
-  gene.set.cat = NULL,
-  gene.set.subcat = NULL
-)
+enrichDynamicGenes(scLANE.de.res = NULL, lineage = NULL, species = "hsapiens")
 }
 \arguments{
 \item{scLANE.de.res}{The output from \code{\link{getResultsDE}}. Defaults to NULL.}
 
 \item{lineage}{A character vector specifying lineages to isolate. Defaults to NULL.}
 
-\item{species}{One of "hs" or "mm", specifying whether the gene sets are human or murine in origin.}
-
-\item{gene.set.cat}{Corresponds to the \code{category} parameter of \code{\link[msigdbr]{msigdbr}}. Defaults to NULL.}
-
-\item{gene.set.subcat}{Corresponds to the \code{subcategory} parameter of \code{\link[msigdbr]{msigdbr}}. Defaults to NULL.}
+\item{species}{The species against which to run enrichment analysis. Defaults to "hsapiens".}
 }
 \value{
-The output from \code{\link[clusterProfiler]{enricher}}.
+The output from \code{\link[gprofiler2]{gost}}.
 }
 \description{
-This function uses the \code{msigdbr} and \code{clusterProfiler} packages to perform GSEA on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
+This function uses the \code{gprofiler2} package to perform pathway analysis on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
 }
 \examples{
 \dontrun{
+enrichDynamicGenes(scLANE.de.res = de_stats)
 enrichDynamicGenes(scLANE.de.res = de_stats,
-                   lineage = "A",
-                   gene.set.cat = "C1",
-                   gene.set.subcat = "CGP")
-enrichDynamicGenes(scLANE.de.res = de_stats,
-                   species = "mm",
-                   gene.set.cat = "C2",
-                   gene.set.subcat = "CP:REACTOME")
+                   lineage = "B",
+                   species = "mmusculus")
 }
 }
 \seealso{
-\code{\link[msigdbr]{msigdbr}}
-
-\code{\link[msigdbr]{msigdbr_collections}}
-
-\code{\link[clusterProfiler]{enricher}}
+\code{\link[gprofiler2]{gost}}
 }
 \author{
 Jack Leary

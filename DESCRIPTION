@@ -53,12 +53,11 @@ Suggests:
     Seurat, 
     bluster, 
     cluster, 
-    msigdbr, 
     rmarkdown,
     slingshot, 
+    gprofiler2,
     BiocGenerics, 
     BiocNeighbors, 
-    clusterProfiler, 
     testthat (>= 3.0.0),
     SingleCellExperiment, 
     SummarizedExperiment

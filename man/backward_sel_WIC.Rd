@@ -13,9 +13,9 @@ backward_sel_WIC(
 )
 }
 \arguments{
-\item{Y}{: the response variable. Defaults to NULL.}
+\item{Y}{The response variable. Defaults to NULL.}
 
-\item{B_new}{: the model matrix. Defaults to NULL.}
+\item{B_new}{The model matrix. Defaults to NULL.}
 
 \item{is.gee}{Is the model a GEE? Defaults to FALSE.}
 
@@ -34,9 +34,10 @@ Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for Generalized Estima
 
 Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 }
-\seealso{
-\code{\link{backward_sel}}
-}
 \author{
-Jakub Stoklosa and David I. Warton
+Jakub Stoklosa
+
+David I. Warton
+
+Jack Leary
 }

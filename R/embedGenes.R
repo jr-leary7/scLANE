@@ -48,33 +48,38 @@ embedGenes <- function(smoothed.counts = NULL,
                                      n_neighbors = k.param,
                                      init = "spectral")
   # clustering w/ silhouette score parameter tuning
-  smoothed_counts_snn <- bluster::makeSNNGraph(smoothed_counts_pca$x,
-                                               k = k.param,
-                                               type = "jaccard",
-                                               BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"))
-  dist_matrix <- stats::as.dist(1 - coop::tcosine(x = smoothed_counts_pca$x))
-  clust_runs <- purrr::map(c(0.1, 0.2, 0.3, 0.4, 0.5), \(r) {
-    smoothed_counts_clust <- igraph::cluster_leiden(smoothed_counts_snn,
-                                                    objective_function = "modularity",
-                                                    resolution_parameter = r)
-    if (smoothed_counts_clust$nb_clusters == 1) {
-      sil_val <- 0
-    } else {
-      sil_val <- mean(cluster::silhouette(as.integer(smoothed_counts_clust$membership - 1L), dist_matrix)[, 3])
-    }
-    clust_res <- list(clusters = as.factor(smoothed_counts_clust$membership - 1L),
-                      resolution = r,
-                      silhouette = sil_val)
-    return(clust_res)
-  })
-  best_clustering <- which.max(purrr::map_dbl(clust_runs, \(x) x$silhouette))
+  if (cluster.genes) {
+    smoothed_counts_snn <- bluster::makeSNNGraph(smoothed_counts_pca$x,
+                                                 k = k.param,
+                                                 type = "jaccard",
+                                                 BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"))
+    dist_matrix <- stats::as.dist(1 - coop::tcosine(x = smoothed_counts_pca$x))
+    clust_runs <- purrr::map(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7), \(r) {
+      smoothed_counts_clust <- igraph::cluster_leiden(smoothed_counts_snn,
+                                                      objective_function = "modularity",
+                                                      resolution_parameter = r)
+      if (smoothed_counts_clust$nb_clusters == 1) {
+        sil_val <- 0
+      } else {
+        sil_val <- mean(cluster::silhouette(as.integer(smoothed_counts_clust$membership - 1L), dist_matrix)[, 3])
+      }
+      clust_res <- list(clusters = as.factor(smoothed_counts_clust$membership - 1L),
+                        resolution = r,
+                        silhouette = sil_val)
+      return(clust_res)
+    })
+    best_clustering <- which.max(purrr::map_dbl(clust_runs, \(x) x$silhouette))
+    cluster_vec <- clust_runs[[best_clustering]]$clusters
+  } else {
+    cluster_vec <- NA_integer_
+  }
   # prepare results
   pca_df <- as.data.frame(smoothed_counts_pca$x[, seq(pcs.return)])
   colnames(pca_df) <- paste0("pc", seq(pcs.return))
-  gene_clust_df <- data.frame(gene = genes,
-                              leiden = clust_runs[[best_clustering]]$clusters,
-                              umap1 = smoothed_counts_umap[, 1],
-                              umap2 = smoothed_counts_umap[, 2])
-  gene_clust_df <- dplyr::bind_cols(gene_clust_df, pca_df)
-  return(gene_clust_df)
+  gene_df <- data.frame(gene = genes,
+                        leiden = cluster_vec,
+                        umap1 = smoothed_counts_umap[, 1],
+                        umap2 = smoothed_counts_umap[, 2])
+  gene_df <- dplyr::bind_cols(gene_df, pca_df)
+  return(gene_df)
 }

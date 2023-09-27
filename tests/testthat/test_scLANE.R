@@ -188,9 +188,7 @@ withr::with_output_sink(tempfile(), {
                                          expr.mat = sim_data,
                                          cell.meta.data = as.data.frame(SummarizedExperiment::colData(sim_data)),
                                          id.vec = sim_data$subject)
-  gsea_res <- enrichDynamicGenes(scLANE.de.res = glm_test_results,
-                                 gene.set.cat = "C2",
-                                 species = "hs")
+  gsea_res <- enrichDynamicGenes(glm_test_results, species = "hsapiens")
   coef_summary_glm <- summarizeModel(marge_mod_offset, pt = pt_test)
   coef_summary_gee <- summarizeModel(marge_mod_GEE_offset, pt = pt_test)
 })
@@ -348,9 +346,9 @@ test_that("getFittedValues() output", {
 })
 
 test_that("enrichDynamicGenes() output", {
-  expect_s4_class(gsea_res, "enrichResult")
-  expect_s3_class(gsea_res@result, "data.frame")
-  expect_equal(ncol(gsea_res@result), 9)
+  expect_type(gsea_res, "list")
+  expect_length(gsea_res, 2)
+  expect_s3_class(gsea_res$result, "data.frame")
 })
 
 test_that("summarizeModels() output", {

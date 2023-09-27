@@ -1,6 +1,8 @@
 # load data & prepare for testing
 load(system.file("testdata/sim_test_data.RData", package = "scLANE"))
+sim_data_seu <- Seurat::as.Seurat(sim_data)
 cell_offset <- createCellOffset(sim_data)
+cell_offset_seu <- createCellOffset(sim_data_seu)
 genes_to_test <- c(rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "Dynamic"][1:10],
                    rownames(sim_data)[SummarizedExperiment::rowData(sim_data)$geneStatus_overall == "NotDynamic"][1:10])
 counts_test <- t(as.matrix(SingleCellExperiment::counts(sim_data)[genes_to_test, ]))
@@ -80,6 +82,7 @@ withr::with_output_sink(tempfile(), {
                       return.basis = TRUE,
                       return.GCV = TRUE,
                       return.WIC = TRUE)
+  marge_mod_stripped <- stripGLM(marge_mod$final_mod)
   # run GLM model -- with offset
   marge_mod_offset <- marge2(X_pred = pt_test,
                              Y = counts_test[, 3],
@@ -206,8 +209,11 @@ test_that("internal marge functions", {
 
 test_that("createCellOffset() output", {
   expect_type(cell_offset, "double")
+  expect_type(cell_offset_seu, "double")
   expect_length(cell_offset, 300)
+  expect_length(cell_offset_seu, 300)
   expect_false(any(is.na(cell_offset)))
+  expect_false(any(is.na(cell_offset_seu)))
 })
 
 test_that("testDynamic() output", {
@@ -266,6 +272,7 @@ test_that("marge2() output -- GLM backend", {
   expect_s3_class(marge_mod_offset, "marge")
   expect_s3_class(marge_mod$final_mod, "negbin")
   expect_s3_class(marge_mod_offset$final_mod, "negbin")
+  expect_s3_class(marge_mod_stripped, "negbin")
   expect_equal(marge_mod$model_type, "GLM")
   expect_equal(marge_mod_offset$model_type, "GLM")
   expect_true(marge_mod$final_mod$converged)

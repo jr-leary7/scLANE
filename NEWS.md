@@ -4,6 +4,7 @@
 * Updated the `clusterGenes()` function to be much more efficient as well as changing the distance metric used to be cosine dissimilarity. 
 * Added `theme_scLANE()` for output plots. 
 * Enhanced documentation. 
+* Increased test coverage.
 
 # `scLANE` 0.7.2 
 

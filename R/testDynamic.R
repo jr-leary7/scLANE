@@ -30,6 +30,7 @@
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
 #' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
+#' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
 #' \itemize{
 #' \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
@@ -86,7 +87,8 @@ testDynamic <- function(expr.mat = NULL,
                         parallel.exec = TRUE,
                         n.cores = 2,
                         approx.knot = TRUE,
-                        track.time = FALSE) {
+                        track.time = FALSE,
+                        random.seed = 312) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
 
@@ -138,10 +140,10 @@ testDynamic <- function(expr.mat = NULL,
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
     doParallel::registerDoParallel(cl)
-    parallel::clusterSetRNGStream(cl, iseed = 312)
+    parallel::clusterSetRNGStream(cl, iseed = random.seed)
   } else {
     cl <- foreach::registerDoSEQ()
-    set.seed(312)
+    set.seed(random.seed)
   }
 
   # convert dense counts matrix to file-backed matrix

@@ -28,6 +28,7 @@ Imports:
     gamlss,
     scales,
     future, 
+    Matrix,
     ggplot2,
     splines, 
     foreach,

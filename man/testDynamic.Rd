@@ -18,7 +18,8 @@ testDynamic(
   parallel.exec = TRUE,
   n.cores = 2,
   approx.knot = TRUE,
-  track.time = FALSE
+  track.time = FALSE,
+  random.seed = 312
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ testDynamic(
 \item{approx.knot}{(Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.}
 
 \item{track.time}{(Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.}
+
+\item{random.seed}{(Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.}
 }
 \value{
 A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.

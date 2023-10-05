@@ -2,12 +2,12 @@
 % Please edit documentation in R/createCellOffset.R
 \name{createCellOffset}
 \alias{createCellOffset}
-\title{Create an offset vector before modeling}
+\title{Create an offset vector before modeling.}
 \usage{
 createCellOffset(expr.mat = NULL, scale.factor = 10000)
 }
 \arguments{
-\item{expr.mat}{Either a matrix of raw integer counts (cells as columns), a \code{Seurat} object, or a \code{SingleCellExperiment} object. Defaults to NULL.}
+\item{expr.mat}{Either a (sparse or dense) matrix of raw integer counts (cells as columns), a \code{Seurat} object, or a \code{SingleCellExperiment} object. Defaults to NULL.}
 
 \item{scale.factor}{The scaling factor use to multiply the sequencing depth factor for each cell. The default value is 1e4, which returns counts-per-10k.}
 }

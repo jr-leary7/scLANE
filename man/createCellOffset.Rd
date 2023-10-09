@@ -19,6 +19,7 @@ Creates a vector of per-cell size factors to be used as input to \code{\link{tes
 }
 \examples{
 \dontrun{
+createCellOffset(expr.mat = sce_obj)
 createCellOffset(expr.mat = counts(sce_obj))
 createCellOffset(expr.mat = seu_obj, scale.factor = 1e5)
 }

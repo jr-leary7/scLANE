@@ -23,9 +23,11 @@ summarizeModel <- function(marge.model = NULL, pt = NULL) {
                      Slope.Segment = NA_real_,
                      Trend.Segment = NA_real_)
   } else {
-    # extract model equation & slopes
+    # extract model equation, slopes, & covariances
+    coef_vcov <- vcov(marge.model$final_mod)
     coef_df <- data.frame(coef_name = names(coef(marge.model$final_mod)),
-                          coef_value = unname(coef(marge.model$final_mod)))
+                          coef_value = unname(coef(marge.model$final_mod)),
+                          coef_var = unname(diag(coef_vcov)))
 
     coef_df <- coef_df[-which(coef_df$coef_name == "Intercept"), ]
 

@@ -10,14 +10,15 @@ plotModels(
   pt = NULL,
   expr.mat = NULL,
   size.factor.offset = NULL,
+  log1p.norm = TRUE,
   is.gee = FALSE,
   is.glmm = FALSE,
   id.vec = NULL,
   cor.structure = "ar1",
   ci.alpha = 0.05,
-  plot.null = TRUE,
-  plot.glm = TRUE,
-  plot.gam = TRUE,
+  plot.null = FALSE,
+  plot.glm = FALSE,
+  plot.gam = FALSE,
   plot.scLANE = TRUE,
   filter.lineage = NULL,
   gg.theme = theme_scLANE()
@@ -30,9 +31,11 @@ plotModels(
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a dense matrix of integer-valued counts. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts. Defaults to NULL.}
 
 \item{size.factor.offset}{(Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.}
+
+\item{log1p.norm}{(Optional) Should log1p-normalized versions of expression & model predictions be returned instead of raw counts? Defaults to TRUE.}
 
 \item{is.gee}{Should a GEE framework be used instead of the default GLM? Defaults to FALSE.}
 
@@ -44,11 +47,11 @@ plotModels(
 
 \item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 
-\item{plot.null}{(Optional) Should the fitted values from the intercept-only null model be plotted? Defaults to TRUE.}
+\item{plot.null}{(Optional) Should the fitted values from the intercept-only null model be plotted? Defaults to FALSE.}
 
-\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be plotted? If the data are multi-subject, the "GLM" model can be a GEE or GLMM depending on the desired framework. See Examples for more detail. Defaults to TRUE.}
+\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be plotted? If the data are multi-subject, the "GLM" model can be a GEE or GLMM depending on the desired framework. See Examples for more detail. Defaults to FALSE.}
 
-\item{plot.gam}{(Optional) Should the fitted values from an NB GAM be plotted? Defaults to TRUE.}
+\item{plot.gam}{(Optional) Should the fitted values from an NB GAM be plotted? Defaults to FALSE.}
 
 \item{plot.scLANE}{(Optional) Should the fitted values from the \code{scLANE} model be plotted? Defaults to TRUE.}
 
@@ -67,17 +70,20 @@ This function visualizes the fitted values of several types of models over the e
 plotModels(gene_stats,
            gene = "AURKA",
            pt = pt_df,
-           expr.mat = count_mat)
+           expr.mat = count_mat,
+           size.factor.offset = cell_offset)
 plotModels(gene_stats,
            gene = "CD3E",
            pt = pt_df,
-           expr.mat = count_mat,
+           expr.mat = seu_obj,
+           size.factor.offset = cell_offset,
            ci.alpha = 0.1,
            filter.lineage = c("A", "C"))
 plotModels(gene_stats,
            gene = "CD14",
            pt = pt_df,
-           expr.mat = count_mat,
+           expr.mat = sce_obj,
+           size.factor.offset = cell_offset,
            is.glmm = TRUE,
            id.vec = subject_ids,
            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject

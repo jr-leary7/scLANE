@@ -34,7 +34,7 @@ withr::with_output_sink(tempfile(), {
                                 size.factor.offset = cell_offset,
                                 n.cores = 2,
                                 track.time = TRUE)
-  gee_gene_stats <- testDynamic(sim_data,
+  gee_gene_stats <- testDynamic(expr.mat = sim_data,
                                 pt = pt_test,
                                 genes = genes_to_test,
                                 n.potential.basis.fns = 5,
@@ -53,7 +53,7 @@ withr::with_output_sink(tempfile(), {
                                  glmm.adaptive = TRUE,
                                  id.vec = sim_data$subject,
                                  n.cores = 2,
-                                 track.time = TRUE)
+                                 track.time = FALSE)
   # get results tables overall
   glm_test_results <- getResultsDE(glm_gene_stats)
   gee_test_results <- getResultsDE(gee_gene_stats)
@@ -191,6 +191,7 @@ withr::with_output_sink(tempfile(), {
   gsea_res <- enrichDynamicGenes(glm_test_results, species = "hsapiens")
   coef_summary_glm <- summarizeModel(marge_mod_offset, pt = pt_test)
   coef_summary_gee <- summarizeModel(marge_mod_GEE_offset, pt = pt_test)
+  knot_df <- getKnotDist(glm_gene_stats)
 })
 
 # run tests
@@ -358,4 +359,9 @@ test_that("summarizeModels() output", {
   expect_length(coef_summary_gee, 3)
   expect_type(coef_summary_glm$Slope.Segment, "double")
   expect_type(coef_summary_gee$Slope.Segment, "double")
+})
+
+test_that("getKnotDist() output", {
+  expect_s3_class(knot_df, "data.frame")
+  expect_equal(ncol(knot_df), 3)
 })

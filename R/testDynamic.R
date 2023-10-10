@@ -8,7 +8,7 @@
 #' @importFrom bigstatsr as_FBM
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doParallel registerDoParallel
-#' @importFrom parallel makeCluster detectCores stopCluster clusterEvalQ clusterExport clusterSetRNGStream
+#' @importFrom parallel makeCluster stopCluster clusterEvalQ clusterExport clusterSetRNGStream
 #' @importFrom withr with_output_sink
 #' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom dplyr rename mutate relocate
@@ -93,6 +93,9 @@ testDynamic <- function(expr.mat = NULL,
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
 
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
+  if (is.null(genes)) {
+    genes <- rownames(expr.mat)
+  }
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
     expr.mat <- as.matrix(expr.mat)
@@ -102,15 +105,12 @@ testDynamic <- function(expr.mat = NULL,
                                      assay = Seurat::DefaultAssay(expr.mat))
     expr.mat <- as.matrix(expr.mat[genes, ])
   } else if (inherits(expr.mat, "dgCMatrix")) {
-    expr.mat <- as.matrix(expr.mat)
+    expr.mat <- as.matrix(expr.mat[genes, ])
+  } else {
+    expr.mat <- expr.mat[genes, ]
   }
   if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be coerceable to a matrix of integer counts.") }
   expr.mat <- t(expr.mat)  # transpose to cell x gene matrix
-  if (is.null(genes)) {
-    genes <- colnames(expr.mat)
-  } else {
-    expr.mat <- expr.mat[, genes]
-  }
 
   # extract pseudotime dataframe if input is results from Slingshot
   if (inherits(pt, "SlingshotDataSet")) {
@@ -165,8 +165,7 @@ testDynamic <- function(expr.mat = NULL,
   package_list <- c("glm2", "scLANE", "MASS",  "bigstatsr", "broom.mixed", "dplyr", "stats")
   if (is.gee) {
     package_list <- c(package_list, "geeM")
-  }
-  if (is.glmm) {
+  } else if (is.glmm) {
     package_list <- c(package_list, "glmmTMB")
   }
 

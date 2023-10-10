@@ -24,7 +24,11 @@ summarizeModel <- function(marge.model = NULL, pt = NULL) {
                      Trend.Segment = NA_real_)
   } else {
     # extract model equation, slopes, & covariances
-    coef_vcov <- vcov(marge.model$final_mod)
+    if (marge.model$model_type == "GEE") {
+      coef_vcov <- as.matrix(marge.model$final_mod$var)
+    } else {
+      coef_vcov <- vcov(marge.model$final_mod)
+    }
     coef_df <- data.frame(coef_name = names(coef(marge.model$final_mod)),
                           coef_value = unname(coef(marge.model$final_mod)),
                           coef_var = unname(diag(coef_vcov)))

@@ -121,7 +121,7 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  pt = order_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
-                                 n.cores = 2, 
+                                 n.cores = 4, 
                                  track.time = TRUE)
 ```
 
@@ -133,7 +133,7 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
   slice_head(n = 5) %>% 
   knitr::kable(format = "pipe", 
                digits = 3, 
-               col.names = c("Gene", "Lineage", "LRT Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
+               col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
 After creating a reference table of the ground truth status of each gene - `1` denotes a dynamic gene and `0` a non-dynamic one - and adding that binary indicator the the DE results table, we can generate some classification metrics using [a confusion matrix](https://en.wikipedia.org/wiki/Confusion_matrix). 
@@ -151,7 +151,7 @@ caret::confusionMatrix(factor(scLANE_res_glm$Gene_Dynamic_Overall, levels = c(0,
 
 ### GEE Backend
 
-The function call is essentially the same when using the GLM backend, with the exception of needing to provide a sorted vector of subject IDs & a desired correlation structure. We also need to flip the `is.gee` flag in order to indicate that we'd like to fit estimating equations models (instead of mixed models). Since fitting GEEs is a fair bit more computationally complex than fitting GLMs, DE testing with the GEE backend takes a bit longer. Using more cores and / or running the tests on an HPC cluster (as this document is being compiled on a 2020 MacBook Pro) speeds things up considerably. Here we specify an [AR1 correlation structure](https://rdrr.io/cran/nlme/man/corAR1.html), which is the default for the GEE backend. 
+The function call is essentially the same when using the GLM backend, with the exception of needing to provide a sorted vector of subject IDs & a desired correlation structure, the default being [the AR1 structure](https://en.wikipedia.org/wiki/Autoregressive_model). We also need to flip the `is.gee` flag in order to indicate that we'd like to fit estimating equations models (instead of mixed models). Since fitting GEEs is a fair bit more computationally complex than fitting GLMs, DE testing with the GEE backend takes a bit longer. Using more cores and / or running the tests on an HPC cluster speeds things up considerably. Here we specify an [AR1 correlation structure](https://rdrr.io/cran/nlme/man/corAR1.html), which is the default for the GEE backend. 
 
 ```{r gee-models, results='hold'}
 scLANE_models_gee <- testDynamic(sim_data, 
@@ -161,7 +161,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  is.gee = TRUE, 
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
-                                 n.cores = 2, 
+                                 n.cores = 4, 
                                  track.time = TRUE)
 ```
 
@@ -173,7 +173,7 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
-               col.names = c("Gene", "Lineage", "Wald Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
+               col.names = c("Gene", "Lineage", "Wald stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
 We create the same confusion matrix as before. Empirically speaking, when the underlying dynamics don't differ much between subjects, GEEs tend to be more conservative (and thus perform slightly worse) than GLMs. This is shown below, where the GEE backend has decent accuracy, but the false negative rate is higher than that of the GLM backend. 
@@ -200,7 +200,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   is.glmm = TRUE, 
                                   glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
-                                  n.cores = 2, 
+                                  n.cores = 4, 
                                   track.time = TRUE)
 ```
 
@@ -212,7 +212,7 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
   slice_head(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
-               col.names = c("Gene", "Lineage", "LRT Stat.", "P-value", "Adj. P-value", "Predicted Dynamic Status"))
+               col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
 The GLMM backend performs about as well as the GEE backend. Like with the GEE backend, it's more appropriate to use these more complex models if expression dynamics might differ between subjects, with the difference being that you should use the GEE backend if you're interested in population-level trends & the GLMM backend if you're interested in per-subject trends. Since the dynamics in our simulated data are strongly conserved across subjects, it follows that the simpler GLMs perform the best. 
@@ -230,14 +230,18 @@ caret::confusionMatrix(factor(scLANE_res_glmm$Gene_Dynamic_Overall, levels = c(0
 
 ### Model Comparison
 
-We can use the `plotModels()` to visually compare different types of modeling backends. It takes as input the results from `testDynamic()`, as well as a few specifications for which models & lineages should be plotted. While more complex visualizations can be created from our model output, this function gives us a good first glance at which models fit the underlying trend the best. Here we show the output generated using the GLM backend, split by model type. The intercept-only model shows the null hypothesis against which the scLANE model is compared using the likelihood ratio test and the GLM displays the inadequacy of monotonic modeling architectures for nonlinear dynamics. A GAM shows essentially the same trend as the `scLANE` model, though the fitted trend from `scLANE` is smoother & of course more interpretable.   
+We can use the `plotModels()` to visually compare different types of modeling backends. It takes as input the results from `testDynamic()`, as well as a few specifications for which models & lineages should be plotted. While more complex visualizations can be created from our model output, this function gives us a good first glance at which models fit the underlying trend the best. Here we show the output generated using the GLM backend, split by model type. The intercept-only model shows the null hypothesis against which the scLANE model is compared using the likelihood ratio test and the GLM displays the inadequacy of monotonic modeling architectures for nonlinear dynamics. A GAM shows essentially the same trend as the `scLANE` model, though the fitted trend from `scLANE` is more interpretable & has a narrower confidence interval.   
 
 ```{r plot-models-glm}
 plotModels(scLANE_models_glm, 
            gene = "JARID2", 
            pt = order_df, 
            expr.mat = sim_data, 
-           size.factor.offset = cell_offset)
+           size.factor.offset = cell_offset, 
+           plot.null = TRUE, 
+           plot.glm = TRUE, 
+           plot.gam = TRUE, 
+           plot.scLANE = TRUE)
 ```
 
 When plotting the models generated using the GLMM backend, we split by lineage & color the points by subject ID instead of by lineage. 
@@ -248,9 +252,12 @@ plotModels(scLANE_models_glmm,
            pt = order_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
+           id.vec = sim_data$subject, 
            is.glmm = TRUE, 
            plot.null = FALSE, 
-           id.vec = sim_data$subject)
+           plot.glm = TRUE, 
+           plot.gam = TRUE, 
+           plot.scLANE = TRUE)
 ```
 
 ### Gene Clustering 
@@ -260,8 +267,7 @@ After generating a suitable set of models, we can cluster the genes in a semi-su
 ```{r cluster-genes}
 gene_clusters <- clusterGenes(scLANE_models_glm, 
                               pt = order_df, 
-                              size.factor.offset = cell_offset, 
-                              clust.algo = "leiden")
+                              size.factor.offset = cell_offset)
 gene_clust_table <- plotClusteredGenes(scLANE_models_glm, 
                                        gene.clusters = gene_clusters, 
                                        pt = order_df, 
@@ -288,24 +294,51 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
   theme_scLANE()
 ```
 
-Checking the true frequency of dynamic genes in each cluster seems to somewhat confirm that hypothesis:
+## Gene-level Embeddings
 
-```{r dyn-freq}
-distinct(gene_clust_table, GENE, CLUSTER) %>% 
-  inner_join(gene_status_df, by = c("GENE" = "gene")) %>% 
-  with_groups(CLUSTER, 
-              summarise, 
-              P_DYNAMIC = mean(True_Gene_Status)) %>% 
-  knitr::kable("pipe", 
-               digits = 3, 
-               col.names = c("Leiden Cluster", "Dynamic Gene Frequency"))
+After extracting a matrix of fitted dynamics using `smoothedCountsMatrix()`, we can embed the genes in PCA & UMAP space in order to visualize clusters of similarly-behaving genes. 
+
+```{r}
+smoothed_counts <- smoothedCountsMatrix(scLANE_models_glm, 
+                                        size.factor.offset = cell_offset, 
+                                        pt = order_df)
+gene_embedding <- embedGenes(smoothed_counts$Lineage_A, 
+                             pc.embed = 10, 
+                             k.param = 10)
+ggplot(gene_embedding, aes(x = umap1, y = umap2, color = leiden)) + 
+  geom_point(size = 2) + 
+  labs(x = "UMAP 1", 
+       y = "UMAP 2", 
+       color = "Leiden") + 
+  theme_scLANE()
+```
+
+## Knot distributions
+
+Lastly, we can pull the locations in pseudotime of all the knots fitted by `scLANE`. Visualizing this distribution gives us some idea of where transcriptional switches are occurring in the set of genes classified as dynamic. 
+
+```{r}
+dyn_genes <- filter(scLANE_res_glm, Gene_Dynamic_Overall == 1) %>% 
+             pull(Gene)
+knot_dist <- getKnotDist(scLANE_models_glm, dyn.genes = dyn_genes)
+ggplot(knot_dist, aes(x = knot)) + 
+  geom_histogram(aes(y = after_stat(density)), 
+                 color = "black", 
+                 fill = "white", 
+                 linewidth = 0.5) + 
+  geom_density(color = "forestgreen", 
+               fill = "forestgreen", 
+               alpha = 0.5, 
+               linewidth = 0.75) + 
+  labs(x = "Knot Location", y = "Density") + 
+  theme_scLANE()
 ```
 
 # Conclusions & Best Practices
 
 In general, starting with the GLM backend is probably your best bet unless you have a strong prior belief that expression trends will differ significantly between subjects. If that is the case, you should use the GEE backend if you're interested in population-level estimates, but are worried about wrongly predicting differential expression when differences in expression are actually caused by inter-subject variation. If you're interested in generating subject-specific estimates then the GLMM backend should be used; take care when interpreting the fixed vs. random effects though, and consult a biostatistician if necessary. 
 
-If you have a large dataset (10,000+ cells), you should start with the GLM backend, since estimates don't differ much between modeling methods given high enough *n*. In addition, running the tests on an HPC cluster with 4+ CPUs and 64+ GB of RAM will help your computations to complete swiftly. Datasets with smaller numbers of cells or fewer genes of interest may be easily analyzed in an R session on a local machine. 
+If you have a large dataset (10,000+ cells), you should start with the GLM backend, since standard error estimates don't differ much between modeling methods given high enough *n*. In addition, running the tests on an HPC cluster with 4+ CPUs and 64+ GB of RAM will help your computations to complete swiftly. Datasets with smaller numbers of cells or fewer genes of interest may be easily analyzed in an R session on a local machine. 
 
 # Contact Information 
 

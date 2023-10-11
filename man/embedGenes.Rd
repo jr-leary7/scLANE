@@ -12,6 +12,7 @@ embedGenes(
   cluster.genes = TRUE,
   gene.meta.data = NULL,
   k.param = 20,
+  resolution.param = NULL,
   random.seed = 312
 )
 }
@@ -29,6 +30,8 @@ embedGenes(
 \item{gene.meta.data}{(Optional) A data.frame of metadata values for each gene (HVG status, Ensembl ID, gene biotype, etc.) that will be included in the result table. Defaults to NULL.}
 
 \item{k.param}{(Optional) The value of nearest-neighbors used in creating the SNN graph prior to clustering & in running UMAP. Defaults to 20.}
+
+\item{resolution.param}{(Optional) The value of the resolution parameter for the Leiden algorithm. If unspecified, silhouette scoring is used to select an optimal value. Defaults to NULL.}
 
 \item{random.seed}{(Optional) The random seed used to control stochasticity in the clustering algorithm. Defaults to 312.}
 }

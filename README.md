@@ -1,16 +1,15 @@
 
 - [`scLANE`](#sclane)
   - [Installation](#installation)
-  - [Model Structure](#model-structure)
+  - [Model structure](#model-structure)
 - [Usage](#usage)
-  - [Input Data](#input-data)
-  - [Trajectory DE Testing](#trajectory-de-testing)
-  - [Downstream Analysis &
-    Visualization](#downstream-analysis--visualization)
-  - [Gene-level Embeddings](#gene-level-embeddings)
-  - [Knot distributions](#knot-distributions)
-- [Conclusions & Best Practices](#conclusions--best-practices)
-- [Contact Information](#contact-information)
+  - [Input data](#input-data)
+  - [Trajectory DE testing](#trajectory-de-testing)
+  - [Downstream analysis &
+    visualization](#downstream-analysis--visualization)
+  - [Knot distribution](#knot-distribution)
+- [Conclusions & best practices](#conclusions--best-practices)
+- [Contact information](#contact-information)
 - [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -37,7 +36,7 @@ You can install the most recent version of `scLANE` with:
 remotes::install_github("jr-leary7/scLANE")
 ```
 
-## Model Structure
+## Model structure
 
 The `scLANE` package enables users to accurately determine differential
 expression of genes over pseudotime or latent time, and to characterize
@@ -82,7 +81,7 @@ gene to be dynamic if the adjusted *p*-value of the test is less than an
 adjustment method is [the Holm
 correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method).
 
-## Input Data
+## Input data
 
 `scLANE` has a few basic inputs with standardized formats, though
 different modeling frameworks require different inputs; for example, the
@@ -156,7 +155,7 @@ plotPCA(sim_data, colour_by = "subject") +
 
 <img src="man/figures/README-plot-sims-subj-1.png" width="100%" />
 
-## Trajectory DE Testing
+## Trajectory DE testing
 
 Since we have multi-subject data, we can use any of the three model
 backends to run our DE testing. We’ll start with the simplest model, the
@@ -182,7 +181,7 @@ order_df <- data.frame(X = sim_data$cell_time_normed)
 cell_offset <- createCellOffset(sim_data)
 ```
 
-### GLM Backend
+### GLM framework
 
 Running `testDynamic()` provides us with a nested list containing model
 output & DE test results for each gene over each pseudotime / latent
@@ -197,7 +196,6 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  size.factor.offset = cell_offset, 
                                  n.cores = 4, 
                                  track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes across 1 lineage in 20.105 secs"
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -222,7 +220,7 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | WAPAL  | A       |   361.360 |       0 |            0 |                        1 |
 | JARID2 | A       |   353.612 |       0 |            0 |                        1 |
 | ERGIC3 | A       |   294.186 |       0 |            0 |                        1 |
-| PFDN2  | A       |   259.121 |       0 |            0 |                        1 |
+| PFDN2  | A       |   258.867 |       0 |            0 |                        1 |
 
 After creating a reference table of the ground truth status of each
 gene - `1` denotes a dynamic gene and `0` a non-dynamic one - and adding
@@ -268,7 +266,7 @@ caret::confusionMatrix(factor(scLANE_res_glm$Gene_Dynamic_Overall, levels = c(0,
 #> 
 ```
 
-### GEE Backend
+### GEE framework
 
 The function call is essentially the same when using the GLM backend,
 with the exception of needing to provide a sorted vector of subject IDs
@@ -293,7 +291,6 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 4, 
                                  track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes across 1 lineage in 2.115 mins"
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -310,13 +307,13 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "Wald stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene   | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| TIMP1  | A       |     74.959 |       0 |            0 |                        1 |
-| FLOT2  | A       |     77.081 |       0 |            0 |                        1 |
-| CBX6   | A       |     90.526 |       0 |            0 |                        1 |
-| TSPAN1 | A       |    109.564 |       0 |            0 |                        1 |
-| GGNBP2 | A       |    117.029 |       0 |            0 |                        1 |
+| Gene   | Lineage |  Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:-------|:--------|------------:|--------:|-------------:|-------------------------:|
+| CKAP4  | A       | 4172613.197 |       0 |            0 |                        1 |
+| DGUOK  | A       |   64351.893 |       0 |            0 |                        1 |
+| EMC3   | A       |   22164.408 |       0 |            0 |                        1 |
+| ERGIC3 | A       |   16466.403 |       0 |            0 |                        1 |
+| RAB1B  | A       |    5678.834 |       0 |            0 |                        1 |
 
 We create the same confusion matrix as before. Empirically speaking,
 when the underlying dynamics don’t differ much between subjects, GEEs
@@ -335,32 +332,32 @@ caret::confusionMatrix(factor(scLANE_res_gee$Gene_Dynamic_Overall, levels = c(0,
 #> 
 #>           Reference
 #> Prediction  0  1
-#>          0 47 16
-#>          1  3 34
+#>          0 47 15
+#>          1  3 35
 #>                                           
-#>                Accuracy : 0.81            
-#>                  95% CI : (0.7193, 0.8816)
+#>                Accuracy : 0.82            
+#>                  95% CI : (0.7305, 0.8897)
 #>     No Information Rate : 0.5             
-#>     P-Value [Acc > NIR] : 1.351e-10       
+#>     P-Value [Acc > NIR] : 3.074e-11       
 #>                                           
-#>                   Kappa : 0.62            
+#>                   Kappa : 0.64            
 #>                                           
-#>  Mcnemar's Test P-Value : 0.005905        
+#>  Mcnemar's Test P-Value : 0.009522        
 #>                                           
-#>             Sensitivity : 0.6800          
+#>             Sensitivity : 0.7000          
 #>             Specificity : 0.9400          
-#>          Pos Pred Value : 0.9189          
-#>          Neg Pred Value : 0.7460          
+#>          Pos Pred Value : 0.9211          
+#>          Neg Pred Value : 0.7581          
 #>              Prevalence : 0.5000          
-#>          Detection Rate : 0.3400          
-#>    Detection Prevalence : 0.3700          
-#>       Balanced Accuracy : 0.8100          
+#>          Detection Rate : 0.3500          
+#>    Detection Prevalence : 0.3800          
+#>       Balanced Accuracy : 0.8200          
 #>                                           
 #>        'Positive' Class : 1               
 #> 
 ```
 
-### GLMM Backend
+### GLMM framework
 
 We re-run the DE tests a final time using the GLMM backend. This is the
 most complex model architecture we support, and is the trickiest to
@@ -387,7 +384,6 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 4, 
                                   track.time = TRUE)
-#> [1] "testDynamic evaluated 100 genes across 1 lineage in 2.009 mins"
 ```
 
 Like the GLM backend, the GLMM backend uses a likelihood ratio test to
@@ -408,7 +404,7 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| WAPAL  | A       |   366.148 |       0 |            0 |                        1 |
+| WAPAL  | A       |   366.154 |       0 |            0 |                        1 |
 | JARID2 | A       |   334.714 |       0 |            0 |                        1 |
 | FLOT2  | A       |   314.979 |       0 |            0 |                        1 |
 | ISOC2  | A       |   223.028 |       0 |            0 |                        1 |
@@ -459,9 +455,9 @@ caret::confusionMatrix(factor(scLANE_res_glmm$Gene_Dynamic_Overall, levels = c(0
 #> 
 ```
 
-## Downstream Analysis & Visualization
+## Downstream analysis & visualization
 
-### Model Comparison
+### Model comparison
 
 We can use the `plotModels()` to visually compare different types of
 modeling backends. It takes as input the results from `testDynamic()`,
@@ -509,7 +505,7 @@ plotModels(scLANE_models_glmm,
 
 <img src="man/figures/README-plot-models-glmm-1.png" width="100%" />
 
-### Gene Clustering
+### Gene clustering
 
 After generating a suitable set of models, we can cluster the genes in a
 semi-supervised fashion using `clusterGenes()`. This function uses the
@@ -537,17 +533,16 @@ slice_sample(gene_clust_table, n = 5) %>%
                col.names = c("Gene", "Lineage", "Cell", "Fitted (link)", "Fitted (response)", "Pseudotime", "Cluster"))
 ```
 
-| Gene  | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
-|:------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
-| CPA3  | A       | 915  |        -2.317 |             0.117 |      0.288 | 1       |
-| FLOT2 | A       | 722  |        -0.518 |             0.587 |      0.805 | 1       |
-| MPG   | A       | 603  |        -2.988 |             0.053 |      0.507 | 1       |
-| RPL9  | A       | 156  |         0.336 |             6.309 |      0.390 | 2       |
-| GRINA | A       | 1162 |         0.199 |             1.554 |      0.905 | 2       |
+| Gene    | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
+|:--------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
+| RPL23   | A       | 905  |         2.991 |            18.571 |      0.262 | 1       |
+| ARHGEF9 | A       | 974  |        -1.098 |             0.353 |      0.435 | 1       |
+| BAD     | A       | 8    |         0.411 |             1.054 |      0.020 | 1       |
+| ARHGEF9 | A       | 417  |        -2.104 |             0.413 |      0.043 | 1       |
+| SF3B5   | A       | 535  |         0.498 |             2.513 |      0.338 | 1       |
 
 The results can then be plotted as desired using `ggplot2` or another
-visualization package. Upon visual inspection, the genes seem to cluster
-based on whether they are more dynamic or more static over pseudotime.
+visualization package.
 
 ``` r
 ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
@@ -563,7 +558,7 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
 
 <img src="man/figures/README-plot-clust-1.png" width="100%" />
 
-## Gene-level Embeddings
+### Gene embeddings
 
 After extracting a matrix of fitted dynamics using
 `smoothedCountsMatrix()`, we can embed the genes in PCA & UMAP space in
@@ -581,12 +576,12 @@ ggplot(gene_embedding, aes(x = umap1, y = umap2, color = leiden)) +
   labs(x = "UMAP 1", 
        y = "UMAP 2", 
        color = "Leiden") + 
-  theme_scLANE()
+  theme_scLANE(umap = TRUE)
 ```
 
 <img src="man/figures/README-unnamed-chunk-1-1.png" width="100%" />
 
-## Knot distributions
+## Knot distribution
 
 Lastly, we can pull the locations in pseudotime of all the knots fitted
 by `scLANE`. Visualizing this distribution gives us some idea of where
@@ -612,7 +607,7 @@ ggplot(knot_dist, aes(x = knot)) +
 
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
-# Conclusions & Best Practices
+# Conclusions & best practices
 
 In general, starting with the GLM backend is probably your best bet
 unless you have a strong prior belief that expression trends will differ
@@ -633,7 +628,7 @@ computations to complete swiftly. Datasets with smaller numbers of cells
 or fewer genes of interest may be easily analyzed in an R session on a
 local machine.
 
-# Contact Information
+# Contact information
 
 This package is developed & maintained by Jack Leary. Feel free to reach
 out by [opening an issue](https://github.com/jr-leary7/scLANE/issues) or

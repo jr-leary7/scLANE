@@ -140,11 +140,10 @@ testDynamic <- function(expr.mat = NULL,
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
     doParallel::registerDoParallel(cl)
-    parallel::clusterSetRNGStream(cl, iseed = random.seed)
   } else {
     cl <- foreach::registerDoSEQ()
-    set.seed(random.seed)
   }
+  parallel::clusterSetRNGStream(cl, iseed = random.seed)
 
   # convert dense counts matrix to file-backed matrix
   expr.mat <- bigstatsr::as_FBM(expr.mat,
@@ -152,7 +151,7 @@ testDynamic <- function(expr.mat = NULL,
                                 is_read_only = TRUE)
 
   # build list of objects to prevent from being sent to parallel workers
-  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "print_nums",
+  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm",
                       "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
@@ -343,14 +342,10 @@ testDynamic <- function(expr.mat = NULL,
 
   # end parallelization & clean up each worker node
   withr::with_output_sink(tempfile(), {
-    if (parallel.exec) {
-      parallel::clusterEvalQ(cl, expr = {
-        gc(verbose = FALSE, full = TRUE)
-      })
-      parallel::stopCluster(cl)
-    }
-    rm(cl)
-    gc(verbose = FALSE, full = TRUE)
+    parallel::clusterEvalQ(cl, expr = {
+      gc(verbose = FALSE, full = TRUE)
+    })
+    parallel::stopCluster(cl)
   })
   # clean up errors w/ proper formatting
   names(test_stats) <- genes
@@ -389,16 +384,17 @@ testDynamic <- function(expr.mat = NULL,
     total_time <- end_time - start_time
     total_time_units <- attributes(total_time)$units
     total_time_numeric <- as.numeric(total_time)
-    print(paste0("testDynamic evaluated ",
-                 length(genes),
-                 " genes across ",
-                  n_lineages,
-                 " ",
-                 ifelse(n_lineages == 1, "lineage ", "lineages "),
-                 "in ",
-                 round(total_time_numeric, 3),
-                 " ",
-                 total_time_units))
+    time_message <- paste0("testDynamic evaluated ",
+                           length(genes),
+                           " genes across ",
+                           n_lineages,
+                           " ",
+                           ifelse(n_lineages == 1, "lineage ", "lineages "),
+                           "in ",
+                           round(total_time_numeric, 3),
+                           " ",
+                           total_time_units)
+    message(time_message)
   }
   class(test_stats) <- "scLANE"
   return(test_stats)

@@ -40,7 +40,7 @@ You can install the most recent version of `scLANE` with:
 remotes::install_github("jr-leary7/scLANE")
 ```
 
-## Model Structure
+## Model structure
 
 The `scLANE` package enables users to accurately determine differential expression of genes over pseudotime or latent time, and to characterize gene's dynamics using interpretable model coefficients. `scLANE` builds upon the [`marge` modeling framework](https://github.com/JakubStats/marge), allowing users to characterize their trajectory's effects on mRNA expression using negative binomial [GLMs](https://en.wikipedia.org/wiki/Generalized_linear_model), [GEEs](https://en.wikipedia.org/wiki/Generalized_estimating_equation), or [GLMMs](https://en.wikipedia.org/wiki/Generalized_linear_mixed_model), depending on the experimental design & biological questions of interest. This modeling framework is an extension of the well-known [Multivariate Adapative Regression Splines (MARS)](https://en.wikipedia.org/wiki/Multivariate_adaptive_regression_spline) method, which uses truncated power basis splines to build nonlinear models using a [generalized cross validation (GCV) criterion](https://doi.org/10.48550/arXiv.1706.02495).
 
@@ -50,7 +50,7 @@ A quickstart guide on how to use `scLANE` with simulated data continues below, a
 
 Our method relies on a relatively simple test in order to define whether a given gene is differentially expressed (or "dynamic") over the provided trajectory. While the exact structure of the test differs by model backend, the concept is the same: the spline-based NB GLM / GEE / GLMM is treated as the alternate model, and a null model is fit using the corresponding model backend. If the GLM backend is used, then the null model is simply an intercept-only NB GLM; the GEE backend fits an intercept-only model with the same working correlation structure as the alternate model, and if the GLMM backend is used then the null model is an intercept-only model with random intercepts for each subject. The alternate hypothesis is thus that at least one of the estimated coefficients is significantly different from zero. We predict a given gene to be dynamic if the adjusted *p*-value of the test is less than an *a priori* threshold; the default threshold is 0.01, and the default adjustment method is [the Holm correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method). 
 
-## Input Data 
+## Input data 
 
 `scLANE` has a few basic inputs with standardized formats, though different modeling frameworks require different inputs; for example, the GEE & GLMM backends require a vector of subject IDs corresponding to each cell. We'll start by simulating some scRNA-seq counts data with a subset of genes being dynamic over a trajectory using the [`scaffold` R package](https://github.com/rhondabacher/scaffold). As part of our simulation studies I wrote the function sourced below to generate multi-subject scRNA-seq datasets with trajectories partially conserved between subjects. 
 
@@ -100,7 +100,7 @@ plotPCA(sim_data, colour_by = "subject") +
   theme_scLANE()
 ```
 
-## Trajectory DE Testing
+## Trajectory DE testing
 
 Since we have multi-subject data, we can use any of the three model backends to run our DE testing. We'll start with the simplest model, the GLM, then work our way through the other options in order of increasing complexity. We first prepare our inputs - a dataframe containing our cell ordering, a set of genes to build models for, and a vector of per-cell size factors to be used as offsets during estimation. In reality, it's usually unnecessary to fit a model for every single gene in a dataset, as trajectories are usually estimated using a subset of the entire set of genes (usually a few thousand most highly variable genes). For the purpose of demonstration, we'll select 50 genes each from the dynamic and non-dynamic populations. **Note**: in this case we're working with a single pseudotime lineage, though in real datasets several lineages often exist; in order to fit models for a subset of lineages simply remove the corresponding columns from the cell ordering dataframe passed as input to `testDynamic()`. 
 
@@ -112,7 +112,7 @@ order_df <- data.frame(X = sim_data$cell_time_normed)
 cell_offset <- createCellOffset(sim_data)
 ```
 
-### GLM Backend
+### GLM framework
 
 Running `testDynamic()` provides us with a nested list containing model output & DE test results for each gene over each pseudotime / latent time lineage. In this case, since we have a true cell ordering we only have one lineage. Parallel processing is turned on by default, and we use 2 cores here to speed up runtime. 
 
@@ -149,7 +149,7 @@ caret::confusionMatrix(factor(scLANE_res_glm$Gene_Dynamic_Overall, levels = c(0,
                        positive = "1")
 ```
 
-### GEE Backend
+### GEE framework
 
 The function call is essentially the same when using the GLM backend, with the exception of needing to provide a sorted vector of subject IDs & a desired correlation structure, the default being [the AR1 structure](https://en.wikipedia.org/wiki/Autoregressive_model). We also need to flip the `is.gee` flag in order to indicate that we'd like to fit estimating equations models (instead of mixed models). Since fitting GEEs is a fair bit more computationally complex than fitting GLMs, DE testing with the GEE backend takes a bit longer. Using more cores and / or running the tests on an HPC cluster speeds things up considerably. Here we specify an [AR1 correlation structure](https://rdrr.io/cran/nlme/man/corAR1.html), which is the default for the GEE backend. 
 
@@ -187,7 +187,7 @@ caret::confusionMatrix(factor(scLANE_res_gee$Gene_Dynamic_Overall, levels = c(0,
                        positive = "1")
 ```
 
-### GLMM Backend
+### GLMM framework
 
 We re-run the DE tests a final time using the GLMM backend. This is the most complex model architecture we support, and is the trickiest to interpret. We recommend using it when you're most interested in how a trajectory differs between subjects e.g., if the subjects belong to groups like Treatment & Control, and you expect the Treatment group to experience a different progression through the biological process. Executing the function with the GLMM backend differs only in that we switch the `is.glmm` flag to `TRUE` and no longer need to specify a working correlation structure. **Note**: the GLMM backend is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
 
@@ -226,9 +226,9 @@ caret::confusionMatrix(factor(scLANE_res_glmm$Gene_Dynamic_Overall, levels = c(0
                        positive = "1")
 ```
 
-## Downstream Analysis & Visualization
+## Downstream analysis & visualization
 
-### Model Comparison
+### Model comparison
 
 We can use the `plotModels()` to visually compare different types of modeling backends. It takes as input the results from `testDynamic()`, as well as a few specifications for which models & lineages should be plotted. While more complex visualizations can be created from our model output, this function gives us a good first glance at which models fit the underlying trend the best. Here we show the output generated using the GLM backend, split by model type. The intercept-only model shows the null hypothesis against which the scLANE model is compared using the likelihood ratio test and the GLM displays the inadequacy of monotonic modeling architectures for nonlinear dynamics. A GAM shows essentially the same trend as the `scLANE` model, though the fitted trend from `scLANE` is more interpretable & has a narrower confidence interval.   
 
@@ -260,7 +260,7 @@ plotModels(scLANE_models_glmm,
            plot.scLANE = TRUE)
 ```
 
-### Gene Clustering 
+### Gene clustering 
 
 After generating a suitable set of models, we can cluster the genes in a semi-supervised fashion using `clusterGenes()`. This function uses the Leiden algorithm (the default), hierarchical clustering, or *k*-means and selects the best set of clustering hyperparameters using the silhouette score. If desired PCA can be run prior to clustering, but the default is to cluster on the fitted values themselves. We then use the results as input to `plotClusteredGenes()`, which generates a table of fitted values per-gene, per-lineage over pseudotime along with the accompanying cluster labels. 
 
@@ -280,7 +280,7 @@ slice_sample(gene_clust_table, n = 5) %>%
                col.names = c("Gene", "Lineage", "Cell", "Fitted (link)", "Fitted (response)", "Pseudotime", "Cluster"))
 ```
 
-The results can then be plotted as desired using `ggplot2` or another visualization package. Upon visual inspection, the genes seem to cluster based on whether they are more dynamic or more static over pseudotime. 
+The results can then be plotted as desired using `ggplot2` or another visualization package. 
 
 ```{r plot-clust}
 ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
@@ -294,7 +294,7 @@ ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE))
   theme_scLANE()
 ```
 
-## Gene-level Embeddings
+### Gene embeddings
 
 After extracting a matrix of fitted dynamics using `smoothedCountsMatrix()`, we can embed the genes in PCA & UMAP space in order to visualize clusters of similarly-behaving genes. 
 
@@ -310,10 +310,10 @@ ggplot(gene_embedding, aes(x = umap1, y = umap2, color = leiden)) +
   labs(x = "UMAP 1", 
        y = "UMAP 2", 
        color = "Leiden") + 
-  theme_scLANE()
+  theme_scLANE(umap = TRUE)
 ```
 
-## Knot distributions
+## Knot distribution
 
 Lastly, we can pull the locations in pseudotime of all the knots fitted by `scLANE`. Visualizing this distribution gives us some idea of where transcriptional switches are occurring in the set of genes classified as dynamic. 
 
@@ -334,13 +334,13 @@ ggplot(knot_dist, aes(x = knot)) +
   theme_scLANE()
 ```
 
-# Conclusions & Best Practices
+# Conclusions & best practices
 
 In general, starting with the GLM backend is probably your best bet unless you have a strong prior belief that expression trends will differ significantly between subjects. If that is the case, you should use the GEE backend if you're interested in population-level estimates, but are worried about wrongly predicting differential expression when differences in expression are actually caused by inter-subject variation. If you're interested in generating subject-specific estimates then the GLMM backend should be used; take care when interpreting the fixed vs. random effects though, and consult a biostatistician if necessary. 
 
 If you have a large dataset (10,000+ cells), you should start with the GLM backend, since standard error estimates don't differ much between modeling methods given high enough *n*. In addition, running the tests on an HPC cluster with 4+ CPUs and 64+ GB of RAM will help your computations to complete swiftly. Datasets with smaller numbers of cells or fewer genes of interest may be easily analyzed in an R session on a local machine. 
 
-# Contact Information 
+# Contact information 
 
 This package is developed & maintained by Jack Leary. Feel free to reach out by [opening an issue](https://github.com/jr-leary7/scLANE/issues) or by email (j.leary@ufl.edu) if more detailed assistance is needed. 
 

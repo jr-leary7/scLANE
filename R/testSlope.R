@@ -5,7 +5,7 @@
 #' @description This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime interval using a Wald test.
 #' @import magrittr
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr arrange mutate if_else with_groups
+#' @importFrom dplyr arrange desc mutate if_else with_groups
 #' @importFrom stats p.adjust
 #' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
 #' @param p.adj.method The method used to adjust the \emph{p}-values for each slope. Defaults to "holm".
@@ -29,7 +29,7 @@ testSlope <- function(test.dyn.res = NULL,
   if (is.null(test.dyn.res)) { stop("You forgot to provide results from testDynamic() to testSlope().") }
   # create table of results
   slope_df <- purrr::map_dfr(test.dyn.res, \(x) purrr::map_dfr(x, \(y) data.frame(y["MARGE_Slope_Data"][[1]]))) %>%
-              dplyr::arrange(P_Val) %>%
+              dplyr::arrange(P_Val, dplyr::desc(Test_Stat)) %>%
               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method)) %>%
               dplyr::arrange(Gene, Breakpoint) %>%
               dplyr::mutate(Gene_Dynamic_Lineage_Slope = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0, missing = 0)) %>%

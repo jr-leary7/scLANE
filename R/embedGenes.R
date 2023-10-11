@@ -14,6 +14,7 @@
 #' @param cluster.genes (Optional) Should genes be clustered in PCA space using the Leiden algorithm? Defaults to TRUE.
 #' @param gene.meta.data (Optional) A data.frame of metadata values for each gene (HVG status, Ensembl ID, gene biotype, etc.) that will be included in the result table. Defaults to NULL.
 #' @param k.param (Optional) The value of nearest-neighbors used in creating the SNN graph prior to clustering & in running UMAP. Defaults to 20.
+#' @param resolution.param (Optional) The value of the resolution parameter for the Leiden algorithm. If unspecified, silhouette scoring is used to select an optimal value. Defaults to NULL.
 #' @param random.seed (Optional) The random seed used to control stochasticity in the clustering algorithm. Defaults to 312.
 #' @return A data.frame containing embedding coordinates, cluster IDs, and metadata for each gene.
 #' @export
@@ -31,6 +32,7 @@ embedGenes <- function(smoothed.counts = NULL,
                        cluster.genes = TRUE,
                        gene.meta.data = NULL,
                        k.param = 20,
+                       resolution.param = NULL,
                        random.seed = 312) {
   # check inputs
   if (is.null(smoothed.counts)) { stop("You forgot to provide a smoothed counts matrix to embedGenes().") }
@@ -53,23 +55,30 @@ embedGenes <- function(smoothed.counts = NULL,
                                                  k = k.param,
                                                  type = "jaccard",
                                                  BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"))
-    dist_matrix <- stats::as.dist(1 - coop::tcosine(x = smoothed_counts_pca$x))
-    clust_runs <- purrr::map(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7), \(r) {
+    if (is.null(resolution.param)) {
+      dist_matrix <- stats::as.dist(1 - coop::tcosine(x = smoothed_counts_pca$x))
+      clust_runs <- purrr::map(c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7), \(r) {
+        smoothed_counts_clust <- igraph::cluster_leiden(smoothed_counts_snn,
+                                                        objective_function = "modularity",
+                                                        resolution_parameter = r)
+        if (smoothed_counts_clust$nb_clusters == 1) {
+          sil_val <- 0
+        } else {
+          sil_val <- mean(cluster::silhouette(as.integer(smoothed_counts_clust$membership - 1L), dist_matrix)[, 3])
+        }
+        clust_res <- list(clusters = as.factor(smoothed_counts_clust$membership - 1L),
+                          resolution = r,
+                          silhouette = sil_val)
+        return(clust_res)
+      })
+      best_clustering <- which.max(purrr::map_dbl(clust_runs, \(x) x$silhouette))
+      cluster_vec <- clust_runs[[best_clustering]]$clusters
+    } else {
       smoothed_counts_clust <- igraph::cluster_leiden(smoothed_counts_snn,
                                                       objective_function = "modularity",
-                                                      resolution_parameter = r)
-      if (smoothed_counts_clust$nb_clusters == 1) {
-        sil_val <- 0
-      } else {
-        sil_val <- mean(cluster::silhouette(as.integer(smoothed_counts_clust$membership - 1L), dist_matrix)[, 3])
-      }
-      clust_res <- list(clusters = as.factor(smoothed_counts_clust$membership - 1L),
-                        resolution = r,
-                        silhouette = sil_val)
-      return(clust_res)
-    })
-    best_clustering <- which.max(purrr::map_dbl(clust_runs, \(x) x$silhouette))
-    cluster_vec <- clust_runs[[best_clustering]]$clusters
+                                                      resolution_parameter = resolution.param)
+      cluster_vec <- as.factor(smoothed_counts_clust$membership - 1L)
+    }
   } else {
     cluster_vec <- NA_integer_
   }

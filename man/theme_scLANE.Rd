@@ -4,7 +4,12 @@
 \alias{theme_scLANE}
 \title{A \code{ggplot2} theme for \code{scLANE}.}
 \usage{
-theme_scLANE(base.size = 12, base.lwd = 0.75, base.family = "sans")
+theme_scLANE(
+  base.size = 12,
+  base.lwd = 0.75,
+  base.family = "sans",
+  umap = FALSE
+)
 }
 \arguments{
 \item{base.size}{The base font size. Defaults to 12.}
@@ -12,6 +17,8 @@ theme_scLANE(base.size = 12, base.lwd = 0.75, base.family = "sans")
 \item{base.lwd}{The base linewidth. Defaults to 0.75.}
 
 \item{base.family}{The font family to be used throughout. Defaults to "sans".}
+
+\item{umap}{(Optional) If set to TRUE, removes axis text and ticks for a cleaner look. Defaults to FALSE.}
 }
 \value{
 A \code{ggplot2} theme.

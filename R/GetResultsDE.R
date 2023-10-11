@@ -5,7 +5,7 @@
 #' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy \code{data.frame}.
 #' @import magrittr
 #' @importFrom purrr map_dfr
-#' @importFrom dplyr arrange mutate across if_else with_groups relocate
+#' @importFrom dplyr arrange desc mutate across if_else with_groups relocate
 #' @importFrom tidyselect everything
 #' @importFrom stats p.adjust p.adjust.methods
 #' @param test.dyn.res The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
@@ -38,7 +38,7 @@ getResultsDE <- function(test.dyn.res = NULL,
                                                    dplyr::mutate(dplyr::across(tidyselect::everything(), \(z) unname(unlist(z))))
                                                })
                               }) %>%
-               dplyr::arrange(P_Val, Test_Stat) %>%
+               dplyr::arrange(P_Val, dplyr::desc(Test_Stat)) %>%
                dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),
                              Gene_Dynamic_Lineage = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0, missing = 0)) %>%
                dplyr::with_groups(Gene,

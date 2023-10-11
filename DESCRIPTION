@@ -9,7 +9,7 @@ Description: This package uses truncated power basis spline models to build flex
              Downstream analysis functionalities include model comparison, dynamic gene clustering, smoothed counts generation, gene set enrichment testing, & visualization. 
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.2.1
 Depends: 
   glm2, 
@@ -70,6 +70,7 @@ LinkingTo:
 biocViews:
     RNASeq,
     Software,
+    Clustering, 
     TimeCourse,
     Sequencing,
     Regression,
@@ -77,4 +78,5 @@ biocViews:
     Visualization, 
     GeneExpression,
     Transcriptomics,
+    GeneSetEnrichment,
     DifferentialExpression

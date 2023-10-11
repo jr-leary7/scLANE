@@ -50,7 +50,7 @@ clusterGenes <- function(test.dyn.res = NULL,
   if (!clust.algo %in% c("hclust", "kmeans", "leiden")) { stop("clust.algo must be one of 'hclust', 'kmeans', or 'leiden'.") }
   if ((use.pca & is.null(n.PC)) || (use.pca & n.PC <= 0)) { stop("n.PC must be a non-zero integer when clustering on principal components.") }
   if (is.null(lineages)) {
-    lineages <- LETTERS[1:length(test.dyn.res[[1]])]
+    lineages <- LETTERS[seq(length(test.dyn.res[[1]]))]
   }
   gene_cluster_list <- vector("list", length = length(lineages))
   for (l in seq_along(lineages)) {
@@ -82,7 +82,7 @@ clusterGenes <- function(test.dyn.res = NULL,
     # hierarchical clustering routine w/ Ward's linkage
     if (clust.algo  == "hclust") {
       hclust_tree <- stats::hclust(dist_matrix, method = "ward.D2")
-      k_vals <- c(2:10)
+      k_vals <- seq(2, 10)
       sil_vals <- vector("numeric", 9L)
       clust_list <- vector("list", 9L)
       for (k in seq_along(k_vals)) {
@@ -96,7 +96,7 @@ clusterGenes <- function(test.dyn.res = NULL,
                                   Cluster = clust_list[[which.max(sil_vals)]])
     # k-means clustering routine w/ Hartigan-Wong algorithm
     } else if (clust.algo == "kmeans") {
-      k_vals <- c(2:10)
+      k_vals <- seq(2, 10)
       sil_vals <- vector("numeric", 9L)
       clust_list <- vector("list", 9L)
       for (k in seq_along(k_vals)) {

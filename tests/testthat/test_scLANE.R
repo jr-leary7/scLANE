@@ -32,7 +32,7 @@ withr::with_output_sink(tempfile(), {
                                 genes = genes_to_test,
                                 n.potential.basis.fns = 5,
                                 size.factor.offset = cell_offset,
-                                n.cores = 2,
+                                parallel.exec = FALSE,
                                 track.time = TRUE)
   gee_gene_stats <- testDynamic(expr.mat = sim_data,
                                 pt = pt_test,

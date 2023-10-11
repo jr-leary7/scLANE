@@ -140,10 +140,11 @@ testDynamic <- function(expr.mat = NULL,
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
     doParallel::registerDoParallel(cl)
+    parallel::clusterSetRNGStream(cl, iseed = random.seed)
   } else {
     cl <- foreach::registerDoSEQ()
+    set.seed(random.seed)
   }
-  parallel::clusterSetRNGStream(cl, iseed = random.seed)
 
   # convert dense counts matrix to file-backed matrix
   expr.mat <- bigstatsr::as_FBM(expr.mat,
@@ -342,10 +343,12 @@ testDynamic <- function(expr.mat = NULL,
 
   # end parallelization & clean up each worker node
   withr::with_output_sink(tempfile(), {
-    parallel::clusterEvalQ(cl, expr = {
-      gc(verbose = FALSE, full = TRUE)
-    })
-    parallel::stopCluster(cl)
+    if (parallel.exec) {
+      parallel::clusterEvalQ(cl, expr = {
+        gc(verbose = FALSE, full = TRUE)
+      })
+      parallel::stopCluster(cl)
+    }
   })
   # clean up errors w/ proper formatting
   names(test_stats) <- genes
@@ -384,7 +387,7 @@ testDynamic <- function(expr.mat = NULL,
     total_time <- end_time - start_time
     total_time_units <- attributes(total_time)$units
     total_time_numeric <- as.numeric(total_time)
-    time_message <- paste0("testDynamic evaluated ",
+    time_message <- paste0("scLANE testing completed for ",
                            length(genes),
                            " genes across ",
                            n_lineages,

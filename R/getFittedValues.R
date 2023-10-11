@@ -83,7 +83,7 @@ getFittedValues <- function(test.dyn.res = NULL,
                              data.frame(scLANE_pred_link = test.dyn.res[[g]][[paste0("Lineage_", y)]]$MARGE_Preds$marge_link_fit,
                                         scLANE_se_link = test.dyn.res[[g]][[paste0("Lineage_", y)]]$MARGE_Preds$marge_link_se)
                            }, silent = TRUE)
-                           if (inherits(pred_df, "try-error")) {
+                           if (inherits(pred_df, "try-error") || is.null(pred_df) || all(is.na(pred_df))) {
                              gene_df <- dplyr::mutate(gene_df,
                                                       scLANE_pred_link = NA_real_,
                                                       scLANE_se_link = NA_real_,

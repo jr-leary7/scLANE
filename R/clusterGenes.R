@@ -50,7 +50,7 @@ clusterGenes <- function(test.dyn.res = NULL,
   if (!clust.algo %in% c("hclust", "kmeans", "leiden")) { stop("clust.algo must be one of 'hclust', 'kmeans', or 'leiden'.") }
   if ((use.pca & is.null(n.PC)) || (use.pca & n.PC <= 0)) { stop("n.PC must be a non-zero integer when clustering on principal components.") }
   if (is.null(lineages)) {
-    lineages <- LETTERS[seq(length(test.dyn.res[[1]]))]
+    lineages <- LETTERS[seq_along(test.dyn.res[[1]])]
   }
   gene_cluster_list <- vector("list", length = length(lineages))
   for (l in seq_along(lineages)) {

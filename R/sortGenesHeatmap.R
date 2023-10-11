@@ -29,7 +29,7 @@ sortGenesHeatmap <- function(heatmap.mat = NULL, pt.vec = NULL) {
   if (!is.numeric(pt.vec) || any(is.na(pt.vec))) { stop("pt.vec must be a numeric vector with no NA values.") }
 
   # identify point at which peak expression occurs for each gene across pseudotime
-  gene_peak_order <- purrr::map(seq(ncol(heatmap.mat)), \(x) {
+  gene_peak_order <- purrr::map(seq_len(ncol(heatmap.mat)), \(x) {
     data.frame(gene = colnames(heatmap.mat)[x],
                pt = pt.vec,
                mRNA = heatmap.mat[, x]) %>%

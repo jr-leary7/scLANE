@@ -60,7 +60,7 @@ fitGLMM <- function(X_pred = NULL,
                                       })
     glmm_basis_df <- purrr::pmap_dfc(list(glm_marge_knots$knot,
                                           glm_marge_knots$tp_fun,
-                                          seq(nrow(glm_marge_knots))),
+                                          seq_len(nrow(glm_marge_knots))),
                                      function(k, f, i) {
                                        if (f == "tp1") {
                                          basis <- tp1(x = X_pred[, 1], t = k)

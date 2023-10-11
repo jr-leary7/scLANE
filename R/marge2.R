@@ -188,7 +188,7 @@ marge2 <- function(X_pred = NULL,
 
       in.set <- ifelse(ncol(B) > 1, sum(!var_name_vec %in% var_name), 0)
 
-      for (t in seq(length(X_red))) {
+      for (t in seq_along(X_red)) {
         # pairs of truncated functions
         b1_new <- matrix(tp1(x = X,  t = X_red[t]), ncol = 1)
         b2_new <- matrix(tp2(x = X, t = X_red[t]), ncol = 1)
@@ -260,7 +260,7 @@ marge2 <- function(X_pred = NULL,
             B2 <- as.matrix(B2[, -1, drop = FALSE])
           }
 
-          for (nn in seq(ncol(B2))) {
+          for (nn in seq_len(ncol(B2))) {
             B2a <- matrix(rep(B2[, nn], 2), ncol = 2)
             B2b <- matrix(B2[, nn], ncol = 1)
             B_new_both_int <- cbind(B, B2a * cbind(b1_new, b2_new))
@@ -374,9 +374,9 @@ marge2 <- function(X_pred = NULL,
 
       # See the LM code above in regards to what the conditions below actually do.
 
-      if (all((apply(score_knot_both_int_mat, 1, is.na))) & all((apply(score_knot_one_int_mat, 1, is.na)))) {
+      if (all((apply(score_knot_both_int_mat, 1, is.na))) && all((apply(score_knot_one_int_mat, 1, is.na)))) {
         int <- FALSE
-        if (any(!is.na(score_knot_both_add_mat)) & any(!is.na(score_knot_one_add_mat))) {
+        if (any(!is.na(score_knot_both_add_mat)) && any(!is.na(score_knot_one_add_mat))) {
           if (utils::tail(max(score_knot_both_add_mat, na.rm = TRUE), n = 1) > utils::tail(max(score_knot_one_add_mat, na.rm = TRUE), n = 1)) {
             trunc.type <- 2
             score_knot <- score_knot_both_add_mat
@@ -386,11 +386,11 @@ marge2 <- function(X_pred = NULL,
             score_knot <- score_knot_one_add_mat
             min_knot1 <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = TRUE), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)[1]
           }
-        } else if (all(is.na(score_knot_both_add_mat)) & any(!is.na(score_knot_one_add_mat))) {
+        } else if (all(is.na(score_knot_both_add_mat)) && any(!is.na(score_knot_one_add_mat))) {
           trunc.type <- 1
           score_knot <- score_knot_one_add_mat
           min_knot1 <- utils::tail(which.max(round(score_knot, 6)), n = 1)
-        } else if (any(!is.na(score_knot_both_add_mat)) & all(is.na(score_knot_one_add_mat))) {
+        } else if (any(!is.na(score_knot_both_add_mat)) && all(is.na(score_knot_one_add_mat))) {
           trunc.type <- 2
           score_knot <- score_knot_one_add_mat
           min_knot1 <- utils::tail(which.max(round(score_knot, 6)), n = 1)
@@ -398,7 +398,7 @@ marge2 <- function(X_pred = NULL,
           breakFlag <- TRUE
           break
         }
-      } else if (all((apply(score_knot_both_int_mat, 1, is.na))) & any(!(apply(score_knot_one_int_mat, 1, is.na)))) {
+      } else if (all((apply(score_knot_both_int_mat, 1, is.na))) && any(!(apply(score_knot_one_int_mat, 1, is.na)))) {
         if (all(is.na(score_knot_both_add_mat))) {
           trunc.type <- 1
           if (all(is.na(score_knot_one_add_mat))) {
@@ -449,7 +449,7 @@ marge2 <- function(X_pred = NULL,
             }
           }
         }
-      } else if (any(!(apply(score_knot_both_int_mat, 1, is.na))) & all((apply(score_knot_one_int_mat, 1, is.na)))) {
+      } else if (any(!(apply(score_knot_both_int_mat, 1, is.na))) && all((apply(score_knot_one_int_mat, 1, is.na)))) {
         if (all(is.na(score_knot_both_add_mat))) {
           if (all(is.na(score_knot_one_add_mat))) {
             int <- TRUE
@@ -635,7 +635,7 @@ marge2 <- function(X_pred = NULL,
                           B_names)
 
         var_name_list1 <- vector("list")
-        for (ll in seq(ncol(B_new))) {
+        for (ll in seq_len(ncol(B_new))) {
           colnames(B_new)[ll] <- paste(var_name, colnames(B_new)[ll], sep = ":")
           var_name_list1 <- c(var_name_list1, list(colnames(B_new)[ll]))
           int.count1 <- int.count1 + 1

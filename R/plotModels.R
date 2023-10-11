@@ -92,10 +92,10 @@ plotModels <- function(test.dyn.res = NULL,
   # select sublist for gene of interest
   td_res <- test.dyn.res[[gene]]
   # make sure lineages are named nicely
-  colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
+  colnames(pt) <- paste0("Lineage_", LETTERS[seq_len(ncol(pt))])
   # create base list w/ elements being lineage-specific dataframes
   counts_df_list <- purrr::map2(pt,
-                                LETTERS[1:ncol(pt)],
+                                LETTERS[seq_len(ncol(pt))],
                                 \(x, y) {
                                   mod_df <- data.frame(CELL = rownames(pt)[!is.na(x)],
                                                        LINEAGE = y,

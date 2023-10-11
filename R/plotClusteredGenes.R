@@ -40,7 +40,7 @@ plotClusteredGenes <- function(test.dyn.res = NULL,
                                n.cores = 2) {
   # check inputs
   if (is.null(test.dyn.res) || is.null(gene.clusters) || is.null(pt)) { stop("Arguments to plotClusteredGenes() are missing.") }
-  colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
+  colnames(pt) <- paste0("Lineage_", LETTERS[seq_len(ncol(pt))])
   if (parallel.exec) {
     future::plan(future::multisession, workers = n.cores)
   } else {
@@ -48,7 +48,7 @@ plotClusteredGenes <- function(test.dyn.res = NULL,
   }
   furrr::future_imap(test.dyn.res, function(x, y) {
     df_list <- vector("list", ncol(pt))
-    for (l in seq(ncol(pt))) {
+    for (l in seq_len(ncol(pt))) {
       lineage_name <- colnames(pt)[l]
       if (grepl("MARGE model error", x[[lineage_name]]$Model_Status)) {
         fitted_vals_mat <- data.frame(GENE = character(),

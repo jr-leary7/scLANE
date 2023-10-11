@@ -19,18 +19,18 @@ stripGLM <- function(glm.obj = NULL) {
   if (!inherits(glm.obj, "glm")) { stop("Input to stripGLM() must be of class glm.") }
 
   # strip out unnecessary glm pieces
-  glm.obj$effects <- c()
-  glm.obj$weights <- c()
-  glm.obj$residuals <- c()
-  glm.obj$prior.weights <- c()
-  glm.obj$fitted.values <- c()
+  glm.obj$effects <- NULL
+  glm.obj$weights <- NULL
+  glm.obj$residuals <- NULL
+  glm.obj$prior.weights <- NULL
+  glm.obj$fitted.values <- NULL
 
   # if glm() wasn't run with model = FALSE and y = FALSE (defaults for scLANE)
   if ("model" %in% names(glm.obj)) {
-    glm.obj$model <- c()
+    glm.obj$model <- NULL
   }
   if ("y" %in% names(glm.obj)) {
-    glm.obj$y <- c()
+    glm.obj$y <- NULL
   }
 
   return(glm.obj)

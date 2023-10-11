@@ -63,8 +63,8 @@ getFittedValues <- function(test.dyn.res = NULL,
   # select sublist for gene of interest
   test.dyn.res <- test.dyn.res[genes]
   # make sure lineages are named nicely
-  colnames(pt) <- paste0("Lineage_", LETTERS[1:ncol(pt)])
-  lineages <- LETTERS[1:ncol(pt)]
+  colnames(pt) <- paste0("Lineage_", LETTERS[seq_len(ncol(pt))])
+  lineages <- LETTERS[seq_len(ncol(pt))]
   # create list of lineage-specific dataframes containing expression of each gene
   mod_df_list <- purrr::map2(pt, lineages, \(x, y) {
     mod_df <- purrr::map(genes,

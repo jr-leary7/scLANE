@@ -48,10 +48,16 @@ createSlopeTestData <- function(marge.model = NULL,
       brkpts <- purrr::map_dbl(rounded_brkpts, \(x) pt[, 1][which.min(abs(pt[, 1] - x))])
       # extract p-values for coefficients other than intercept
       if (is.gee) {
+        est_betas <- summary(marge.model$final_mod)$beta[-1]
+        test_stats <- summary(marge.model$final_mod)$wald.test[-1]
         p_vals <- summary(marge.model$final_mod)$p[-1]
       } else if (is.glmm) {
+        est_betas <- unname(summary(marge.model$final_mod)$coefficients$cond[, "Estimate"][-1])
+        test_stats <- unname(summary(marge.model$final_mod)$coefficients$cond[, "z value"][-1])
         p_vals <- unname(summary(marge.model$final_mod)$coefficients$cond[, "Pr(>|z|)"][-1])
       } else {
+        est_betas <- unname(summary(marge.model$final_mod)$coefficients[, "Estimate"][-1])
+        test_stats <- unname(summary(marge.model$final_mod)$coefficients[, "z value"][-1])
         p_vals <- unname(summary(marge.model$final_mod)$coefficients[, "Pr(>|z|)"][-1])
       }
       mod_notes <- rep(NA_character_, length(p_vals))
@@ -61,6 +67,8 @@ createSlopeTestData <- function(marge.model = NULL,
   slope_df <- data.frame(Breakpoint = brkpts,
                          Rounded_Breakpoint = rounded_brkpts,
                          Direction = brkpt_dirs,
+                         Beta = est_betas,
+                         Test_Stat = test_stats,
                          P_Val = p_vals,
                          Notes = mod_notes)
   return(slope_df)

@@ -29,7 +29,7 @@ testSlope <- function(test.dyn.res = NULL,
   if (is.null(test.dyn.res)) { stop("You forgot to provide results from testDynamic() to testSlope().") }
   # create table of results
   slope_df <- purrr::map_dfr(test.dyn.res, \(x) purrr::map_dfr(x, \(y) data.frame(y["MARGE_Slope_Data"][[1]]))) %>%
-              dplyr::arrange(P_Val, dplyr::desc(Test_Stat)) %>%
+              dplyr::arrange(P_Val, dplyr::desc(abs(Test_Stat))) %>%
               dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method)) %>%
               dplyr::arrange(Gene, Breakpoint) %>%
               dplyr::mutate(Gene_Dynamic_Lineage_Slope = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0, missing = 0)) %>%

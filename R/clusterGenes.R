@@ -42,7 +42,7 @@ clusterGenes <- function(test.dyn.res = NULL,
                          size.factor.offset = NULL,
                          clust.algo = "leiden",
                          use.pca = FALSE,
-                         n.PC = 15,
+                         n.PC = 15L,
                          lineages = NULL) {
   # check inputs
   if (is.null(test.dyn.res) || is.null(pt)) { stop("test.dyn.res & pt must be supplied to clusterGenes().") }
@@ -59,6 +59,7 @@ clusterGenes <- function(test.dyn.res = NULL,
     fitted_vals_mat <- purrr::map(test.dyn.res, \(x) x[[lineage_name]]$MARGE_Preds) %>%
                        stats::setNames(names(test.dyn.res)) %>%
                        purrr::discard(rlang::is_na) %>%
+                       purrr::discard(rlang::is_null) %>%
                        purrr::discard(\(p) rlang::inherits_only(p, "try-error")) %>%
                        purrr::map2(.y = names(.), function(x, y) {
                          if (is.null(size.factor.offset)) {

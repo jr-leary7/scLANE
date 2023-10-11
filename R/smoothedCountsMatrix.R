@@ -54,6 +54,7 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
     fitted_vals_list <- furrr::future_map(test.dyn.res, \(y) y[[lineage_name]]$MARGE_Preds) %>%
                         stats::setNames(names(test.dyn.res)) %>%
                         purrr::discard(rlang::is_na) %>%
+                        purrr::discard(rlang::is_null) %>%
                         purrr::discard(\(p) rlang::inherits_only(p, "try-error"))
     fitted_vals_mat <- purrr::map(fitted_vals_list, \(z) {
                          if (is.null(size.factor.offset)) {

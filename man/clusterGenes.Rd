@@ -10,7 +10,7 @@ clusterGenes(
   size.factor.offset = NULL,
   clust.algo = "leiden",
   use.pca = FALSE,
-  n.PC = 15,
+  n.PC = 15L,
   lineages = NULL
 )
 }

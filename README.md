@@ -3,6 +3,7 @@
   - [Installation](#installation)
   - [Model structure](#model-structure)
 - [Usage](#usage)
+  - [Libraries](#libraries)
   - [Input data](#input-data)
   - [Trajectory DE testing](#trajectory-de-testing)
   - [Downstream analysis &
@@ -81,58 +82,30 @@ gene to be dynamic if the adjusted *p*-value of the test is less than an
 adjustment method is [the Holm
 correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method).
 
-## Input data
+## Libraries
 
-`scLANE` has a few basic inputs with standardized formats, though
-different modeling frameworks require different inputs; for example, the
-GEE & GLMM backends require a vector of subject IDs corresponding to
-each cell. We’ll start by simulating some scRNA-seq counts data with a
-subset of genes being dynamic over a trajectory using the [`scaffold` R
-package](https://github.com/rhondabacher/scaffold). As part of our
-simulation studies I wrote the function sourced below to generate
-multi-subject scRNA-seq datasets with trajectories partially conserved
-between subjects.
-
-``` r
-source("https://raw.githubusercontent.com/jr-leary7/scLANE-Sims/main/R/functions_simulation.R")
-```
-
-We’ll also need to load a couple dependencies & resolve a function
+First we’ll also need to load a couple dependencies & resolve a function
 conflict.
 
 ``` r
 library(dplyr)
-library(scran)
-library(purrr)
 library(scater)
 library(scLANE)
 library(ggplot2)
-library(scaffold)
-library(SingleCellExperiment)
 select <- dplyr::select
 filter <- dplyr::filter
 ```
 
-We’ll use the `scRNAseq` R package to pull the human pancreas data from
-[Baron *et al* 2017](https://doi.org/10.1016/j.cels.2016.08.011) to
-serve as our reference dataset. We then simulate a dataset with 3
-subjects, 1200 cells allocated equally between subjects, and 10% of the
-genes dynamic over the simulated trajectory. We label a gene dynamic at
-the population level if (in this case) it’s dynamic in 2/3 subjects.
-Internally, the function ensures that 80% of the dynamic genes are
-common across subject - a fairly homogeneous trajectory. The underlying
-true pseudotime values are stored in the `colData` slot of the
+## Input data
+
+We read a previously-simulated dataset comprised of cells from 3
+subjects exhibiting a homogeneous trajectory structure from [the Zenodo
+repository](https://doi.org/10.5281/zenodo.8433077). The underlying true
+pseudotime values are stored in the `colData` slot of the
 `SingleCellExperiment` object under the name **cell_time_normed**.
 
 ``` r
-set.seed(312)
-panc <- scRNAseq::BaronPancreasData(which = "human")
-sim_data <- simulate_multi_subject(ref.dataset = panc, 
-                                   perc.dyn.genes = 0.1, 
-                                   n.cells = 1200, 
-                                   perc.allocation = rep(1/3, 3), 
-                                   n.subjects = 3, 
-                                   gene.dyn.threshold = 2)
+sim_data <- readRDS(url("https://zenodo.org/record/8433077/files/scLANE_sim_data.Rds"))
 ```
 
 The PCA embeddings show us a pretty simple trajectory that’s strongly
@@ -140,7 +113,7 @@ correlated with the first principal component.
 
 ``` r
 plotPCA(sim_data, colour_by = "cell_time_normed") + 
-  theme_scLANE()
+  theme_scLANE(umap = TRUE)
 ```
 
 <img src="man/figures/README-plot-sims-pt-1.png" width="100%" />
@@ -150,7 +123,7 @@ that gene dynamics are mostly homogeneous across subjects.
 
 ``` r
 plotPCA(sim_data, colour_by = "subject") + 
-  theme_scLANE()
+  theme_scLANE(umap = TRUE)
 ```
 
 <img src="man/figures/README-plot-sims-subj-1.png" width="100%" />
@@ -217,7 +190,7 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
 | MPG    | A       |   415.016 |       0 |            0 |                        1 |
-| WAPAL  | A       |   361.360 |       0 |            0 |                        1 |
+| WAPAL  | A       |   364.990 |       0 |            0 |                        1 |
 | JARID2 | A       |   353.612 |       0 |            0 |                        1 |
 | ERGIC3 | A       |   294.186 |       0 |            0 |                        1 |
 | PFDN2  | A       |   258.867 |       0 |            0 |                        1 |
@@ -310,7 +283,7 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | Gene   | Lineage |  Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|------------:|--------:|-------------:|-------------------------:|
 | CKAP4  | A       | 4172613.197 |       0 |            0 |                        1 |
-| DGUOK  | A       |   64351.893 |       0 |            0 |                        1 |
+| DGUOK  | A       |  200675.460 |       0 |            0 |                        1 |
 | EMC3   | A       |   22164.408 |       0 |            0 |                        1 |
 | ERGIC3 | A       |   16466.403 |       0 |            0 |                        1 |
 | RAB1B  | A       |    5678.834 |       0 |            0 |                        1 |
@@ -332,8 +305,8 @@ caret::confusionMatrix(factor(scLANE_res_gee$Gene_Dynamic_Overall, levels = c(0,
 #> 
 #>           Reference
 #> Prediction  0  1
-#>          0 47 15
-#>          1  3 35
+#>          0 48 16
+#>          1  2 34
 #>                                           
 #>                Accuracy : 0.82            
 #>                  95% CI : (0.7305, 0.8897)
@@ -342,15 +315,15 @@ caret::confusionMatrix(factor(scLANE_res_gee$Gene_Dynamic_Overall, levels = c(0,
 #>                                           
 #>                   Kappa : 0.64            
 #>                                           
-#>  Mcnemar's Test P-Value : 0.009522        
+#>  Mcnemar's Test P-Value : 0.002183        
 #>                                           
-#>             Sensitivity : 0.7000          
-#>             Specificity : 0.9400          
-#>          Pos Pred Value : 0.9211          
-#>          Neg Pred Value : 0.7581          
+#>             Sensitivity : 0.6800          
+#>             Specificity : 0.9600          
+#>          Pos Pred Value : 0.9444          
+#>          Neg Pred Value : 0.7500          
 #>              Prevalence : 0.5000          
-#>          Detection Rate : 0.3500          
-#>    Detection Prevalence : 0.3800          
+#>          Detection Rate : 0.3400          
+#>    Detection Prevalence : 0.3600          
 #>       Balanced Accuracy : 0.8200          
 #>                                           
 #>        'Positive' Class : 1               
@@ -404,9 +377,9 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| WAPAL  | A       |   366.154 |       0 |            0 |                        1 |
+| WAPAL  | A       |   374.263 |       0 |            0 |                        1 |
 | JARID2 | A       |   334.714 |       0 |            0 |                        1 |
-| FLOT2  | A       |   314.979 |       0 |            0 |                        1 |
+| FLOT2  | A       |   323.358 |       0 |            0 |                        1 |
 | ISOC2  | A       |   223.028 |       0 |            0 |                        1 |
 | MFSD2B | A       |   198.036 |       0 |            0 |                        1 |
 
@@ -430,26 +403,26 @@ caret::confusionMatrix(factor(scLANE_res_glmm$Gene_Dynamic_Overall, levels = c(0
 #> 
 #>           Reference
 #> Prediction  0  1
-#>          0 50 20
-#>          1  0 30
+#>          0 50 19
+#>          1  0 31
 #>                                           
-#>                Accuracy : 0.8             
-#>                  95% CI : (0.7082, 0.8733)
+#>                Accuracy : 0.81            
+#>                  95% CI : (0.7193, 0.8816)
 #>     No Information Rate : 0.5             
-#>     P-Value [Acc > NIR] : 5.580e-10       
+#>     P-Value [Acc > NIR] : 1.351e-10       
 #>                                           
-#>                   Kappa : 0.6             
+#>                   Kappa : 0.62            
 #>                                           
-#>  Mcnemar's Test P-Value : 2.152e-05       
+#>  Mcnemar's Test P-Value : 3.636e-05       
 #>                                           
-#>             Sensitivity : 0.6000          
+#>             Sensitivity : 0.6200          
 #>             Specificity : 1.0000          
 #>          Pos Pred Value : 1.0000          
-#>          Neg Pred Value : 0.7143          
+#>          Neg Pred Value : 0.7246          
 #>              Prevalence : 0.5000          
-#>          Detection Rate : 0.3000          
-#>    Detection Prevalence : 0.3000          
-#>       Balanced Accuracy : 0.8000          
+#>          Detection Rate : 0.3100          
+#>    Detection Prevalence : 0.3100          
+#>       Balanced Accuracy : 0.8100          
 #>                                           
 #>        'Positive' Class : 1               
 #> 
@@ -535,11 +508,11 @@ slice_sample(gene_clust_table, n = 5) %>%
 
 | Gene    | Lineage | Cell | Fitted (link) | Fitted (response) | Pseudotime | Cluster |
 |:--------|:--------|:-----|--------------:|------------------:|-----------:|:--------|
-| RPL23   | A       | 905  |         2.991 |            18.571 |      0.262 | 1       |
-| ARHGEF9 | A       | 974  |        -1.098 |             0.353 |      0.435 | 1       |
-| BAD     | A       | 8    |         0.411 |             1.054 |      0.020 | 1       |
-| ARHGEF9 | A       | 417  |        -2.104 |             0.413 |      0.043 | 1       |
-| SF3B5   | A       | 535  |         0.498 |             2.513 |      0.338 | 1       |
+| LGR4    | A       | 964  |        -0.964 |             0.200 |      0.410 | 2       |
+| TIMP1   | A       | 21   |         3.478 |            15.317 |      0.052 | 3       |
+| RPL23   | A       | 905  |         2.991 |            18.571 |      0.262 | 2       |
+| ARHGEF9 | A       | 974  |        -1.098 |             0.353 |      0.435 | 3       |
+| BAD     | A       | 8    |         0.411 |             1.054 |      0.020 | 3       |
 
 The results can then be plotted as desired using `ggplot2` or another
 visualization package.

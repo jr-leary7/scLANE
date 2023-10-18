@@ -68,7 +68,7 @@ filter <- dplyr::filter
 We read a previously-simulated dataset comprised of cells from 3 subjects exhibiting a homogeneous trajectory structure from [the Zenodo repository](https://doi.org/10.5281/zenodo.8433077). The underlying true pseudotime values are stored in the `colData` slot of the `SingleCellExperiment` object under the name **cell_time_normed**. 
 
 ```{r sim, results='hide'}
-sim_data <- readRDS(url("https://zenodo.org/record/8433077/files/scLANE_sim_data.Rds"))
+sim_data <- readRDS(url("https://zenodo.org/records/8433077/files/scLANE_sim_data.Rds"))
 ```
 
 The PCA embeddings show us a pretty simple trajectory that's strongly correlated with the first principal component. 

@@ -2,13 +2,14 @@
 % Please edit documentation in R/embedGenes.R
 \name{embedGenes}
 \alias{embedGenes}
-\title{Generate a table of fitted values and celltype metadata for genes of interest.}
+\title{Generate PCA & UMAP embeddings of fitted gene dynamics.}
 \usage{
 embedGenes(
   smoothed.counts = NULL,
   genes = NULL,
+  pca.init = FALSE,
   pc.embed = 30,
-  pcs.return = 2,
+  pc.return = 2,
   cluster.genes = TRUE,
   gene.meta.data = NULL,
   k.param = 20,
@@ -21,9 +22,11 @@ embedGenes(
 
 \item{genes}{A character vector of genes to embed. If not specified, all genes in \code{smoothed.counts} are used. Defaults to NULL.}
 
+\item{pca.init}{A boolean specifying whether or not the embedded PCs should be used as initialization for clustering and UMAP. The default is to cluster / embed the raw dynamics i.e., defaults to FALSE.}
+
 \item{pc.embed}{(Optional) How many PCs should be used to cluster the genes and run UMAP? Defaults to 30.}
 
-\item{pcs.return}{(Optional) How many principal components should be included in the output? Defaults to 2.}
+\item{pc.return}{(Optional) How many principal components should be included in the output? Defaults to 2.}
 
 \item{cluster.genes}{(Optional) Should genes be clustered in PCA space using the Leiden algorithm? Defaults to TRUE.}
 

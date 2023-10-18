@@ -22,15 +22,13 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: install CRAN packages
-        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes"))'
+        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "BiocManager"))'
       - name: install BioConductor packages
-        run: Rscript -e 'install.packages("BiocManager"); BiocManager::install(c("SingleCellExperiment", "scater", "scran")'
+        run: Rscript -e 'BiocManager::install(c("SingleCellExperiment", "scater", "scran"))'
       - name: install GitHub packages
         run: Rscript -e 'remotes::install_github("jr-leary7/scLANE"); remotes::install_github("rhondabacher/scaffold")'
-
       - name: render README
         run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "md_document")'
-
       - name: commit rendered README
         run: |
           git add README.md man/figures/README-*

@@ -12,6 +12,7 @@
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
 #' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param genes (Optional) A character vector of genes with which to subset the results. Defaults to NULL.
+#' @param log1p.norm A boolean specifying whether the smoothed counts should be log1p-transformed after depth normalization. Defaults to FALSE.
 #' @param parallel.exec Should \code{furrr} be used to speed up execution? Defaults to TRUE.
 #' @param n.cores If parallel execution is desired, how many cores should be utilized? Defaults to 2.
 #' @return A list of matrices of smoothed counts, with each element of the list being a single pseudotime lineage.
@@ -31,6 +32,7 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
                                  size.factor.offset = NULL,
                                  pt = NULL,
                                  genes = NULL,
+                                 log1p.norm = FALSE,
                                  parallel.exec = TRUE,
                                  n.cores = 2) {
   # check inputs
@@ -65,6 +67,9 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
                        }) %>%
                        purrr::reduce(cbind)
     colnames(fitted_vals_mat) <- names(fitted_vals_list)
+    if (log1p.norm) {
+      fitted_vals_mat <- log1p(fitted_vals_mat)
+    }
     return(fitted_vals_mat)
   })
   names(lineage_mat_list) <- paste0("Lineage_", lineages)

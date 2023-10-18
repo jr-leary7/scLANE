@@ -91,6 +91,12 @@ withr::with_output_sink(tempfile(), {
                              return.basis = TRUE,
                              return.GCV = TRUE,
                              return.WIC = TRUE)
+  null_mod_offset <- MASS::glm.nb(counts_test[, 3] ~ pt_test$PT + offset(log(1 / cell_offset)),
+                                  method = "glm.fit2",
+                                  y = FALSE,
+                                  model = FALSE,
+                                  init.theta = 1)
+  glm_lrt <- modelLRT(mod.1 = marge_mod_offset, mod.0 = null_mod_offset)
   # run GEE model -- no offset
   marge_mod_GEE <- marge2(X_pred = pt_test,
                           Y = counts_test[, 3],
@@ -134,7 +140,10 @@ withr::with_output_sink(tempfile(), {
                          size.factor.offset = cell_offset,
                          gene = "ABR",
                          pt = pt_test,
-                         expr.mat = sim_data)
+                         expr.mat = sim_data,
+                         plot.null = TRUE,
+                         plot.glm = TRUE,
+                         plot.gam = TRUE)
   plot_gee <- plotModels(test.dyn.res = gee_gene_stats,
                          gene = "ABR",
                          pt = pt_test,
@@ -142,15 +151,21 @@ withr::with_output_sink(tempfile(), {
                          size.factor.offset = cell_offset,
                          is.gee = TRUE,
                          id.vec = sim_data$subject,
-                         cor.structure = "ar1")
+                         cor.structure = "ar1",
+                         plot.null = TRUE,
+                         plot.glm = TRUE,
+                         plot.gam = TRUE)
   plot_glmm <- plotModels(test.dyn.res = glmm_gene_stats,
                           size.factor.offset = cell_offset,
                           gene = "ABR",
                           pt = pt_test,
                           expr.mat = sim_data,
                           is.glmm = TRUE,
-                          id.vec = sim_data$subject)
-  # downstream analysis
+                          id.vec = sim_data$subject,
+                          plot.null = TRUE,
+                          plot.glm = TRUE,
+                          plot.gam = TRUE)
+  # gene clustering
   set.seed(312)
   gene_clusters_leiden <- clusterGenes(test.dyn.res = glm_gene_stats,
                                        pt = pt_test,
@@ -169,16 +184,12 @@ withr::with_output_sink(tempfile(), {
                                          size.factor.offset = cell_offset,
                                          pt = pt_test,
                                          n.cores = 2)
+  # smoothed dynamics
   smoothed_counts <- smoothedCountsMatrix(test.dyn.res = glm_gene_stats,
                                           pt = pt_test,
                                           size.factor.offset = cell_offset,
                                           parallel.exec = TRUE,
                                           n.cores = 2)
-  gene_embedding <- embedGenes(smoothed.counts = smoothed_counts$Lineage_A,
-                               pc.embed = 5,
-                               pcs.return = 2,
-                               k.param = 5,
-                               random.seed = 312)
   sorted_genes <- sortGenesHeatmap(heatmap.mat = smoothed_counts$Lineage_A,
                                    pt.vec = pt_test$PT)
   fitted_values_table <- getFittedValues(test.dyn.res = glm_gene_stats,
@@ -188,10 +199,27 @@ withr::with_output_sink(tempfile(), {
                                          expr.mat = sim_data,
                                          cell.meta.data = as.data.frame(SummarizedExperiment::colData(sim_data)),
                                          id.vec = sim_data$subject)
+  # gene embeddings
+  gene_embedding_pca <- embedGenes(smoothed.counts = smoothed_counts$Lineage_A,
+                                   pca.init = TRUE,
+                                   pc.embed = 5,
+                                   pc.return = 2,
+                                   k.param = 5,
+                                   random.seed = 312)
+  gene_embedding <- embedGenes(smoothed.counts = smoothed_counts$Lineage_A,
+                               pc.embed = 5,
+                               pc.return = 2,
+                               k.param = 5,
+                               random.seed = 312)
+  # enrichment analysis
   gsea_res <- enrichDynamicGenes(glm_test_results, species = "hsapiens")
+  # coefficients
   coef_summary_glm <- summarizeModel(marge_mod_offset, pt = pt_test)
   coef_summary_gee <- summarizeModel(marge_mod_GEE_offset, pt = pt_test)
+  # cutpoints
   knot_df <- getKnotDist(glm_gene_stats)
+  # convolution
+  dyn_convolve <- npConvolve(counts_test[, 1], conv.kernel = rep(1/10, 10))
 })
 
 # run tests
@@ -276,6 +304,10 @@ test_that("marge2() output -- GLM backend", {
   expect_equal(marge_mod_offset$model_type, "GLM")
   expect_true(marge_mod$final_mod$converged)
   expect_true(marge_mod_offset$final_mod$converged)
+  expect_type(glm_lrt, "list")
+  expect_length(glm_lrt, 7)
+  expect_type(glm_lrt$P_Val, "double")
+  expect_true(is.na(glm_lrt$Notes))
 })
 
 test_that("marge2() output -- GEE backend", {
@@ -333,7 +365,9 @@ test_that("smoothedCountsMatrix() output", {
 
 test_that("embedGenes() output", {
   expect_s3_class(gene_embedding, "data.frame")
+  expect_s3_class(gene_embedding_pca, "data.frame")
   expect_equal(ncol(gene_embedding), 6)
+  expect_equal(ncol(gene_embedding_pca), 6)
 })
 
 test_that("sortGenesHeatmap() output", {
@@ -364,4 +398,9 @@ test_that("summarizeModels() output", {
 test_that("getKnotDist() output", {
   expect_s3_class(knot_df, "data.frame")
   expect_equal(ncol(knot_df), 3)
+})
+
+test_that("npConvolve() output", {
+  expect_type(dyn_convolve, "double")
+  expect_length(dyn_convolve, nrow(counts_test))
 })

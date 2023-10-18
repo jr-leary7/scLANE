@@ -9,6 +9,7 @@ smoothedCountsMatrix(
   size.factor.offset = NULL,
   pt = NULL,
   genes = NULL,
+  log1p.norm = FALSE,
   parallel.exec = TRUE,
   n.cores = 2
 )
@@ -21,6 +22,8 @@ smoothedCountsMatrix(
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
 \item{genes}{(Optional) A character vector of genes with which to subset the results. Defaults to NULL.}
+
+\item{log1p.norm}{A boolean specifying whether the smoothed counts should be log1p-transformed after depth normalization. Defaults to FALSE.}
 
 \item{parallel.exec}{Should \code{furrr} be used to speed up execution? Defaults to TRUE.}
 

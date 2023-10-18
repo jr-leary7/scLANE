@@ -34,7 +34,7 @@ knitr::opts_chunk$set(message = FALSE,
 
 ## Installation
 
-You can install the most recent version of `scLANE` with:
+You can install the most recent version of `scLANE` using:
 
 ```{r install-scLANE, eval=FALSE}
 remotes::install_github("jr-leary7/scLANE")

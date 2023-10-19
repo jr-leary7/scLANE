@@ -74,6 +74,11 @@ getFittedValues <- function(test.dyn.res = NULL,
                                                  pt = x[!is.na(x)],
                                                  gene = g,
                                                  rna = expr.mat[!is.na(x), g])
+                           if (!is.null(id.vec)) {
+                             gene_df <- dplyr::mutate(gene_df, subj_id = id.vec[!is.na(x)])
+                           } else {
+                             gene_df <- dplyr::mutate(gene_df, subj_id = NA_character_)
+                           }
                            if (!is.null(size.factor.offset)) {
                              gene_df <- dplyr::mutate(gene_df,
                                                       size_factor = unname(size.factor.offset)[!is.na(x)],
@@ -115,11 +120,6 @@ getFittedValues <- function(test.dyn.res = NULL,
                            return(gene_df)
                          }) %>%
               purrr::reduce(rbind)
-    if (!is.null(id.vec)) {
-      mod_df <- dplyr::mutate(mod_df, subj_id = id.vec[!is.na(x)])
-    } else {
-      mod_df <- dplyr::mutate(mod_df, subj_id = NA_character_)
-    }
     return(mod_df)
   })
   final_df <- purrr::reduce(mod_df_list, rbind) %>%

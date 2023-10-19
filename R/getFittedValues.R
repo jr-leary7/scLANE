@@ -116,16 +116,16 @@ getFittedValues <- function(test.dyn.res = NULL,
                          }) %>%
               purrr::reduce(rbind)
     if (!is.null(id.vec)) {
-      mod_df$id <- id.vec[!is.na(x)]
+      mod_df <- dplyr::mutate(mod_df, subj_id = id.vec[!is.na(x)])
     } else {
-      mod_df$id <- NA_character_
+      mod_df <- dplyr::mutate(mod_df, subj_id = NA_character_)
     }
     return(mod_df)
   })
   final_df <- purrr::reduce(mod_df_list, rbind) %>%
-              dplyr::relocate(cell, id, lineage)
-  if (all(is.na(final_df$id))) {
-    final_df <- dplyr::select(final_df, -id)
+              dplyr::relocate(cell, subj_id, lineage)
+  if (is.null(id.vec)) {
+    final_df <- dplyr::select(final_df, -subj_id)
   }
   if (!is.null(filter.lineage)) {
     final_df <- dplyr::filter(final_df, !lineage %in% filter.lineage)

@@ -41,7 +41,6 @@ embedGenes <- function(smoothed.counts = NULL,
   genes <- colnames(smoothed.counts)
   smoothed.counts <- t(smoothed.counts)
   # embeddings
-  set.seed(random.seed)
   smoothed_counts_pca <- irlba::prcomp_irlba(smoothed.counts,
                                              n = pc.embed,
                                              center = TRUE,
@@ -52,14 +51,16 @@ embedGenes <- function(smoothed.counts = NULL,
                                        metric = "cosine",
                                        n_neighbors = k.param,
                                        init = "spectral",
-                                       nn_method = "annoy")
+                                       nn_method = "annoy",
+                                       seed = random.seed)
   } else {
     smoothed_counts_umap <- uwot::umap(smoothed.counts,
                                        n_components = 2,
                                        metric = "cosine",
                                        n_neighbors = k.param,
                                        init = "spectral",
-                                       nn_method = "annoy")
+                                       nn_method = "annoy",
+                                       seed = random.seed)
   }
   # clustering w/ silhouette score parameter tuning
   if (cluster.genes) {

@@ -1,7 +1,7 @@
 Package: scLANE
 Type: Package
 Title: Model gene expression dynamics with spline-based NB GLMs, GEEs, & GLMMs
-Version: 0.7.4
+Version: 0.7.5
 Authors@R: c(person(given = "Jack", family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre"), comment = c(ORCID = "0009-0004-8821-3269")), 
              person(given = "Rhonda", family = "Bacher", email = "rbacher@ufl.edu", role = c("ctb", "fnd"), comment = c(ORCID = "0000-0001-5787-476X")))
 Description: This package uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime or latent time. 
@@ -55,6 +55,7 @@ Suggests:
     bluster, 
     cluster, 
     rmarkdown,
+    BiocStyle, 
     slingshot, 
     gprofiler2,
     BiocGenerics, 

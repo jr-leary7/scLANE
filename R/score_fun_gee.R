@@ -54,13 +54,13 @@ score_fun_gee <- function(Y = NULL,
     J21 <- Sigma21 <- matrix(0, nrow = p, ncol = p1)
 
     for (i in seq(N)) {
-      k <- sum(n_vec[1:i])
+      k <- sum(n_vec[seq(i)])
       VS.est_i <- VS.est_list[[i]]
       AWA.est_i <- AWA.est_list[[i]]
       J2_i <- J2_list[[i]]
       Sigma2_i <- Sigma2_list[[i]]
-      D.est_i <- eigenMapMatMult(A = diag((mu.est[(sum(n_vec1[1:i]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
-                                 B = XA[(sum(n_vec1[1:i]) + 1):k, ],
+      D.est_i <- eigenMapMatMult(A = diag((mu.est[(sum(n_vec1[seq(i)]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
+                                 B = XA[(sum(n_vec1[seq(i)]) + 1):k, ],
                                  n_cores = 1)
       D_est_i_transpose <- t(D.est_i)
       J21 <- J21 + eigenMapMatMult(A = D_est_i_transpose,

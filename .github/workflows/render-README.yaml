@@ -31,8 +31,8 @@ jobs:
         run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "md_document")'
       - name: commit rendered README
         run: |
-          git config --local user.name "$GITHUB_ACTOR"
-          git config --local user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config --local user.name "jr-leary7"
+          git config --local user.email "jrleary@live.unc.edu"
           git add README.md man/figures/README-*
           git commit -m "Recompiled README.Rmd" || echo "No changes to commit"
           git push origin || echo "No changes to commit"

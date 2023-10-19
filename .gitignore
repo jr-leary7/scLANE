@@ -5,3 +5,5 @@
 .Rbuildignore
 inst/doc
 codecov.yml
+/doc/
+/Meta/

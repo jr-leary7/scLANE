@@ -154,7 +154,7 @@ plotModels <- function(test.dyn.res = NULL,
                                                         se = TRUE,
                                                         REML = FALSE)
                           }
-                          glm_preds <- data.frame(predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
+                          glm_preds <- data.frame(predict(glm_mod, type = "link", se.fit = TRUE)[seq(2)])
                         } else {
                           glm_formula <- "COUNT ~ PT"
                           if (!is.null(size.factor.offset)) {
@@ -168,7 +168,7 @@ plotModels <- function(test.dyn.res = NULL,
                                                   method = "glm.fit2",
                                                   link = log,
                                                   init.theta = 1)
-                          glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[1:2])
+                          glm_preds <- data.frame(stats::predict(glm_mod, type = "link", se.fit = TRUE)[seq(2)])
                         }
                         x <- dplyr::mutate(x,
                                            RESP_GLM = glm_preds$fit,
@@ -202,7 +202,7 @@ plotModels <- function(test.dyn.res = NULL,
                                              pt = x$PT)
                           }
                         }
-                        gam_preds <- data.frame(predict(gam_mod, type = "link", se.fit = TRUE)[1:2])
+                        gam_preds <- data.frame(predict(gam_mod, type = "link", se.fit = TRUE)[seq(2)])
                         x <- dplyr::mutate(x,
                                            RESP_GAM = gam_preds$fit,
                                            SE_GAM = gam_preds$se.fit)

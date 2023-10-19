@@ -95,7 +95,8 @@ withr::with_output_sink(tempfile(), {
                                   method = "glm.fit2",
                                   y = FALSE,
                                   model = FALSE,
-                                  init.theta = 1)
+                                  init.theta = 1,
+                                  link = log)
   glm_lrt <- modelLRT(mod.1 = marge_mod_offset, mod.0 = null_mod_offset)
   # run GEE model -- no offset
   marge_mod_GEE <- marge2(X_pred = pt_test,

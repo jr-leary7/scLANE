@@ -17,7 +17,7 @@ max_span <- function(X_red = NULL,
   N <- length(unique(X_red))
   x <- sort(unique(X_red))
   maxspan <- round((3 - log2(alpha / q)))
-  x_new <- x[-c(1:maxspan, floor(N - maxspan + 1):N)]
+  x_new <- x[-c(seq(maxspan), floor(N - maxspan + 1):N)]
   if (length(x_new) == 0) {
     x_new <- x
   }

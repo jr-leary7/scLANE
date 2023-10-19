@@ -31,7 +31,7 @@ pull.null.sumy <- function(mod.obj, is.gee, is.glmm) {
                    `p.value` = null_glmm_summary$p.value[1])
       }, silent = TRUE)
       null_pred_df <- try({
-        data.frame(predict(mod.obj, type = "link", se.fit = TRUE)[1:2]) %>%
+        data.frame(predict(mod.obj, type = "link", se.fit = TRUE)[seq(2)]) %>%
           dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
       }, silent = TRUE)
     }  else {
@@ -39,7 +39,7 @@ pull.null.sumy <- function(mod.obj, is.gee, is.glmm) {
         as.data.frame(broom.mixed::tidy(mod.obj)) # saves a few bytes by converting from tibble
       }, silent = TRUE)
       null_pred_df <- try({
-        data.frame(stats::predict(mod.obj, type = "link", se.fit = TRUE)[1:2]) %>%
+        data.frame(stats::predict(mod.obj, type = "link", se.fit = TRUE)[seq(2)]) %>%
           dplyr::rename(null_link_fit = fit, null_link_se = se.fit)
       }, silent = TRUE)
     }
@@ -87,7 +87,7 @@ pull.marge.sumy <- function(mod.obj,
 
     } else if (is.glmm) {
       marge_pred_df <- try({
-        data.frame(predict(mod.obj$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
+        data.frame(predict(mod.obj$final_mod, type = "link", se.fit = TRUE)[seq(2)]) %>%
           dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit)
       }, silent = TRUE)
       marge_sumy_df <- try({
@@ -101,7 +101,7 @@ pull.marge.sumy <- function(mod.obj,
 
     } else {
       marge_pred_df <- try({
-        data.frame(stats::predict(mod.obj$final_mod, type = "link", se.fit = TRUE)[1:2]) %>%
+        data.frame(stats::predict(mod.obj$final_mod, type = "link", se.fit = TRUE)[seq(2)]) %>%
           dplyr::rename(marge_link_fit = fit, marge_link_se = se.fit)
       }, silent = TRUE)
       marge_sumy_df <- try({

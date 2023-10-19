@@ -411,7 +411,7 @@ marge2 <- function(X_pred = NULL,
             if (utils::tail(max(score_knot_one_int_mat, na.rm = TRUE), n = 1) > utils::tail(max(score_knot_one_add_mat, na.rm = TRUE), n = 1)) {
               int <- TRUE
               score_knot <- score_knot_one_int_mat
-              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = T), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
+              temp <- utils::tail(which(utils::tail(max(round(score_knot, 6), na.rm = TRUE), n = 1) == round(score_knot, 6), arr.ind = TRUE), n = 1)
               min_knot1 <- temp[1]
               best.var <- temp[2]
             } else {
@@ -784,7 +784,7 @@ marge2 <- function(X_pred = NULL,
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
   wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
-  WIC_2 <- sum(apply(wic_mat_2[1:2, ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new)
+  WIC_2 <- sum(apply(wic_mat_2[seq(2), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new)
   WIC_vec_2 <- c(WIC_vec_2, WIC_2)
 
   variable.lowest_2 <- as.numeric(which(wic1_2 == min(wic1_2, na.rm = TRUE))[1])
@@ -795,14 +795,14 @@ marge2 <- function(X_pred = NULL,
     wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new_2)
     if (i != (ncol_B - 1)) {
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
-      WIC_2 <- sum(apply(wic_mat_2[1:(i + 1), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
+      WIC_2 <- sum(apply(wic_mat_2[seq(i + 1), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
       WIC_vec_2 <- c(WIC_vec_2, WIC_2)
       variable.lowest_2 <- as.numeric(which(wic1_2 == min(wic1_2, na.rm = TRUE))[1])
       var.low.vec_2 <- c(var.low.vec_2, colnames(B_new_2)[variable.lowest_2 + 1])
       B_new_2 <- as.matrix(B_new_2[, -(variable.lowest_2 + 1)])
     } else {
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
-      WIC_2 <- sum(apply(wic_mat_2[1:(ncol_B), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
+      WIC_2 <- sum(apply(wic_mat_2[seq(ncol_B), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
       WIC_vec_2 <- c(WIC_vec_2, WIC_2)
       B_new_2 <- as.matrix(B_new_2[, -(variable.lowest_2)])
       colnames(B_new_2) <- "Intercept"

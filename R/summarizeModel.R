@@ -4,6 +4,7 @@
 #' @author Jack Leary
 #' @author Rhonda Bacher
 #' @import magrittr
+#' @importFrom stats vcov
 #' @description This function summarizes the model for each gene and allows for quantiative interpretation of fitted gene dynamics.
 #' @param marge.model The fitted model output from \code{\link{marge2}} (this function is internally called by \code{\link{testDynamic}}). Defaults to NULL.
 #' @param pt The predictor matrix of pseudotime. Defaults to NULL.
@@ -27,7 +28,7 @@ summarizeModel <- function(marge.model = NULL, pt = NULL) {
     if (marge.model$model_type == "GEE") {
       coef_vcov <- as.matrix(marge.model$final_mod$var)
     } else {
-      coef_vcov <- vcov(marge.model$final_mod)
+      coef_vcov <- stats::vcov(marge.model$final_mod)
     }
     coef_df <- data.frame(coef_name = names(coef(marge.model$final_mod)),
                           coef_value = unname(coef(marge.model$final_mod)),

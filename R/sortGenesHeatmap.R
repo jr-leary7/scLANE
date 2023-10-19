@@ -31,18 +31,18 @@ sortGenesHeatmap <- function(heatmap.mat = NULL, pt.vec = NULL) {
   # identify point at which peak expression occurs for each gene across pseudotime
   gene_peak_order <- purrr::map(seq_len(ncol(heatmap.mat)), \(x) {
     data.frame(gene = colnames(heatmap.mat)[x],
-               pt = pt.vec,
+               pseudotime = pt.vec,
                mRNA = heatmap.mat[, x]) %>%
       dplyr::filter(mRNA == max(mRNA)) %>%
       dplyr::distinct() %>%
       dplyr::select(gene,
-                    pt,
+                    pseudotime,
                     mRNA)
   }) %>%
     purrr::reduce(rbind) %>%
     dplyr::with_groups(gene,
                        dplyr::summarise,
-                       mu = mean(pt)) %>%
+                       mu = mean(pseudotime)) %>%
     dplyr::arrange(mu) %>%
     dplyr::pull(gene)
   return(gene_peak_order)

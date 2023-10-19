@@ -46,19 +46,19 @@ stat_out_score_gee_null <- function(Y = NULL,
   J11 <- Sigma11 <- matrix(0, ncol(B_null), ncol(B_null))
 
   for (i in seq(N)) {
-    k <- sum(n_vec[1:i])
+    k <- sum(n_vec[seq(i)])
     # set up working correlation matrix structure
     if (cor.structure == "independence") {
       R_alpha <- diag(1, n_vec[i], n_vec[i])
     } else if (cor.structure == "exchangeable") {
       R_alpha <- matrix(alpha_est, n_vec[i], n_vec[i]) + diag(c(1 - alpha_est), n_vec[i], n_vec[i])
     } else if (cor.structure == "ar1") {
-      R_alpha <- alpha_est^outer(1:n_vec[i], 1:n_vec[i], \(x, y) abs(x - y))
+      R_alpha <- alpha_est^outer(seq(n_vec[i]), seq(n_vec[i]), \(x, y) abs(x - y))
     } else {
       stop("Currently unsupported correlation structure.")
     }
     # compute iteration values for each statistic
-    temp_seq_n <- (sum(n_vec1[1:i]) + 1):k
+    temp_seq_n <- (sum(n_vec1[seq(i)]) + 1):k
     mu_est_sub <- mu_est[temp_seq_n]
     diag_sqrt_V_est <- diag(sqrt(V_est[temp_seq_n]),
                             nrow = n_vec[i],

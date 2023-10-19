@@ -49,7 +49,7 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
   } else {
     genes <- names(test.dyn.res)
   }
-  lineages <- LETTERS[1:length(test.dyn.res[[1]])]
+  lineages <- LETTERS[seq(length(test.dyn.res[[1]]))]
   colnames(pt) <- paste0("Lineage_", lineages)
   lineage_mat_list <- purrr::map(lineages, \(x) {
     lineage_name <- paste0("Lineage_", x)

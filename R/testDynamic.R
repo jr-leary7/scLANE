@@ -29,7 +29,7 @@
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
-#' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Useful for debugging. Defaults to FALSE.
+#' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Defaults to TRUE.
 #' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
 #' \itemize{
@@ -87,7 +87,7 @@ testDynamic <- function(expr.mat = NULL,
                         parallel.exec = TRUE,
                         n.cores = 2,
                         approx.knot = TRUE,
-                        track.time = FALSE,
+                        track.time = TRUE,
                         random.seed = 312) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
@@ -123,7 +123,7 @@ testDynamic <- function(expr.mat = NULL,
 
   # set pseudotime lineage column names automatically to prevent user error (uses e.g., "Lineage_A", "Lineage_B", etc.)
   n_lineages <- ncol(pt)
-  colnames(pt) <- paste0("Lineage_", LETTERS[1:n_lineages])
+  colnames(pt) <- paste0("Lineage_", LETTERS[seq(n_lineages)])
 
   # ensure subject ID vector meets criteria for GEE / GLMM fitting
   if ((is.gee || is.glmm) && is.null(id.vec)) { stop("You must provide a vector of IDs if you're using GEE / GLMM backends.") }
@@ -333,11 +333,11 @@ testDynamic <- function(expr.mat = NULL,
                             is.glmm = is.glmm)
      }
      # add test stats to result list
-     lineage_list[[j]]$Test_Stat = ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat)
-     lineage_list[[j]]$Test_Stat_Note = test_res$Notes
-     lineage_list[[j]]$P_Val = test_res$P_Val
+     lineage_list[[j]]$Test_Stat <- ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat)
+     lineage_list[[j]]$Test_Stat_Note <- test_res$Notes
+     lineage_list[[j]]$P_Val <- test_res$P_Val
     }
-    names(lineage_list) <- paste0("Lineage_", LETTERS[1:n_lineages])
+    names(lineage_list) <- paste0("Lineage_", LETTERS[seq(n_lineages)])
     lineage_list
   }
 
@@ -374,7 +374,7 @@ testDynamic <- function(expr.mat = NULL,
              MARGE_Slope_Data = NULL,
              Gene_Dynamics = NULL)
       })
-      names(reformatted_results) <- paste0("Lineage_", LETTERS[1:n_lineages])
+      names(reformatted_results) <- paste0("Lineage_", LETTERS[seq(n_lineages)])
       return(reformatted_results)
     } else {
       return(x)

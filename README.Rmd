@@ -294,7 +294,7 @@ ggplot(gene_embedding, aes(x = umap1, y = umap2, color = leiden)) +
   theme_scLANE(umap = TRUE)
 ```
 
-## Knot distribution
+### Knot distribution
 
 Lastly, we can pull the locations in pseudotime of all the knots fitted by `scLANE`. Visualizing this distribution gives us some idea of where transcriptional switches are occurring in the set of genes classified as dynamic. 
 

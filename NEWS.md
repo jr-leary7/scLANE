@@ -1,3 +1,8 @@
+# `scLANE` v0.7.6
+
+* Added Zenodo tracking.
+* Added simulated dataset to `data/`
+
 # `scLANE` v0.7.5
 
 * Preparing for BioConductor submission i.e., reformatting code, adding documentation, etc.

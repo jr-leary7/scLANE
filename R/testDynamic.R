@@ -5,6 +5,7 @@
 #' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 #' @import glm2
 #' @import magrittr
+#' @importFrom Matrix t
 #' @importFrom bigstatsr as_FBM
 #' @importFrom foreach foreach %dopar% registerDoSEQ
 #' @importFrom doParallel registerDoParallel
@@ -45,34 +46,29 @@
 #' @seealso \code{\link[glmmTMB]{glmmTMB}}
 #' @export
 #' @examples
-#' \dontrun{
-#' testDynamic(expr.mat = raw_counts,
-#'             pt = pseudotime_df,
-#'             parallel.exec = TRUE)
-#' testDynamic(expr.mat = sce_obj,
-#'             pt = slingshot_obj,
-#'             size.factor.offset = sizeFactors(sce_obj),
-#'             genes = rownames(sce_obj)[1:100])
-#' testDynamic(expr.mat = raw_counts,
-#'             pt = pseudotime_df,
-#'             parallel.exec = TRUE,
-#'             n.cores = 8,
-#'             n.potential.basis.fns = 7)
-#' testDynamic(expr.mat = counts(sce_obj),
-#'             pt = pseudotime_df,
+#' \donttest{
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' testDynamic(sim_counts,
+#'             pt = sim_pseudotime,
+#'             size.factor.offset = cell_offset,
+#'             genes = sample(rownames(sim_counts), 20))
+#' testDynamic(sim_counts,
+#'             pt = sim_pseudotime,
+#'             size.factor.offset = cell_offset,
 #'             is.gee = TRUE,
-#'             id.vec = colData(sce_obj)$subject_id,
+#'             id.vec = sim_counts$subject,
 #'             cor.structure = "ar1",
-#'             parallel.exec = TRUE,
-#'             n.cores = 8,
-#'             n.potential.basis.fns = 7)
-#' testDynamic(expr.mat = seu_obj,
-#'             pt = pseudotime_df,
-#'             parallel.exec = TRUE,
-#'             n.cores = 8,
+#'             genes = sample(rownames(sim_counts), 20))
+#' testDynamic(sim_counts,
+#'             pt = sim_pseudotime,
+#'             size.factor.offset = cell_offset,
 #'             is.glmm = TRUE,
-#'             id.vec = seu_obj$subject_id)
-#' }
+#'             glmm.adaptive = TRUE,
+#'             id.vec = sim_counts$subject,
+#'             genes = sample(rownames(sim_counts), 20))
+#'}
 
 testDynamic <- function(expr.mat = NULL,
                         pt = NULL,
@@ -98,19 +94,18 @@ testDynamic <- function(expr.mat = NULL,
   }
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
-    expr.mat <- as.matrix(expr.mat)
   } else if (inherits(expr.mat, "Seurat")) {
     expr.mat <- Seurat::GetAssayData(expr.mat,
                                      slot = "counts",
                                      assay = Seurat::DefaultAssay(expr.mat))
-    expr.mat <- as.matrix(expr.mat[genes, ])
+    expr.mat <- expr.mat[genes, ]
   } else if (inherits(expr.mat, "dgCMatrix")) {
-    expr.mat <- as.matrix(expr.mat[genes, ])
+    expr.mat <- expr.mat[genes, ]
   } else {
     expr.mat <- expr.mat[genes, ]
   }
+  expr.mat <- as.matrix(Matrix::t(expr.mat))  # transpose to dense cell x gene matrix
   if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array"))) { stop("Input expr.mat must be coerceable to a matrix of integer counts.") }
-  expr.mat <- t(expr.mat)  # transpose to cell x gene matrix
 
   # extract pseudotime dataframe if input is results from Slingshot
   if (inherits(pt, "SlingshotDataSet")) {

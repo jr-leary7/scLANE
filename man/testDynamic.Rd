@@ -66,33 +66,28 @@ This function tests whether a NB \code{marge} model is better than a null (inter
 }
 }
 \examples{
-\dontrun{
-testDynamic(expr.mat = raw_counts,
-            pt = pseudotime_df,
-            parallel.exec = TRUE)
-testDynamic(expr.mat = sce_obj,
-            pt = slingshot_obj,
-            size.factor.offset = sizeFactors(sce_obj),
-            genes = rownames(sce_obj)[1:100])
-testDynamic(expr.mat = raw_counts,
-            pt = pseudotime_df,
-            parallel.exec = TRUE,
-            n.cores = 8,
-            n.potential.basis.fns = 7)
-testDynamic(expr.mat = counts(sce_obj),
-            pt = pseudotime_df,
+\donttest{
+data(sim_counts)
+data(sim_pseudotime)
+cell_offset <- createCellOffset(sim_counts)
+testDynamic(sim_counts,
+            pt = sim_pseudotime,
+            size.factor.offset = cell_offset,
+            genes = sample(rownames(sim_counts), 20))
+testDynamic(sim_counts,
+            pt = sim_pseudotime,
+            size.factor.offset = cell_offset,
             is.gee = TRUE,
-            id.vec = colData(sce_obj)$subject_id,
+            id.vec = sim_counts$subject,
             cor.structure = "ar1",
-            parallel.exec = TRUE,
-            n.cores = 8,
-            n.potential.basis.fns = 7)
-testDynamic(expr.mat = seu_obj,
-            pt = pseudotime_df,
-            parallel.exec = TRUE,
-            n.cores = 8,
+            genes = sample(rownames(sim_counts), 20))
+testDynamic(sim_counts,
+            pt = sim_pseudotime,
+            size.factor.offset = cell_offset,
             is.glmm = TRUE,
-            id.vec = seu_obj$subject_id)
+            glmm.adaptive = TRUE,
+            id.vec = sim_counts$subject,
+            genes = sample(rownames(sim_counts), 20))
 }
 }
 \seealso{

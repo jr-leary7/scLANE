@@ -1,7 +1,12 @@
+# `scLANE` v0.7.7
+
+* Added DOI badge to README
+* Further compression of included datasets.
+
 # `scLANE` v0.7.6
 
 * Added Zenodo tracking.
-* Added simulated dataset to `data/`
+* Added simulated dataset to `data/`.
 
 # `scLANE` v0.7.5
 

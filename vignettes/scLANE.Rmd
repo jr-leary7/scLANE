@@ -23,7 +23,8 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE, 
                       error = FALSE, 
-                      fig.align = "center")
+                      fig.align = "center", 
+                      dpi = 300)
 ```
 
 # Introduction

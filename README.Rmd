@@ -114,28 +114,15 @@ After the function finishes running, we use `getResultsDE()` to generate a sorte
 ```{r glm-results}
 scLANE_res_glm <- getResultsDE(scLANE_models_glm)
 select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5) %>% 
+  slice_sample(n = 5) %>% 
   knitr::kable(format = "pipe", 
                digits = 3, 
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-After creating a reference table of the ground truth status of each gene - `1` denotes a dynamic gene and `0` a non-dynamic one - and adding that binary indicator the the DE results table, we can generate some classification metrics using [a confusion matrix](https://en.wikipedia.org/wiki/Confusion_matrix). 
-
-```{r eval-glm}
-gene_status_df <- data.frame(gene = gene_sample, 
-                             True_Gene_Status = ifelse(rowData(sim_data)[gene_sample, ]$geneStatus_overall == "Dynamic", 1, 0))
-scLANE_res_glm <- inner_join(scLANE_res_glm, 
-                             gene_status_df, 
-                             by = c("Gene" = "gene"))
-caret::confusionMatrix(factor(scLANE_res_glm$Gene_Dynamic_Overall, levels = c(0, 1)), 
-                       factor(scLANE_res_glm$True_Gene_Status, levels = c(0, 1)), 
-                       positive = "1")
-```
-
 ### GEE framework
 
-The function call is essentially the same when using the GLM backend, with the exception of needing to provide a sorted vector of subject IDs & a desired correlation structure, the default being [the AR1 structure](https://en.wikipedia.org/wiki/Autoregressive_model). We also need to flip the `is.gee` flag in order to indicate that we'd like to fit estimating equations models (instead of mixed models). Since fitting GEEs is a fair bit more computationally complex than fitting GLMs, DE testing with the GEE backend takes a bit longer. Using more cores and / or running the tests on an HPC cluster speeds things up considerably. Here we specify an [AR1 correlation structure](https://rdrr.io/cran/nlme/man/corAR1.html), which is the default for the GEE backend. 
+The function call is essentially the same when using the GLM backend, with the exception of needing to provide a sorted vector of subject IDs & a desired correlation structure, the default being [the AR1 structure](https://en.wikipedia.org/wiki/Autoregressive_model). We also need to flip the `is.gee` flag in order to indicate that we'd like to fit estimating equations models (instead of mixed models). Since fitting GEEs is  more computationally complex than fitting GLMs, DE testing with the GEE backend takes a bit longer. Using more cores and / or running the tests on an HPC cluster speeds things up considerably. 
 
 ```{r gee-models}
 scLANE_models_gee <- testDynamic(sim_data, 
@@ -153,26 +140,15 @@ We again generate the table of DE test results. The variance of the estimated co
 ```{r gee-results}
 scLANE_res_gee <- getResultsDE(scLANE_models_gee)
 select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5) %>% 
+  slice_sample(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
                col.names = c("Gene", "Lineage", "Wald stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-We create the same confusion matrix as before. Empirically speaking, when the underlying dynamics don't differ much between subjects, GEEs tend to be more conservative (and thus perform slightly worse) than GLMs. This is shown below, where the GEE backend has decent accuracy, but the false negative rate is higher than that of the GLM backend. 
-
-```{r eval-gee}
-scLANE_res_gee <- inner_join(scLANE_res_gee, 
-                             gene_status_df, 
-                             by = c("Gene" = "gene"))
-caret::confusionMatrix(factor(scLANE_res_gee$Gene_Dynamic_Overall, levels = c(0, 1)), 
-                       factor(scLANE_res_gee$True_Gene_Status, levels = c(0, 1)), 
-                       positive = "1")
-```
-
 ### GLMM framework
 
-We re-run the DE tests a final time using the GLMM backend. This is the most complex model architecture we support, and is the trickiest to interpret. We recommend using it when you're most interested in how a trajectory differs between subjects e.g., if the subjects belong to groups like Treatment & Control, and you expect the Treatment group to experience a different progression through the biological process. Executing the function with the GLMM backend differs only in that we switch the `is.glmm` flag to `TRUE` and no longer need to specify a working correlation structure. **Note**: the GLMM backend is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+We re-run the DE tests a final time using the GLMM backend. This is the most complex model architecture we support, and is the trickiest to interpret. We recommend using it when you're most interested in how a trajectory differs between subjects e.g., if the subjects belong to groups like Treatment & Control, and you expect the Treatment group to experience a different progression through the biological process. Executing the function with the GLMM backend differs only in that we switch the `is.glmm` flag to `TRUE` and no longer need to specify a working correlation structure.
 
 ```{r glmm-models}
 scLANE_models_glmm <- testDynamic(sim_data, 
@@ -186,26 +162,21 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   n.cores = 4)
 ```
 
+{% note %}
+
+**Note**: the GLMM backend is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+
+{% endnote %}
+
 Like the GLM backend, the GLMM backend uses a likelihood ratio test to compare the null & alternate models. We fit the two nested models using maximum likelihood estimation instead of [REML](https://en.wikipedia.org/wiki/Restricted_maximum_likelihood) in order to perform this test; the null model in this case is a negative binomial GLMM with a random intercept for each subject.  
 
 ```{r glmm-results}
 scLANE_res_glmm <- getResultsDE(scLANE_models_glmm)
 select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_head(n = 5) %>% 
+  slice_sample(n = 5) %>% 
   knitr::kable("pipe", 
                digits = 3, 
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
-```
-
-The GLMM backend performs about as well as the GEE backend. Like with the GEE backend, it's more appropriate to use these more complex models if expression dynamics might differ between subjects, with the difference being that you should use the GEE backend if you're interested in population-level trends & the GLMM backend if you're interested in per-subject trends. Since the dynamics in our simulated data are strongly conserved across subjects, it follows that the simpler GLMs perform the best. 
-
-```{r eval-glmm}
-scLANE_res_glmm <- inner_join(scLANE_res_glmm, 
-                              gene_status_df, 
-                              by = c("Gene" = "gene"))
-caret::confusionMatrix(factor(scLANE_res_glmm$Gene_Dynamic_Overall, levels = c(0, 1)), 
-                       factor(scLANE_res_glmm$True_Gene_Status, levels = c(0, 1)), 
-                       positive = "1")
 ```
 
 ## Downstream analysis & visualization
@@ -226,11 +197,25 @@ plotModels(scLANE_models_glm,
            plot.scLANE = TRUE)
 ```
 
-When plotting the models generated using the GLMM backend, we split by lineage & color the points by subject ID instead of by lineage. 
+```{r plot-models-gee}
+plotModels(scLANE_models_gee, 
+           gene = "DGUOK", 
+           is.gee = TRUE, 
+           id.vec = sim_data$subject, 
+           pt = order_df, 
+           expr.mat = sim_data, 
+           size.factor.offset = cell_offset, 
+           plot.null = TRUE, 
+           plot.glm = TRUE, 
+           plot.gam = TRUE, 
+           plot.scLANE = TRUE)
+```
+
+When plotting the models generated using the GLMM backend, we split by lineage & color the points by subject ID instead of by lineage. The gene in question highlights the utility of the scLANE model, since the gene dynamics differ significantly by subject. 
 
 ```{r plot-models-glmm, fig.width=9, fig.height=9}
 plotModels(scLANE_models_glmm, 
-           gene = "WAPAL", 
+           gene = "FLOT2", 
            pt = order_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
@@ -242,57 +227,15 @@ plotModels(scLANE_models_glmm,
            plot.scLANE = TRUE)
 ```
 
-### Gene clustering 
+### Coefficient summaries
 
-After generating a suitable set of models, we can cluster the genes in a semi-supervised fashion using `clusterGenes()`. This function uses the Leiden algorithm (the default), hierarchical clustering, or *k*-means and selects the best set of clustering hyperparameters using the silhouette score. If desired PCA can be run prior to clustering, but the default is to cluster on the fitted values themselves. We then use the results as input to `plotClusteredGenes()`, which generates a table of fitted values per-gene, per-lineage over pseudotime along with the accompanying cluster labels. 
-
-```{r cluster-genes}
-gene_clusters <- clusterGenes(scLANE_models_glm, 
-                              pt = order_df, 
-                              size.factor.offset = cell_offset)
-gene_clust_table <- plotClusteredGenes(scLANE_models_glm, 
-                                       gene.clusters = gene_clusters, 
-                                       pt = order_df, 
-                                       size.factor.offset = cell_offset, 
-                                       n.cores = 2)
-slice_sample(gene_clust_table, n = 5) %>% 
-  knitr::kable("pipe", 
-               digits = 3, 
-               row.names = FALSE, 
-               col.names = c("Gene", "Lineage", "Cell", "Fitted (link)", "Fitted (response)", "Pseudotime", "Cluster"))
-```
-
-The results can then be plotted as desired using `ggplot2` or another visualization package. 
-
-```{r plot-clust}
-ggplot(gene_clust_table, aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) + 
-  facet_wrap(~paste0("Cluster ", CLUSTER)) + 
-  geom_line(alpha = 0.75, show.legend = FALSE) + 
-  scale_y_continuous(labels = scales::label_number(accuracy = 1)) + 
-  scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) + 
-  labs(x = "Pseudotime", 
-       y = "Fitted Values", 
-       title = "Leiden clustering of gene dynamics") + 
-  theme_scLANE()
-```
-
-### Gene embeddings
-
-After extracting a matrix of fitted dynamics using `smoothedCountsMatrix()`, we can embed the genes in PCA & UMAP space in order to visualize clusters of similarly-behaving genes. 
+A key feature of `scLANE` is the ability to obtain a quantitative, interpretable coefficient for the effect of pseudotime on gene expression. This functionality is currently available for the GLM & GEE frameworks, and each coefficient carries the [interpretation of a generalized linear model](https://stats.oarc.ucla.edu/r/dae/negative-binomial-regression/). 
 
 ```{r}
-smoothed_counts <- smoothedCountsMatrix(scLANE_models_glm, 
-                                        size.factor.offset = cell_offset, 
-                                        pt = order_df)
-gene_embedding <- embedGenes(smoothed_counts$Lineage_A, 
-                             pc.embed = 10, 
-                             k.param = 10)
-ggplot(gene_embedding, aes(x = umap1, y = umap2, color = leiden)) + 
-  geom_point(size = 2) + 
-  labs(x = "UMAP 1", 
-       y = "UMAP 2", 
-       color = "Leiden") + 
-  theme_scLANE(umap = TRUE)
+scLANE_models_glm[["JARID2"]]$Lineage_A$Gene_Dynamics %>% 
+  knitr::kable("pipe", 
+               digits = 2, 
+               col.names = c("Gene", "Lineage", "Breakpoint", "First Slope", "Second Slope", "First Trend", "Second Trend"))
 ```
 
 ### Knot distribution
@@ -315,6 +258,19 @@ ggplot(knot_dist, aes(x = knot)) +
   labs(x = "Knot Location", y = "Density") + 
   theme_scLANE()
 ```
+
+### Smoothed dynamics matrix
+
+We can extract  matrix of the fitted values for each dynamic gene using the `smoothedCountsMatrix()` function. 
+
+```{r}
+smoothed_dynamics <- smoothedCountsMatrix(scLANE_models_glm, 
+                                          size.factor.offset = cell_offset, 
+                                          pt = order_df, 
+                                          genes = dyn_genes)
+```
+
+The smoothed dynamics can then be used to generate expression cascade heatmaps, cluster genes, etc. For more information on downstream analysis of gene dynamics, see [the corresponding vignette](https://jr-leary7.github.io/quarto-site/tutorials/scLANE_Trajectory_DE.html#downstream-analysis). 
 
 # Conclusions & best practices
 

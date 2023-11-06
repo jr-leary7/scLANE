@@ -358,6 +358,12 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   track.time = TRUE)
 ```
 
+:::{.callout-note}
+
+The GLMM backend is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+
+:::
+
 Like the GLM backend, the GLMM backend uses a likelihood ratio test to
 compare the null & alternate models. We fit the two nested models using
 maximum likelihood estimation instead of

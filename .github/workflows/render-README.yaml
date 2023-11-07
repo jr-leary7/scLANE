@@ -28,7 +28,7 @@ jobs:
       - name: install GitHub packages
         run: Rscript -e 'remotes::install_github("jr-leary7/scLANE")'
       - name: render README
-        run: Rscript -e 'devtools::build_readme()'
+        run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "github_document", output_file = "README.md")'
       - name: commit rendered README
         run: |
           git config --local user.name "jr-leary7"

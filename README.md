@@ -89,102 +89,8 @@ conflict.
 
 ``` r
 library(dplyr)
-#> 
-#> Attaching package: 'dplyr'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     filter, lag
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 library(scater)
-#> Loading required package: SingleCellExperiment
-#> Loading required package: SummarizedExperiment
-#> Loading required package: MatrixGenerics
-#> Loading required package: matrixStats
-#> 
-#> Attaching package: 'matrixStats'
-#> The following object is masked from 'package:dplyr':
-#> 
-#>     count
-#> 
-#> Attaching package: 'MatrixGenerics'
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
-#>     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
-#>     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
-#>     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
-#>     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
-#>     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
-#>     colWeightedMeans, colWeightedMedians, colWeightedSds,
-#>     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
-#>     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
-#>     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
-#>     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
-#>     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
-#>     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
-#>     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
-#>     rowWeightedSds, rowWeightedVars
-#> Loading required package: GenomicRanges
-#> Loading required package: stats4
-#> Loading required package: BiocGenerics
-#> 
-#> Attaching package: 'BiocGenerics'
-#> The following objects are masked from 'package:dplyr':
-#> 
-#>     combine, intersect, setdiff, union
-#> The following objects are masked from 'package:stats':
-#> 
-#>     IQR, mad, sd, var, xtabs
-#> The following objects are masked from 'package:base':
-#> 
-#>     anyDuplicated, append, as.data.frame, basename, cbind, colnames,
-#>     dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
-#>     grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
-#>     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
-#>     rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
-#>     union, unique, unsplit, which.max, which.min
-#> Loading required package: S4Vectors
-#> 
-#> Attaching package: 'S4Vectors'
-#> The following objects are masked from 'package:dplyr':
-#> 
-#>     first, rename
-#> The following objects are masked from 'package:base':
-#> 
-#>     expand.grid, I, unname
-#> Loading required package: IRanges
-#> 
-#> Attaching package: 'IRanges'
-#> The following objects are masked from 'package:dplyr':
-#> 
-#>     collapse, desc, slice
-#> Loading required package: GenomeInfoDb
-#> Loading required package: Biobase
-#> Welcome to Bioconductor
-#> 
-#>     Vignettes contain introductory material; view with
-#>     'browseVignettes()'. To cite Bioconductor, see
-#>     'citation("Biobase")', and for packages 'citation("pkgname")'.
-#> 
-#> Attaching package: 'Biobase'
-#> The following object is masked from 'package:MatrixGenerics':
-#> 
-#>     rowMedians
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     anyMissing, rowMedians
-#> Loading required package: scuttle
-#> Loading required package: ggplot2
 library(scLANE)
-#> Loading required package: glm2
-#> Loading required package: magrittr
-#> 
-#> Attaching package: 'magrittr'
-#> The following object is masked from 'package:GenomicRanges':
-#> 
-#>     subtract
 library(ggplot2)
 select <- dplyr::select
 filter <- dplyr::filter
@@ -225,7 +131,7 @@ plotPCA(sim_data, colour_by = "subject") +
 ## Trajectory DE testing
 
 Since we have multi-subject data, we can use any of the three model
-backends to run our DE testing. We’ll start with the simplest model, the
+modes to run our DE testing. We’ll start with the simplest model, the
 GLM, then work our way through the other options in order of increasing
 complexity. We first prepare our inputs - a dataframe containing our
 cell ordering, a set of genes to build models for, and a vector of
@@ -234,11 +140,13 @@ reality, it’s usually unnecessary to fit a model for every single gene
 in a dataset, as trajectories are usually estimated using a subset of
 the entire set of genes (usually a few thousand most highly variable
 genes). For the purpose of demonstration, we’ll select 50 genes each
-from the dynamic and non-dynamic populations. **Note**: in this case
-we’re working with a single pseudotime lineage, though in real datasets
-several lineages often exist; in order to fit models for a subset of
-lineages simply remove the corresponding columns from the cell ordering
-dataframe passed as input to `testDynamic()`.
+from the dynamic and non-dynamic populations.
+
+> [!NOTE] In this case we’re working with a single pseudotime lineage,
+> though in real datasets several lineages often exist; in order to fit
+> models for a subset of lineages simply remove the corresponding
+> columns from the cell ordering dataframe passed as input to
+> `testDynamic()`.
 
 ``` r
 set.seed(312)
@@ -248,7 +156,7 @@ order_df <- data.frame(X = sim_data$cell_time_normed)
 cell_offset <- createCellOffset(sim_data)
 ```
 
-### GLM framework
+### GLM mode
 
 Running `testDynamic()` provides us with a nested list containing model
 output & DE test results for each gene over each pseudotime / latent
@@ -262,14 +170,14 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 19.185 secs
+#> scLANE testing completed for 100 genes across 1 lineage in 21.213 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
 a sorted table of DE test results, with one row for each gene & lineage.
-The GLM backend uses a simple likelihood ratio test to compare the null
-& alternate models, with the test statistic assumed to be
-[asymptotically Chi-squared
+The GLM mode uses a simple likelihood ratio test to compare the null &
+alternate models, with the test statistic assumed to be [asymptotically
+Chi-squared
 distributed](https://en.wikipedia.org/wiki/Likelihood-ratio_test).
 
 ``` r
@@ -281,25 +189,25 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene       | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-----------|:--------|----------:|--------:|-------------:|-------------------------:|
-| MFSD2B     | A       |   209.755 |   0.000 |        0.000 |                        1 |
-| GOLGA8EP   | A       |     4.359 |   0.037 |        0.405 |                        0 |
-| NOP14      | A       |     7.727 |   0.005 |        0.114 |                        0 |
-| TMCO3      | A       |   167.582 |   0.000 |        0.000 |                        1 |
-| LY75.CD302 | A       |     3.210 |   0.073 |        0.405 |                        0 |
+| Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:--------|:--------|----------:|--------:|-------------:|-------------------------:|
+| MFSD2B  | A       |   209.755 |   0.000 |        0.000 |                        1 |
+| ARHGEF9 | A       |     6.428 |   0.040 |        0.442 |                        0 |
+| NOP14   | A       |     7.727 |   0.005 |        0.114 |                        0 |
+| TMCO3   | A       |   167.582 |   0.000 |        0.000 |                        1 |
+| SMG1    | A       |     5.016 |   0.081 |        0.442 |                        0 |
 
-### GEE framework
+### GEE mode
 
-The function call is essentially the same when using the GLM backend,
-with the exception of needing to provide a sorted vector of subject IDs
-& a desired correlation structure, the default being [the AR1
+The function call is essentially the same when using the GLM mode, with
+the exception of needing to provide a sorted vector of subject IDs & a
+desired correlation structure, the default being [the AR1
 structure](https://en.wikipedia.org/wiki/Autoregressive_model). We also
 need to flip the `is.gee` flag in order to indicate that we’d like to
 fit estimating equations models (instead of mixed models). Since fitting
 GEEs is more computationally complex than fitting GLMs, DE testing with
-the GEE backend takes a bit longer. Using more cores and / or running
-the tests on an HPC cluster speeds things up considerably.
+the GEE mode takes a bit longer. Using more cores and / or running the
+tests on an HPC cluster speeds things up considerably.
 
 ``` r
 scLANE_models_gee <- testDynamic(sim_data, 
@@ -310,7 +218,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 1.966 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 2.253 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -329,23 +237,23 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 
 | Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| CKAP4    | A       |  19582.769 |   0.000 |        0.000 |                        1 |
-| BCAT1    | A       |     14.946 |   0.001 |        0.011 |                        0 |
+| CKAP4    | A       |  19582.769 |       0 |            0 |                        1 |
+| TRAPPC1  | A       |     28.553 |       0 |            0 |                        1 |
 | GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
-| PCF11    | A       |   2672.280 |   0.000 |        0.000 |                        1 |
-| IDH3G    | A       |    863.479 |   0.000 |        0.000 |                        1 |
+| PCF11    | A       |   2672.280 |       0 |            0 |                        1 |
+| MPG      | A       |    924.419 |       0 |            0 |                        1 |
 
-### GLMM framework
+### GLMM mode
 
-We re-run the DE tests a final time using the GLMM backend. This is the
+We re-run the DE tests a final time using the GLMM mode. This is the
 most complex model architecture we support, and is the trickiest to
 interpret. We recommend using it when you’re most interested in how a
 trajectory differs between subjects e.g., if the subjects belong to
 groups like Treatment & Control, and you expect the Treatment group to
 experience a different progression through the biological process.
-Executing the function with the GLMM backend differs only in that we
-switch the `is.glmm` flag to `TRUE` and no longer need to specify a
-working correlation structure.
+Executing the function with the GLMM mode differs only in that we switch
+the `is.glmm` flag to `TRUE` and no longer need to specify a working
+correlation structure.
 
 ``` r
 scLANE_models_glmm <- testDynamic(sim_data, 
@@ -357,21 +265,17 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
                                   n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 2.73 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 2.39 mins
 ```
 
-{% note %}
+> [!NOTE] The GLMM mode is still under development, as we are working
+> on further reducing runtime and increasing the odds of the underlying
+> optimization process converging successfully. As such, updates will be
+> frequent and functionality / results may shift slightly.
 
-**Note**: the GLMM backend is still under development, as we are working
-on further reducing runtime and increasing the odds of the underlying
-optimization process converging successfully. As such, updates will be
-frequent and functionality / results may shift slightly.
-
-{% endnote %}
-
-Like the GLM backend, the GLMM backend uses a likelihood ratio test to
-compare the null & alternate models. We fit the two nested models using
-maximum likelihood estimation instead of
+Like the GLM mode, the GLMM mode uses a likelihood ratio test to compare
+the null & alternate models. We fit the two nested models using maximum
+likelihood estimation instead of
 [REML](https://en.wikipedia.org/wiki/Restricted_maximum_likelihood) in
 order to perform this test; the null model in this case is a negative
 binomial GLMM with a random intercept for each subject.
@@ -387,28 +291,28 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
-| DCTN1   | A       |   118.028 |   0.000 |            0 |                        1 |
-| PCF11   | A       |    72.043 |   0.000 |            0 |                        1 |
+| KLHDC10 | A       |   123.059 |   0.000 |            0 |                        1 |
+| DDX41   | A       |    74.493 |   0.000 |            0 |                        1 |
 | WDSUB1  | A       |        NA |      NA |           NA |                        0 |
 | FAM135B | A       |        NA |      NA |           NA |                        0 |
-| ARHGEF9 | A       |     7.792 |   0.801 |            1 |                        0 |
+| NLGN4Y  | A       |     9.878 |   0.627 |            1 |                        0 |
 
 ## Downstream analysis & visualization
 
 ### Model comparison
 
 We can use the `plotModels()` to visually compare different types of
-modeling backends. It takes as input the results from `testDynamic()`,
-as well as a few specifications for which models & lineages should be
-plotted. While more complex visualizations can be created from our model
-output, this function gives us a good first glance at which models fit
-the underlying trend the best. Here we show the output generated using
-the GLM backend, split by model type. The intercept-only model shows the
-null hypothesis against which the scLANE model is compared using the
-likelihood ratio test and the GLM displays the inadequacy of monotonic
-modeling architectures for nonlinear dynamics. A GAM shows essentially
-the same trend as the `scLANE` model, though the fitted trend from
-`scLANE` is more interpretable & has a narrower confidence interval.
+models. It takes as input the results from `testDynamic()`, as well as a
+few specifications for which models & lineages should be plotted. While
+more complex visualizations can be created from our model output, this
+function gives us a good first glance at which models fit the underlying
+trend the best. Here we show the output generated using the GLM mode,
+split by model type. The intercept-only model shows the null hypothesis
+against which the scLANE model is compared using the likelihood ratio
+test and the GLM displays the inadequacy of monotonic modeling
+architectures for nonlinear dynamics. A GAM shows essentially the same
+trend as the `scLANE` model, though the fitted trend from `scLANE` is
+more interpretable & has a narrower confidence interval.
 
 ``` r
 plotModels(scLANE_models_glm, 
@@ -423,6 +327,9 @@ plotModels(scLANE_models_glm,
 ```
 
 <img src="man/figures/README-plot-models-glm-1.png" width="100%" />
+
+Model comparison using the GEE mode is similar, with the only change
+being that we now provide a vector of subject IDs.
 
 ``` r
 plotModels(scLANE_models_gee, 
@@ -440,7 +347,7 @@ plotModels(scLANE_models_gee,
 
 <img src="man/figures/README-plot-models-gee-1.png" width="100%" />
 
-When plotting the models generated using the GLMM backend, we split by
+When plotting the models generated using the GLMM mode, we split by
 lineage & color the points by subject ID instead of by lineage. The gene
 in question highlights the utility of the scLANE model, since the gene
 dynamics differ significantly by subject.
@@ -527,19 +434,18 @@ vignette](https://jr-leary7.github.io/quarto-site/tutorials/scLANE_Trajectory_DE
 
 # Conclusions & best practices
 
-In general, starting with the GLM backend is probably your best bet
-unless you have a strong prior belief that expression trends will differ
+In general, starting with the GLM mode is probably your best bet unless
+you have a strong prior belief that expression trends will differ
 significantly between subjects. If that is the case, you should use the
-GEE backend if you’re interested in population-level estimates, but are
+GEE mode if you’re interested in population-level estimates, but are
 worried about wrongly predicting differential expression when
 differences in expression are actually caused by inter-subject
 variation. If you’re interested in generating subject-specific estimates
-then the GLMM backend should be used; take care when interpreting the
-fixed vs. random effects though, and consult a biostatistician if
-necessary.
+then the GLMM mode should be used; take care when interpreting the fixed
+vs. random effects though, and consult a biostatistician if necessary.
 
 If you have a large dataset (10,000+ cells), you should start with the
-GLM backend, since standard error estimates don’t differ much between
+GLM mode, since standard error estimates don’t differ much between
 modeling methods given high enough *n*. In addition, running the tests
 on an HPC cluster with 4+ CPUs and 64+ GB of RAM will help your
 computations to complete swiftly. Datasets with smaller numbers of cells

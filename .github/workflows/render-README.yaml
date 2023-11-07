@@ -3,7 +3,7 @@
 
 on:
   push:
-    branches: main
+    branches: dev
     paths: [README.Rmd, render-README.yaml]
 
 name: render-README
@@ -22,7 +22,7 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: install CRAN packages
-        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "caret", "BiocManager"))'
+        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "BiocManager"))'
       - name: install BioConductor packages
         run: Rscript -e 'BiocManager::install(c("SingleCellExperiment", "scater", "scran"))'
       - name: install GitHub packages

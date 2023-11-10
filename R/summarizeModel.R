@@ -10,6 +10,7 @@
 #' @param pt The predictor matrix of pseudotime. Defaults to NULL.
 #' @return A data.frame of the model coefficients, cutpoint intervals, and formatted equations.
 #' @seealso \code{\link{marge2}}
+#' @export
 #' @examples
 #' \dontrun{
 #' summarizeModel(marge.model = marge_mod, pt = pt_df)

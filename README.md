@@ -142,7 +142,7 @@ the entire set of genes (usually a few thousand most highly variable
 genes). For the purpose of demonstration, we’ll select 50 genes each
 from the dynamic and non-dynamic populations.
 
-> [!NOTE] In this case we’re working with a single pseudotime lineage,
+> \[!NOTE\] In this case we’re working with a single pseudotime lineage,
 > though in real datasets several lineages often exist; in order to fit
 > models for a subset of lineages simply remove the corresponding
 > columns from the cell ordering dataframe passed as input to
@@ -170,7 +170,7 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 21.213 secs
+#> scLANE testing completed for 100 genes across 1 lineage in 24.807 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -189,13 +189,13 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:--------|:--------|----------:|--------:|-------------:|-------------------------:|
-| MFSD2B  | A       |   209.755 |   0.000 |        0.000 |                        1 |
-| ARHGEF9 | A       |     6.428 |   0.040 |        0.442 |                        0 |
-| NOP14   | A       |     7.727 |   0.005 |        0.114 |                        0 |
-| TMCO3   | A       |   167.582 |   0.000 |        0.000 |                        1 |
-| SMG1    | A       |     5.016 |   0.081 |        0.442 |                        0 |
+| Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
+| MFSD2B | A       |   209.755 |   0.000 |        0.000 |                        1 |
+| FOXD3  | A       |     4.276 |   0.039 |        0.451 |                        0 |
+| NOP14  | A       |     7.712 |   0.005 |        0.115 |                        0 |
+| TMCO3  | A       |   167.759 |   0.000 |        0.000 |                        1 |
+| DLC1   | A       |     2.803 |   0.094 |        0.451 |                        0 |
 
 ### GEE mode
 
@@ -218,7 +218,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 2.253 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 2.343 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -237,11 +237,11 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 
 | Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| CKAP4    | A       |  19582.769 |       0 |            0 |                        1 |
-| TRAPPC1  | A       |     28.553 |       0 |            0 |                        1 |
+| BAD      | A       | 301009.051 |       0 |        0.000 |                        1 |
+| SPCS3    | A       |     18.352 |       0 |        0.002 |                        1 |
 | GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
-| PCF11    | A       |   2672.280 |       0 |            0 |                        1 |
-| MPG      | A       |    924.419 |       0 |            0 |                        1 |
+| WAPAL    | A       |   3168.110 |       0 |        0.000 |                        1 |
+| MPG      | A       |    924.419 |       0 |        0.000 |                        1 |
 
 ### GLMM mode
 
@@ -265,10 +265,10 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
                                   n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 2.39 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 2.37 mins
 ```
 
-> [!NOTE] The GLMM mode is still under development, as we are working
+> \[!NOTE\] The GLMM mode is still under development, as we are working
 > on further reducing runtime and increasing the odds of the underlying
 > optimization process converging successfully. As such, updates will be
 > frequent and functionality / results may shift slightly.

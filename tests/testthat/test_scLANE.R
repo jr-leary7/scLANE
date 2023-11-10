@@ -165,6 +165,13 @@ withr::with_output_sink(tempfile(), {
                           plot.null = TRUE,
                           plot.glm = TRUE,
                           plot.gam = TRUE)
+  coef_plot_glm <- plotModelCoefs(glm_gene_stats,
+                                  gene = glm_test_results$Gene[1],
+                                  pt = pt_test,
+                                  expr.mat = sim_data,
+                                  size.factor.offset = cell_offset,
+                                  lineage = "A",
+                                  log1p.norm = TRUE)
   # gene clustering
   set.seed(312)
   gene_clusters_leiden <- clusterGenes(test.dyn.res = glm_gene_stats,
@@ -211,6 +218,13 @@ withr::with_output_sink(tempfile(), {
                                pc.return = 2,
                                k.param = 5,
                                random.seed = 312)
+  # gene program scoring
+  sim_data <- geneProgramScoring(sim_data,
+                                 genes = gene_embedding$gene,
+                                 gene.clusters = gene_embedding$leiden)
+  sim_data_seu <- geneProgramScoring(sim_data_seu,
+                                     genes = gene_embedding$gene,
+                                     gene.clusters = gene_embedding$leiden)
   # enrichment analysis
   gsea_res <- enrichDynamicGenes(glm_test_results, species = "hsapiens")
   # coefficients
@@ -343,6 +357,11 @@ test_that("plotModels() output", {
   expect_equal(ncol(plot_glmm$data), 12)
 })
 
+test_that("plotModelCoefs() output", {
+  expect_s3_class(coef_plot_glm, "ggplot")
+  expect_s3_class(coef_plot_glm, "ggarrange")
+})
+
 test_that("clusterGenes() output", {
   expect_s3_class(gene_clusters_leiden, "data.frame")
   expect_s3_class(gene_clusters_kmeans, "data.frame")
@@ -368,6 +387,13 @@ test_that("embedGenes() output", {
   expect_s3_class(gene_embedding_pca, "data.frame")
   expect_equal(ncol(gene_embedding), 6)
   expect_equal(ncol(gene_embedding_pca), 6)
+})
+
+test_that("geneProgramScoring() output", {
+  expect_equal(colnames(SummarizedExperiment::colData(sim_data))[7], "cluster_0")
+  expect_equal(colnames(SummarizedExperiment::colData(sim_data))[8], "cluster_1")
+  expect_equal(colnames(sim_data_seu@meta.data)[10], "cluster_0")
+  expect_equal(colnames(sim_data_seu@meta.data)[11], "cluster_1")
 })
 
 test_that("sortGenesHeatmap() output", {

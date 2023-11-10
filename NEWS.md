@@ -1,11 +1,13 @@
 # `scLANE` v0.7.7
 
-* Added DOI badge to README
-* Further compression of included datasets.
+* Added DOI badge to README. 
+* Better compression of included datasets.
+* Added `geneProgramScoring()` for module scoring of dynamic gene clusters.
+* Added `plotModelCoefs()` to annotate gene dynamics plots with a table of model coefficients. 
 
 # `scLANE` v0.7.6
 
-* Added Zenodo tracking.
+* Added [Zenodo tracking](https://doi.org/10.5281/zenodo.10030621).
 * Added simulated dataset to `data/`.
 
 # `scLANE` v0.7.5
@@ -21,7 +23,7 @@
 # `scLANE` v0.7.3
 
 * Added a function named `embedGenes()` that takes a smoothed counts matrix as input & returns PCA & UMAP embeddings along with a graph-based clustering. 
-* Updated the `clusterGenes()` function to be much more efficient as well as changing the distance metric used to be cosine dissimilarity. 
+* Updated the `clusterGenes()` function to be much more efficient as well as changing the distance metric used to be cosine distance. 
 * Added `theme_scLANE()` for output plots. 
 * Enhanced documentation. 
 * Increased test coverage.

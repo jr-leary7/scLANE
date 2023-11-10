@@ -22,9 +22,9 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: install CRAN packages
-        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "devtools", "BiocManager"))'
+        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "devtools", "BiocManager", "Seurat"), dependencies = TRUE)'
       - name: install BioConductor packages
-        run: Rscript -e 'BiocManager::install(c("SingleCellExperiment", "scater", "scran"))'
+        run: Rscript -e 'BiocManager::install(c("SingleCellExperiment", "scater", "scran", "scuttle", "bluster"))'
       - name: install GitHub packages
         run: Rscript -e 'remotes::install_github("jr-leary7/scLANE")'
       - name: render README

@@ -89,8 +89,9 @@ plotPCA(sim_data, colour_by = "subject") +
 
 Since we have multi-subject data, we can use any of the three model modes to run our DE testing. We'll start with the simplest model, the GLM, then work our way through the other options in order of increasing complexity. We first prepare our inputs - a dataframe containing our cell ordering, a set of genes to build models for, and a vector of per-cell size factors to be used as offsets during estimation. In reality, it's usually unnecessary to fit a model for every single gene in a dataset, as trajectories are usually estimated using a subset of the entire set of genes (usually a few thousand most highly variable genes). For the purpose of demonstration, we'll select 50 genes each from the dynamic and non-dynamic populations. 
 
-> [!NOTE]
-> In this case we're working with a single pseudotime lineage, though in real datasets several lineages often exist; in order to fit models for a subset of lineages simply remove the corresponding columns from the cell ordering dataframe passed as input to `testDynamic()`. 
+{% note %}
+**Note** In this case we're working with a single pseudotime lineage, though in real datasets several lineages often exist; in order to fit models for a subset of lineages simply remove the corresponding columns from the cell ordering dataframe passed as input to `testDynamic()`. 
+{% endnote %}
 
 ```{r prep-data}
 set.seed(312)
@@ -165,8 +166,9 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   n.cores = 4)
 ```
 
-> [!NOTE]
-> The GLMM mode is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+{% note %}
+**Note** The GLMM mode is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+{% endnote %}
 
 Like the GLM mode, the GLMM mode uses a likelihood ratio test to compare the null & alternate models. We fit the two nested models using maximum likelihood estimation instead of [REML](https://en.wikipedia.org/wiki/Restricted_maximum_likelihood) in order to perform this test; the null model in this case is a negative binomial GLMM with a random intercept for each subject.  
 

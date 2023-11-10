@@ -72,7 +72,7 @@ plotPCA(sim_data, colour_by = "subject") +
 
 # `scLANE` testing
 
-The necessary inputs for `scLANE` are as follows: a dataframe containing $\ge 1$ pseudotime lineages, a sequencing depth-based offset, and a matrix of unnormalized gene expression counts (this can be a `SingleCellExperiment` or `Seurat` object, or an actual dense or sparse counts matrix). In addition, we can optionally provide a subset of genes to test - here we identify the top 1,000 most highly-variable genes (HVGs), and test only those. 
+The necessary inputs for `scLANE` are as follows: a dataframe containing $\ge 1$ pseudotime lineages, a sequencing depth-based offset, and a matrix of gene expression counts (this can be a `SingleCellExperiment` or `Seurat` object, or an actual dense or sparse counts matrix). In addition, we can optionally provide a subset of genes to test - here we identify the top 1,000 most highly-variable genes (HVGs), and test only those. 
 
 ```{r}
 order_df <- data.frame(PT = sim_data$cell_time_normed)
@@ -95,7 +95,7 @@ After model fitting has completed, we generate a tidy table of DE test results a
 ```{r, }
 scLANE_de_res <- getResultsDE(scLANE_models)
 select(scLANE_de_res, Gene, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %>% 
-  slice_sample(n = 7) %>% 
+  slice_sample(n = 5) %>% 
   knitr::kable(digits = 3, 
                caption = "Sample of scLANE TDE statistics",
                col.names = c("Gene", "LRT Stat.", "P-value", "Adj. p-value", "Pred. status"))
@@ -122,7 +122,7 @@ plotModels(scLANE_models,
 Each gene's output contains a slot named `Gene_Dynamics` that summarizes the coefficients across each pseudotime interval. 
 
 ```{r}
-knitr::kable(scLANE_models$HIST1H4C$Lineage_A$Gene_Dynamics, 
+knitr::kable(scLANE_models[[scLANE_de_res$Gene[1]]]$Lineage_A$Gene_Dynamics, 
              caption = "Summarized coefficients from scLANE",
              digits = 3)
 ```
@@ -234,6 +234,24 @@ ggplot(gene_embedding, aes(x = umap1, y = umap2, color = leiden)) +
   guides(color = guide_legend(override.aes = list(size = 2, alpha = 1, stroke = 1)))
 ```
 
+## Gene program scoring
+
+We assume that each cluster of similarly-behaving genes represents a gene program i.e., a set of genes that work together to perform a shared task. Each program is defined by the set of genes unique to it, and module scoring allows us to assign a per-cell numeric score for each set of genes. The `geneProgramScoring()` function performs this task using the `r Biocpkg("UCell")` package under the hood. 
+
+```{r}
+sim_data <- geneProgramScoring(sim_data, 
+                               genes = gene_embedding$gene, 
+                               gene.clusters = gene_embedding$leiden)
+
+```
+
+Plotting the program scores for gene cluster 1 shows that cells at the end of the trajectory have overall high expression of genes in that cluster. 
+
+```{r, fig.cap="Module scores for gene cluster 0"}
+plotPCA(sim_data, colour_by = "cluster_1") + 
+  theme_scLANE(umap = TRUE)
+```
+
 ## Trajectory enrichment 
 
 Lastly, we can perform pathway analysis on the set of dynamic genes using the `enrichDynamicGenes()` function. This is built off of the `r CRANpkg("gprofiler2")` package, which supports a wide variety of species and pathway databases. 
@@ -242,7 +260,7 @@ Lastly, we can perform pathway analysis on the set of dynamic genes using the `e
 dyn_gene_enrichment <- enrichDynamicGenes(scLANE_de_res, species = "hsapiens")
 filter(dyn_gene_enrichment$result, source == "GO:BP") %>% 
   select(term_id, term_name, p_value, source) %>% 
-  slice_head(n = 7) %>% 
+  slice_head(n = 5) %>% 
   knitr::kable(digits = 3,
                caption = "Trajectory pathway enrichment statistics",
                col.names = c("Term ID", "Term name", "Adj. p-value", "Source"))

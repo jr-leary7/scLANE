@@ -37,7 +37,7 @@ plotClusteredGenes <- function(test.dyn.res = NULL,
                                pt = NULL,
                                size.factor.offset = NULL,
                                parallel.exec = TRUE,
-                               n.cores = 2) {
+                               n.cores = 2L) {
   # check inputs
   if (is.null(test.dyn.res) || is.null(gene.clusters) || is.null(pt)) { stop("Arguments to plotClusteredGenes() are missing.") }
   colnames(pt) <- paste0("Lineage_", LETTERS[seq_len(ncol(pt))])

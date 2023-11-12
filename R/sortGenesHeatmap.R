@@ -12,11 +12,13 @@
 #' @seealso \code{\link{smoothedCountsMatrix}}
 #' @export
 #' @examples
-#' \dontrun{
-#' smoothed_counts <- smoothedCountsMatrix(gene_stats, pt = pt_df)
-#' sortGenesheatmap(heatmap.mat = smoothed_counts$Lineage_A,
-#'                  pt.vec = pt_df[!is.na(pt_df$Lineage_A), ]$Lineage_A)
-#' }
+#' data(sim_pseudotime)
+#' data(scLANE_models)
+#' smoothed_counts <- smoothedCountsMatrix(scLANE_models,
+#'                                         pt = sim_pseudotime,
+#'                                         n.cores = 1L)
+#' sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A,
+#'                                  pt.vec = sim_pseudotime$PT)
 
 sortGenesHeatmap <- function(heatmap.mat = NULL, pt.vec = NULL) {
   # check inputs

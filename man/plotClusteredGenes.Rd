@@ -10,7 +10,7 @@ plotClusteredGenes(
   pt = NULL,
   size.factor.offset = NULL,
   parallel.exec = TRUE,
-  n.cores = 2
+  n.cores = 2L
 )
 }
 \arguments{

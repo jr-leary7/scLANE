@@ -11,9 +11,8 @@
 #' @return A data.frame containing gene name, lineage ID, and knot location in pseudotime.
 #' @export
 #' @examples
-#' \dontrun{
-#' getKnotDist(gene_stats)
-#' }
+#' data(scLANE_models)
+#' knot_dist <- getKnotDist(scLANE_models)
 
 getKnotDist <- function(test.dyn.res = NULL, dyn.genes = NULL) {
   # check inputs

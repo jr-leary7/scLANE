@@ -42,12 +42,13 @@ An object of class \code{marge} containing the fitted model & other optional qua
 Fits a negative binomial generalized linear mixed model using truncated power basis function splines as input. The basis matrix can be created adaptively using subject-specific estimation of optimal knots using \code{\link{marge2}}, or basis functions can be evenly space across quantiles. The resulting model can output subject-specific and population-level fitted values.
 }
 \examples{
-\dontrun{
-fitGLMM(X_pred = pt_df,
-        Y = raw_counts,
-        Y.offset = size_factor_vec,
-        id.vec = subject_vec)
-}
+data(sim_counts)
+data(sim_pseudotime)
+cell_offset <- createCellOffset(sim_counts)
+glmm_mod <- fitGLMM(X_pred = sim_pseudotime,
+                    Y = BiocGenerics::counts(sim_counts)[4, ],
+                    Y.offset = cell_offset,
+                    id.vec = sim_counts$subject)
 }
 \seealso{
 \code{\link[glmmTMB]{glmmTMB}}

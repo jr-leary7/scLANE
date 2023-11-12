@@ -11,13 +11,6 @@
 #' @return A data.frame containing model data.
 #' @seealso \code{\link{marge2}}
 #' @seealso \code{\link{testSlope}}
-#' @examples
-#' \dontrun{
-#' createSlopeTestData(marge_mod, pt_df)
-#' createSlopeTestData(marge_mod,
-#'                     pt = pt_df,
-#'                     is.glmm = TRUE)
-#' }
 
 createSlopeTestData <- function(marge.model = NULL,
                                 pt = NULL,

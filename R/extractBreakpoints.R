@@ -8,9 +8,13 @@
 #' @return A data.frame of breakpoints & their directions.
 #' @export
 #' @examples
-#' \dontrun{
-#' extractBreakpoints(model = marge_mod)
-#' }
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' marge_model <- marge2(sim_pseudotime,
+#'                       Y = BiocGenerics::counts(sim_counts)[4, ],
+#'                       Y.offset = cell_offset)
+#' breakpoint_df <- extractBreakpoints(model = marge_model)
 
 extractBreakpoints <- function(model = NULL, directions = TRUE) {
   # check inputs

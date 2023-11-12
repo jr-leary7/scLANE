@@ -33,18 +33,14 @@ An object of class \code{gamlss}
 Fits a negative-binomial family GAM using a cubic basis spline on pseudotime. If data are multi-subject in nature, a random intercept is included for each subject.
 }
 \examples{
-\dontrun{
-nbGAM(expr_vec, pt_df)
-nbGAM(expr_vec,
-      pt = pt_df,
-      id.vec = subject_ids,
-      random.slopes = TRUE)
-nbGAM(expr_vec,
-      pt = pt_df,
-      Y.offset = size_factor_vec,
-      penalize.spline = TRUE,
-      spline.df = 10)
-}
+data(sim_counts)
+data(sim_pseudotime)
+cell_offset <- createCellOffset(sim_counts)
+gam_mod <- nbGAM(BiocGenerics::counts(sim_counts)[4, ],
+                 pt = sim_pseudotime,
+                 Y.offset = cell_offset,
+                 penalize.spline = TRUE,
+                 spline.df = 10)
 }
 \seealso{
 \code{\link[gamlss]{gamlss}}

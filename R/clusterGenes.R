@@ -23,19 +23,12 @@
 #' @seealso \code{\link{plotClusteredGenes}}
 #' @export
 #' @examples
-#' \dontrun{
-#' clusterGenes(gene_stats, pt = pt_df)
-#' clusterGenes(gene_stats,
-#'              pt = pt_df,
-#'              size.factor.offset = createCellOffset(sce_obj),
-#'              clust.algo = "kmeans",
-#'              use.pca = TRUE,
-#'              n.PC = 10,
-#'              lineages = "B")
-#' clusterGenes(gene_stats,
-#'              pt = pt_df,
-#'              lineages = c("A", "C"))
-#' }
+#' data(sim_pseudotime)
+#' data(scLANE_models)
+#' cell_offset <- createCellOffset(sim_counts)
+#' gene_clusters <- clusterGenes(scLANE_models,
+#'                               pt = sim_pseudotime,
+#'                               size.factor.offset = cell_offset)
 
 clusterGenes <- function(test.dyn.res = NULL,
                          pt = NULL,

@@ -12,9 +12,13 @@
 #' @seealso \code{\link{marge2}}
 #' @export
 #' @examples
-#' \dontrun{
-#' summarizeModel(marge.model = marge_mod, pt = pt_df)
-#' }
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' marge_model <- marge2(sim_pseudotime,
+#'                       Y = BiocGenerics::counts(sim_counts)[4, ],
+#'                       Y.offset = cell_offset)
+#' model_summary <- summarizeModel(marge.model = marge_model, pt = sim_pseudotime)
 
 summarizeModel <- function(marge.model = NULL, pt = NULL) {
   # check inputs

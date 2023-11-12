@@ -27,13 +27,16 @@ A \code{ggplot2} theme.
 A publication-ready theme for creating gene dynamics plots, embedding plots, etc.
 }
 \examples{
-\dontrun{
-plotModels(gene_stats,
-           gene = "CD14",
-           pt = pt_df,
-           expr.mat = count_mat
-) + theme_scLANE()
-}
+data(sim_counts)
+data(scLANE_models)
+data(sim_pseudotime)
+cell_offset <- createCellOffset(sim_counts)
+plotModels(scLANE_models,
+           gene = names(scLANE_models)[1],
+           pt = sim_pseudotime,
+           expr.mat = sim_counts,
+           size.factor.offset = cell_offset) +
+theme_scLANE()
 }
 \author{
 Jack Leary

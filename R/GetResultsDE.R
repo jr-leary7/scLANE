@@ -16,12 +16,8 @@
 #' @seealso \code{\link{testDynamic}}
 #' @seealso \code{\link[stats]{p.adjust}}
 #' @examples
-#' \dontrun{
-#' getResultsDE(gene_stats)
-#' getResultsDE(gene_stats,
-#'              p.adj.method = "BH",
-#'              fdr.cutoff = 5e-3)
-#' }
+#' data(scLANE_models)
+#' scLANE_de_res <- getResultsDE(scLANE_models)
 
 getResultsDE <- function(test.dyn.res = NULL,
                          p.adj.method = "holm",

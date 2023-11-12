@@ -18,11 +18,13 @@ A character vector of genes sorted by their peak expression values over pseudoti
 Sort genes such that genes with peak expression occurring earlier in pseudotime are first, and vice versa for genes with late peak expression. Useful for ordering genes in order to create heatmaps of expression cascades.
 }
 \examples{
-\dontrun{
-smoothed_counts <- smoothedCountsMatrix(gene_stats, pt = pt_df)
-sortGenesheatmap(heatmap.mat = smoothed_counts$Lineage_A,
-                 pt.vec = pt_df[!is.na(pt_df$Lineage_A), ]$Lineage_A)
-}
+data(sim_pseudotime)
+data(scLANE_models)
+smoothed_counts <- smoothedCountsMatrix(scLANE_models,
+                                        pt = sim_pseudotime,
+                                        n.cores = 1L)
+sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A,
+                                 pt.vec = sim_pseudotime$PT)
 }
 \seealso{
 \code{\link{smoothedCountsMatrix}}

@@ -14,7 +14,8 @@ embedGenes(
   gene.meta.data = NULL,
   k.param = 20,
   resolution.param = NULL,
-  random.seed = 312
+  random.seed = 312,
+  n.cores = 2L
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ embedGenes(
 \item{resolution.param}{(Optional) The value of the resolution parameter for the Leiden algorithm. If unspecified, silhouette scoring is used to select an optimal value. Defaults to NULL.}
 
 \item{random.seed}{(Optional) The random seed used to control stochasticity in the clustering algorithm. Defaults to 312.}
+
+\item{n.cores}{(Optional) Integer specifying the number of threads used by \code{\link[uwot]{umap}} and in \code{\link[bluster]{makeSNNGraph}}. Defaults to 2.}
 }
 \value{
 A data.frame containing embedding coordinates, cluster IDs, and metadata for each gene.
@@ -45,11 +48,12 @@ A data.frame containing embedding coordinates, cluster IDs, and metadata for eac
 Embed genes in dimension-reduced space given a smoothed counts matrix.
 }
 \examples{
-\dontrun{
-embedGenes(smoothed_counts$Lineage_A,
-           pcs.return = 3,
-           cluster.genes = TRUE)
-}
+data(sim_pseudotime)
+data(scLANE_models)
+smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
+                                          pt = sim_pseudotime,
+                                          n.cores = 1L)
+gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
 }
 \author{
 Jack Leary

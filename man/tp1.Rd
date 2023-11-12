@@ -4,17 +4,17 @@
 \alias{tp1}
 \title{Truncated p-th power function (positive part).}
 \usage{
-tp1(x, t, p = 1)
+tp1(x = NULL, t = NULL, p = 1)
 }
 \arguments{
-\item{x}{: a vector of predictor variable values.}
+\item{x}{A predictor variable value. Defaults to NULL.}
 
-\item{t}{: a specified knot value.}
+\item{t}{A specified knot value. Defaults to NULL.}
 
-\item{p}{: the pth degree of the polynomial considered.}
+\item{p}{The \eqn{p^{th}} degree of the polynomial considered. Defaults to 1.}
 }
 \value{
-\code{tp1} returns a vector of values that have been transformed using a truncated p-th power function (positive part) for a specified knot value.
+A vector of values that have been transformed using a truncated \eqn{p^{th}} power function (positive part) for a specified knot value.
 }
 \description{
 Truncated p-th power function (positive part).

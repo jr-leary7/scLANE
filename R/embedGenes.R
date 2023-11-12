@@ -17,14 +17,16 @@
 #' @param k.param (Optional) The value of nearest-neighbors used in creating the SNN graph prior to clustering & in running UMAP. Defaults to 20.
 #' @param resolution.param (Optional) The value of the resolution parameter for the Leiden algorithm. If unspecified, silhouette scoring is used to select an optimal value. Defaults to NULL.
 #' @param random.seed (Optional) The random seed used to control stochasticity in the clustering algorithm. Defaults to 312.
+#' @param n.cores (Optional) Integer specifying the number of threads used by \code{\link[uwot]{umap}} and in \code{\link[bluster]{makeSNNGraph}}. Defaults to 2.
 #' @return A data.frame containing embedding coordinates, cluster IDs, and metadata for each gene.
 #' @export
 #' @examples
-#' \dontrun{
-#' embedGenes(smoothed_counts$Lineage_A,
-#'            pcs.return = 3,
-#'            cluster.genes = TRUE)
-#' }
+#' data(sim_pseudotime)
+#' data(scLANE_models)
+#' smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
+#'                                           pt = sim_pseudotime,
+#'                                           n.cores = 1L)
+#' gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
 
 embedGenes <- function(smoothed.counts = NULL,
                        genes = NULL,
@@ -35,7 +37,8 @@ embedGenes <- function(smoothed.counts = NULL,
                        gene.meta.data = NULL,
                        k.param = 20,
                        resolution.param = NULL,
-                       random.seed = 312) {
+                       random.seed = 312,
+                       n.cores = 2L) {
   # check inputs
   if (is.null(smoothed.counts)) { stop("You forgot to provide a smoothed counts matrix to embedGenes().") }
   genes <- colnames(smoothed.counts)
@@ -52,7 +55,8 @@ embedGenes <- function(smoothed.counts = NULL,
                                        n_neighbors = k.param,
                                        init = "spectral",
                                        nn_method = "annoy",
-                                       seed = random.seed)
+                                       seed = random.seed,
+                                       n_threads = n.cores)
   } else {
     smoothed_counts_umap <- uwot::umap(smoothed.counts,
                                        n_components = 2,
@@ -60,7 +64,8 @@ embedGenes <- function(smoothed.counts = NULL,
                                        n_neighbors = k.param,
                                        init = "spectral",
                                        nn_method = "annoy",
-                                       seed = random.seed)
+                                       seed = random.seed,
+                                       n_threads = n.cores)
   }
   # clustering w/ silhouette score parameter tuning
   if (cluster.genes) {
@@ -68,12 +73,14 @@ embedGenes <- function(smoothed.counts = NULL,
       smoothed_counts_snn <- bluster::makeSNNGraph(smoothed_counts_pca$x,
                                                    k = k.param,
                                                    type = "jaccard",
-                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"))
+                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"),
+                                                   BPPARAM = BiocParallel::SnowParam(workers = n.cores))
     } else {
       smoothed_counts_snn <- bluster::makeSNNGraph(smoothed.counts,
                                                    k = k.param,
                                                    type = "jaccard",
-                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"))
+                                                   BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"),
+                                                   BPPARAM = BiocParallel::SnowParam(workers = n.cores))
     }
     if (is.null(resolution.param)) {
       if (pca.init) {

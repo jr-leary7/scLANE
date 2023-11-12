@@ -26,14 +26,6 @@ A data.frame containing model data.
 \description{
 Creates a data.frame of \code{marge} model breakpoints, \emph{p}-values, and other info.
 }
-\examples{
-\dontrun{
-createSlopeTestData(marge_mod, pt_df)
-createSlopeTestData(marge_mod,
-                    pt = pt_df,
-                    is.glmm = TRUE)
-}
-}
 \seealso{
 \code{\link{marge2}}
 

@@ -36,13 +36,16 @@ A \code{ggplot2} object displaying a gene dynamics plot & a table of coefficient
 Generate a plot of gene dynamics over a single pseudotime lineage, along with a table of coefficients across pseudotime intervals.
 }
 \examples{
-\dontrun{
-plotModelCoefs(gene_stats,
-               gene = "BRCA2",
-               pt = pt_df,
-               expr.mat = seu_obj,
+data(sim_counts)
+data(sim_pseudotime)
+data(scLANE_models)
+cell_offset <- createCellOffset(sim_counts)
+scLANE_de_res <- getResultsDE(scLANE_models)
+plotModelCoefs(scLANE_models,
+               gene = scLANE_de_res$Gene[1],
+               pt = sim_pseudotime,
+               expr.mat = sim_counts,
                size.factor.offset = cell_offset)
-}
 }
 \author{
 Jack Leary

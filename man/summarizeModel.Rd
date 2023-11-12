@@ -18,9 +18,13 @@ A data.frame of the model coefficients, cutpoint intervals, and formatted equati
 This function summarizes the model for each gene and allows for quantiative interpretation of fitted gene dynamics.
 }
 \examples{
-\dontrun{
-summarizeModel(marge.model = marge_mod, pt = pt_df)
-}
+data(sim_counts)
+data(sim_pseudotime)
+cell_offset <- createCellOffset(sim_counts)
+marge_model <- marge2(sim_pseudotime,
+                      Y = BiocGenerics::counts(sim_counts)[4, ],
+                      Y.offset = cell_offset)
+model_summary <- summarizeModel(marge.model = marge_model, pt = sim_pseudotime)
 }
 \seealso{
 \code{\link{marge2}}

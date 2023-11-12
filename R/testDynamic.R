@@ -46,29 +46,12 @@
 #' @seealso \code{\link[glmmTMB]{glmmTMB}}
 #' @export
 #' @examples
-#' \donttest{
 #' data(sim_counts)
 #' data(sim_pseudotime)
 #' cell_offset <- createCellOffset(sim_counts)
-#' testDynamic(sim_counts,
-#'             pt = sim_pseudotime,
-#'             size.factor.offset = cell_offset,
-#'             genes = sample(rownames(sim_counts), 20))
-#' testDynamic(sim_counts,
-#'             pt = sim_pseudotime,
-#'             size.factor.offset = cell_offset,
-#'             is.gee = TRUE,
-#'             id.vec = sim_counts$subject,
-#'             cor.structure = "ar1",
-#'             genes = sample(rownames(sim_counts), 20))
-#' testDynamic(sim_counts,
-#'             pt = sim_pseudotime,
-#'             size.factor.offset = cell_offset,
-#'             is.glmm = TRUE,
-#'             glmm.adaptive = TRUE,
-#'             id.vec = sim_counts$subject,
-#'             genes = sample(rownames(sim_counts), 20))
-#'}
+#' scLANE_models <- testDynamic(sim_counts,
+#'                              pt = sim_pseudotime,
+#'                              size.factor.offset = cell_offset)
 
 testDynamic <- function(expr.mat = NULL,
                         pt = NULL,
@@ -172,6 +155,7 @@ testDynamic <- function(expr.mat = NULL,
                                  .packages = package_list,
                                  .noexport = no_export,
                                  .errorhandling = "pass",
+                                 .inorder = TRUE,
                                  .verbose = FALSE) %dopar% {
     lineage_list <- vector("list", n_lineages)
     for (j in seq(n_lineages)) {
@@ -256,7 +240,7 @@ testDynamic <- function(expr.mat = NULL,
 
       # slim down GLM object if not a GEE / GLMM model (which are much smaller for some reason)
       if (!(is.gee || is.glmm)) {
-        null_mod <- scLANE::stripGLM(glm.obj = null_mod)
+        null_mod <- stripGLM(glm.obj = null_mod)
       }
 
       # record model fit status
@@ -275,21 +259,21 @@ testDynamic <- function(expr.mat = NULL,
       }
 
      # summarize hinge function coefficients
-     null_sumy <- scLANE:::pull.null.sumy(null_mod, is.gee, is.glmm)
-     marge_sumy <- scLANE:::pull.marge.sumy(marge_mod, is.gee, is.glmm)
+     null_sumy <- pull.null.sumy(null_mod, is.gee, is.glmm)
+     marge_sumy <- pull.marge.sumy(marge_mod, is.gee, is.glmm)
 
      # perform slope test
-     marge_slope_df <- scLANE:::createSlopeTestData(marge.model = marge_mod,
-                                                    pt = pt[lineage_cells, j, drop = FALSE],
-                                                    is.gee = is.gee,
-                                                    is.glmm = is.glmm)
+     marge_slope_df <- createSlopeTestData(marge.model = marge_mod,
+                                           pt = pt[lineage_cells, j, drop = FALSE],
+                                           is.gee = is.gee,
+                                           is.glmm = is.glmm)
      marge_slope_df <-  dplyr::mutate(marge_slope_df,
                                       Gene = genes[i],
                                       Lineage = LETTERS[j],
                                       .before = 1)
      # solve values of slopes across pseudotime intervals -- TODO: add support for GLMM backend
      if (!is.glmm) {
-       marge_dynamic_df <- scLANE:::summarizeModel(marge.model = marge_mod,
+       marge_dynamic_df <- summarizeModel(marge.model = marge_mod,
                                                    pt = pt[lineage_cells, j, drop = FALSE])
        marge_dynamic_df <- data.frame(t(unlist(marge_dynamic_df))) %>%
                            dplyr::mutate(Gene = genes[i],

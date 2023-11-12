@@ -10,7 +10,7 @@ name: render-README
 
 jobs:
   render:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -22,9 +22,9 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       - name: install CRAN packages
-        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "devtools", "BiocManager", "Seurat"), dependencies = TRUE)'
+        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "devtools", "BiocManager", "Seurat"), force = TRUE)'
       - name: install BioConductor packages
-        run: Rscript -e 'BiocManager::install(c("SingleCellExperiment", "scater", "scran", "scuttle", "bluster"))'
+        run: Rscript -e 'BiocManager::install(c("SingleCellExperiment", "scater", "scran", "scuttle", "bluster"), force = TRUE)'
       - name: install GitHub packages
         run: Rscript -e 'remotes::install_github("jr-leary7/scLANE")'
       - name: render README

@@ -28,7 +28,7 @@ knitr::opts_chunk$set(warning = FALSE,
 ![last commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
-[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.5281/zenodo.10030621&color=blue)](https://doi.org/10.5281/zenodo.10030621)
+[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.5281/zenodo.10106689&color=blue)](https://doi.org/10.5281/zenodo.10106689)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
@@ -90,7 +90,9 @@ plotPCA(sim_data, colour_by = "subject") +
 Since we have multi-subject data, we can use any of the three model modes to run our DE testing. We'll start with the simplest model, the GLM, then work our way through the other options in order of increasing complexity. We first prepare our inputs - a dataframe containing our cell ordering, a set of genes to build models for, and a vector of per-cell size factors to be used as offsets during estimation. In reality, it's usually unnecessary to fit a model for every single gene in a dataset, as trajectories are usually estimated using a subset of the entire set of genes (usually a few thousand most highly variable genes). For the purpose of demonstration, we'll select 50 genes each from the dynamic and non-dynamic populations. 
 
 {% note %}
-**Note** In this case we're working with a single pseudotime lineage, though in real datasets several lineages often exist; in order to fit models for a subset of lineages simply remove the corresponding columns from the cell ordering dataframe passed as input to `testDynamic()`. 
+
+**Note:** In this case we're working with a single pseudotime lineage, though in real datasets several lineages often exist; in order to fit models for a subset of lineages simply remove the corresponding columns from the cell ordering dataframe passed as input to `testDynamic()`. 
+
 {% endnote %}
 
 ```{r prep-data}
@@ -167,7 +169,9 @@ scLANE_models_glmm <- testDynamic(sim_data,
 ```
 
 {% note %}
-**Note** The GLMM mode is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+
+**Note:** The GLMM mode is still under development, as we are working on further reducing runtime and increasing the odds of the underlying optimization process converging successfully. As such, updates will be frequent and functionality / results may shift slightly. 
+
 {% endnote %}
 
 Like the GLM mode, the GLMM mode uses a likelihood ratio test to compare the null & alternate models. We fit the two nested models using maximum likelihood estimation instead of [REML](https://en.wikipedia.org/wiki/Restricted_maximum_likelihood) in order to perform this test; the null model in this case is a negative binomial GLMM with a random intercept for each subject.  

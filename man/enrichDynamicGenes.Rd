@@ -20,12 +20,9 @@ The output from \code{\link[gprofiler2]{gost}}.
 This function uses the \code{gprofiler2} package to perform pathway analysis on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
 }
 \examples{
-\dontrun{
-enrichDynamicGenes(scLANE.de.res = de_stats)
-enrichDynamicGenes(scLANE.de.res = de_stats,
-                   lineage = "B",
-                   species = "mmusculus")
-}
+data(scLANE_models)
+scLANE_de_res <- getResultsDE(scLANE_models)
+enr_res <- enrichDynamicGenes(scLANE_de_res)
 }
 \seealso{
 \code{\link[gprofiler2]{gost}}

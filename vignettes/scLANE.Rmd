@@ -247,7 +247,7 @@ sim_data <- geneProgramScoring(sim_data,
 
 Plotting the program scores for gene cluster 1 shows that cells at the end of the trajectory have overall high expression of genes in that cluster. 
 
-```{r, fig.cap="Module scores for gene cluster 0"}
+```{r, fig.cap="Module scores for gene cluster 1"}
 plotPCA(sim_data, colour_by = "cluster_1") + 
   theme_scLANE(umap = TRUE)
 ```

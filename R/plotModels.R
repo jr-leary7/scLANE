@@ -34,30 +34,15 @@
 #' @return A \code{ggplot} object.
 #' @export
 #' @examples
-#' \dontrun{
-#' plotModels(gene_stats,
-#'            gene = "AURKA",
-#'            pt = pt_df,
-#'            expr.mat = count_mat,
-#'            size.factor.offset = cell_offset)
-#' plotModels(gene_stats,
-#'            gene = "CD3E",
-#'            pt = pt_df,
-#'            expr.mat = seu_obj,
-#'            size.factor.offset = cell_offset,
-#'            ci.alpha = 0.1,
-#'            filter.lineage = c("A", "C"))
-#' plotModels(gene_stats,
-#'            gene = "CD14",
-#'            pt = pt_df,
-#'            expr.mat = sce_obj,
-#'            size.factor.offset = cell_offset,
-#'            is.glmm = TRUE,
-#'            id.vec = subject_ids,
-#'            plot.glm = TRUE,  # plots an NB GLMM with random intercepts & slopes per-subject
-#'            plot.gam = TRUE,  # plots an NB GAMM with random intercepts per-subject
-#'            gg.theme = ggplot2::theme_minimal())
-#' }
+#' data(sim_counts)
+#' data(scLANE_models)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' model_plot <- plotModels(scLANE_models,
+#'                          gene = names(scLANE_models)[2],
+#'                          pt = sim_pseudotime,
+#'                          expr.mat = sim_counts,
+#'                          size.factor.offset = cell_offset)
 
 plotModels <- function(test.dyn.res = NULL,
                        gene = NULL,
@@ -315,7 +300,7 @@ plotModels <- function(test.dyn.res = NULL,
          ggplot2::scale_y_continuous(labels = scales::label_comma()) +
          ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) +
          ggplot2::labs(x = "Pseudotime",
-                       y = "Expression",
+                       y = ifelse(log1p.norm, "Normalized Expression", "Expression"),
                        color = "Subject",
                        fill = "Subject",
                        title = gene) +
@@ -347,7 +332,7 @@ plotModels <- function(test.dyn.res = NULL,
          ggplot2::scale_y_continuous(labels = scales::label_comma()) +
          ggplot2::scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) +
          ggplot2::labs(x = "Pseudotime",
-                       y = "Expression",
+                       y = ifelse(log1p.norm, "Normalized Expression", "Expression"),
                        color = "Lineage",
                        fill = "Lineage",
                        title = gene) +

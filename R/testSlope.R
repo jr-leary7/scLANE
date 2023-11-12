@@ -15,12 +15,8 @@
 #' @seealso \code{\link[stats]{p.adjust}}
 #' @export
 #' @examples
-#' \dontrun{
-#' testSlope(gene_stats)
-#' testSlope(gene_stats,
-#'           method = "BH",
-#'           fdr.cutoff = 0.05)
-#' }
+#' data(scLANE_models)
+#' slope_test_res <- testSlope(scLANE_models)
 
 testSlope <- function(test.dyn.res = NULL,
                       p.adj.method = "holm",

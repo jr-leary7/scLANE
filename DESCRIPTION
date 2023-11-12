@@ -63,6 +63,7 @@ Suggests:
     BiocStyle, 
     slingshot, 
     gprofiler2,
+    BiocParallel, 
     BiocGenerics, 
     BiocNeighbors, 
     testthat (>= 3.0.0),

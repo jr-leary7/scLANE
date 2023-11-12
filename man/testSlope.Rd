@@ -20,12 +20,8 @@ A dataframe containing the genes, breakpoints, and slope \emph{p}-values from ea
 This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime interval using a Wald test.
 }
 \examples{
-\dontrun{
-testSlope(gene_stats)
-testSlope(gene_stats,
-          method = "BH",
-          fdr.cutoff = 0.05)
-}
+data(scLANE_models)
+slope_test_res <- testSlope(scLANE_models)
 }
 \seealso{
 \code{\link{testDynamic}}

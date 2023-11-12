@@ -42,24 +42,12 @@
 #' @seealso \code{\link[geeM]{geem}}
 #' @export
 #' @examples
-#' \dontrun{
-#'   marge2(pseudotime_df,
-#'          Y = expr_vec,
-#'          M = 3)
-#'   marge2(pseudotime_df,
-#'          Y = expr_vec,
-#'          Y.offset = size_factor_vec,
-#'          is.gee = TRUE,
-#'          id.vec = subject_vec,
-#'          cor.structure = "exchangeable")
-#'   marge2(pseudotime_df,
-#'          Y = expr_vec,
-#'          is.gee = TRUE,
-#'          id.vec = subject_vec,
-#'          cor.structure = "ar1",
-#'          n.knot.max = 10,
-#'          return.basis = TRUE)
-#' }
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' marge_model <- marge2(sim_pseudotime,
+#'                       Y = BiocGenerics::counts(sim_counts)[4, ],
+#'                       Y.offset = cell_offset)
 
 marge2 <- function(X_pred = NULL,
                    Y = NULL,

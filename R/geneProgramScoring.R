@@ -15,18 +15,22 @@
 #' @return Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
 #' @export
 #' @examples
-#' \dontrun{
-#' geneProgramScoring(seu_obj,
-#'                    genes = gene_embed$gene,
-#'                    gene.clusters = gene_embed$leiden,
-#'                    program.labels = c("cell cycle", "organogenesis"))
-#' }
+#' data(sim_pseudotime)
+#' data(scLANE_models)
+#' smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
+#'                                           pt = sim_pseudotime,
+#'                                           n.cores = 1L)
+#' gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
+#' sim_counts <- geneProgramScoring(sim_counts,
+#'                                  genes = gene_embed$gene,
+#'                                  gene.clusters = gene_embed$leiden,
+#'                                  n.cores = 1L)
 
 geneProgramScoring <- function(expr.mat = NULL,
                                genes = NULL,
                                gene.clusters = NULL,
                                program.labels = NULL,
-                               n.cores = 2) {
+                               n.cores = 2L) {
   # check inputs
   if (is.null(expr.mat) || is.null(genes) || is.null(gene.clusters)) { stop("Arguments to geneProgramScoring() are missing.") }
   if (!is.factor(gene.clusters)) {

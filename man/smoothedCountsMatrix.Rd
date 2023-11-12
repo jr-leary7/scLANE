@@ -11,7 +11,7 @@ smoothedCountsMatrix(
   genes = NULL,
   log1p.norm = FALSE,
   parallel.exec = TRUE,
-  n.cores = 2
+  n.cores = 2L
 )
 }
 \arguments{
@@ -36,14 +36,11 @@ A list of matrices of smoothed counts, with each element of the list being a sin
 This function takes as input the output from \code{\link{testDynamic}} and returns the fitted values from each model in a wide format, with one column per-gene and one row-per cell. This matrix can be use as input to cell or gene clustering and / or visualizations such as heatmaps.
 }
 \examples{
-\dontrun{
-smoothedCountsMatrix(gene_stats, pt = pt_df)
-smoothedCountsMatrix(gene_stats,
-                     pt = pt_df,
-                     genes = c("AURKA", "KRT19", "EPCAM", "GATA6"),
-                     parallel.exec = TRUE,
-                     n.cores = 2)
-}
+data(sim_pseudotime)
+data(scLANE_models)
+smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
+                                          pt = sim_pseudotime,
+                                          n.cores = 1L)
 }
 \seealso{
 \code{\link{testDynamic}}

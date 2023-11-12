@@ -21,18 +21,14 @@
 #' @seealso \code{\link[gamlss.dist]{NBI}}
 #' @export
 #' @examples
-#' \dontrun{
-#' nbGAM(expr_vec, pt_df)
-#' nbGAM(expr_vec,
-#'       pt = pt_df,
-#'       id.vec = subject_ids,
-#'       random.slopes = TRUE)
-#' nbGAM(expr_vec,
-#'       pt = pt_df,
-#'       Y.offset = size_factor_vec,
-#'       penalize.spline = TRUE,
-#'       spline.df = 10)
-#' }
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' gam_mod <- nbGAM(BiocGenerics::counts(sim_counts)[4, ],
+#'                  pt = sim_pseudotime,
+#'                  Y.offset = cell_offset,
+#'                  penalize.spline = TRUE,
+#'                  spline.df = 10)
 
 nbGAM <- function(expr = NULL,
                   pt = NULL,

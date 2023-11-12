@@ -9,12 +9,12 @@
 #' @return A convolution with same length as the input vector.
 #' @details
 #' \itemize{
-#' \item The convolution here uses \code{\link[stats]{convolve}}, but creates the kernel and padding in such a way that it matches the output from `np.convolve` in Python's \code{numpy} matrix algebra package.
+#' \item The convolution here uses \code{\link[stats]{convolve}}, but creates the kernel and padding in such a way that it matches the output from \code{np.convolve} in Python's \code{numpy} matrix algebra package.
 #' }
 #' @seealso \code{\link[stats]{convolve}}
 #' @export
 #' @examples
-#' npConvolve(x = rnorm(20), conv.kernel = rep(1/5, 5))
+#' convolved_vec <- npConvolve(x = rnorm(20), conv.kernel = rep(1/5, 5))
 #'
 
 npConvolve <- function(x = NULL, conv.kernel = NULL) {

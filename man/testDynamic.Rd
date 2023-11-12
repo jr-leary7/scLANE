@@ -66,29 +66,12 @@ This function tests whether a NB \code{marge} model is better than a null (inter
 }
 }
 \examples{
-\donttest{
 data(sim_counts)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
-testDynamic(sim_counts,
-            pt = sim_pseudotime,
-            size.factor.offset = cell_offset,
-            genes = sample(rownames(sim_counts), 20))
-testDynamic(sim_counts,
-            pt = sim_pseudotime,
-            size.factor.offset = cell_offset,
-            is.gee = TRUE,
-            id.vec = sim_counts$subject,
-            cor.structure = "ar1",
-            genes = sample(rownames(sim_counts), 20))
-testDynamic(sim_counts,
-            pt = sim_pseudotime,
-            size.factor.offset = cell_offset,
-            is.glmm = TRUE,
-            glmm.adaptive = TRUE,
-            id.vec = sim_counts$subject,
-            genes = sample(rownames(sim_counts), 20))
-}
+scLANE_models <- testDynamic(sim_counts,
+                             pt = sim_pseudotime,
+                             size.factor.offset = cell_offset)
 }
 \seealso{
 \code{\link{getResultsDE}}

@@ -8,9 +8,13 @@
 #' @export
 #' @seealso \code{\link{glm}}
 #' @examples
-#' \dontrun{
-#' stripGLM(marge_model)
-#' }
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' marge_model <- marge2(sim_pseudotime,
+#'                       Y = BiocGenerics::counts(sim_counts)[4, ],
+#'                       Y.offset = cell_offset)
+#' smaller_model <- stripGLM(marge_model$final_mod)
 
 stripGLM <- function(glm.obj = NULL) {
   # check inputs

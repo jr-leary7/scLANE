@@ -4,6 +4,8 @@
 * Better compression of included datasets.
 * Added `geneProgramScoring()` for module scoring of dynamic gene clusters.
 * Added `plotModelCoefs()` to annotate gene dynamics plots with a table of model coefficients. 
+* Added citation file with link to Zenodo repository (until preprint is up).
+* Added runnable examples to most functions. 
 
 # `scLANE` v0.7.6
 

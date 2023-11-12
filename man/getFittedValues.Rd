@@ -45,14 +45,13 @@ A data.frame containing depth- and log1p-normalized expression, model prediction
 Generate a table of expression counts, model fitted values, celltype metadata, etc. in order to create custom plots of gene dynamics.
 }
 \examples{
-\dontrun{
-getFittedValues(gene_stats,
-                genes = c("Neurog3", "Epcam", "Krt19"),
-                pt = pt_df,
-                expr.mat = seu_obj,
-                cell.meta.data = seu_obj@meta.data,
-                ci.alpha = 0.05)
-}
+data(sim_counts)
+data(sim_pseudotime)
+data(scLANE_models)
+fitted_vals <- getFittedValues(scLANE_models,
+                               genes = sample(names(scLANE_models), 5),
+                               pt = sim_pseudotime,
+                               expr.mat = sim_counts)
 }
 \author{
 Jack Leary

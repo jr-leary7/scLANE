@@ -20,12 +20,8 @@ A data.frame containing differential expression results & modeling statistics fo
 This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy \code{data.frame}.
 }
 \examples{
-\dontrun{
-getResultsDE(gene_stats)
-getResultsDE(gene_stats,
-             p.adj.method = "BH",
-             fdr.cutoff = 5e-3)
-}
+data(scLANE_models)
+scLANE_de_res <- getResultsDE(scLANE_models)
 }
 \seealso{
 \code{\link{testDynamic}}

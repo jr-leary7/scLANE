@@ -19,14 +19,11 @@
 #' @seealso \code{\link{testDynamic}}
 #' @export
 #' @examples
-#' \dontrun{
-#' smoothedCountsMatrix(gene_stats, pt = pt_df)
-#' smoothedCountsMatrix(gene_stats,
-#'                      pt = pt_df,
-#'                      genes = c("AURKA", "KRT19", "EPCAM", "GATA6"),
-#'                      parallel.exec = TRUE,
-#'                      n.cores = 2)
-#' }
+#' data(sim_pseudotime)
+#' data(scLANE_models)
+#' smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
+#'                                           pt = sim_pseudotime,
+#'                                           n.cores = 1L)
 
 smoothedCountsMatrix <- function(test.dyn.res = NULL,
                                  size.factor.offset = NULL,
@@ -34,7 +31,7 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
                                  genes = NULL,
                                  log1p.norm = FALSE,
                                  parallel.exec = TRUE,
-                                 n.cores = 2) {
+                                 n.cores = 2L) {
   # check inputs
   if (is.null(test.dyn.res) || is.null(pt)) { stop("Please provide the scLANE output from testDynamic().") }
   # set up parallel execution
@@ -58,7 +55,7 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
                         purrr::discard(rlang::is_na) %>%
                         purrr::discard(rlang::is_null) %>%
                         purrr::discard(\(p) rlang::inherits_only(p, "try-error"))
-    fitted_vals_mat <- purrr::map(fitted_vals_list, \(z) {
+    fitted_vals_mat <- furrr::future_map(fitted_vals_list, \(z) {
                          if (is.null(size.factor.offset)) {
                            exp(z$marge_link_fit)
                          } else {

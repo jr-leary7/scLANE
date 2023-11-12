@@ -13,11 +13,8 @@
 #' @seealso \code{\link[scuttle]{computeLibraryFactors}}
 #' @export
 #' @examples
-#' \dontrun{
-#' createCellOffset(expr.mat = sce_obj)
-#' createCellOffset(expr.mat = counts(sce_obj))
-#' createCellOffset(expr.mat = seu_obj, scale.factor = 1e5)
-#' }
+#' data(sim_counts)
+#' cell_offset <- createCellOffset(sim_counts)
 
 createCellOffset <- function(expr.mat = NULL, scale.factor = 1e4) {
   # check inputs

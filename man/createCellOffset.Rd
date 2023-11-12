@@ -18,11 +18,8 @@ A named numeric vector containing the computed size factor for each cell.
 Creates a vector of per-cell size factors to be used as input to \code{\link{testDynamic}} as a model offset given a variety of inputs.
 }
 \examples{
-\dontrun{
-createCellOffset(expr.mat = sce_obj)
-createCellOffset(expr.mat = counts(sce_obj))
-createCellOffset(expr.mat = seu_obj, scale.factor = 1e5)
-}
+data(sim_counts)
+cell_offset <- createCellOffset(sim_counts)
 }
 \seealso{
 \code{\link{testDynamic}}

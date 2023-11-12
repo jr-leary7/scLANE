@@ -18,9 +18,8 @@ A data.frame containing gene name, lineage ID, and knot location in pseudotime.
 Pulls knot locations for dynamic genes across each lineage, allowing comparisons of where transcriptional switches occur between lineages.
 }
 \examples{
-\dontrun{
-getKnotDist(gene_stats)
-}
+data(scLANE_models)
+knot_dist <- getKnotDist(scLANE_models)
 }
 \author{
 Jack Leary

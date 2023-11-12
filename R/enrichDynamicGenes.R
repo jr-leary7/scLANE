@@ -12,12 +12,9 @@
 #' @seealso \code{\link[gprofiler2]{gost}}
 #' @export
 #' @examples
-#' \dontrun{
-#' enrichDynamicGenes(scLANE.de.res = de_stats)
-#' enrichDynamicGenes(scLANE.de.res = de_stats,
-#'                    lineage = "B",
-#'                    species = "mmusculus")
-#' }
+#' data(scLANE_models)
+#' scLANE_de_res <- getResultsDE(scLANE_models)
+#' enr_res <- enrichDynamicGenes(scLANE_de_res)
 
 enrichDynamicGenes <- function(scLANE.de.res = NULL,
                                lineage = NULL,

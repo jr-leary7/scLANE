@@ -9,7 +9,7 @@ geneProgramScoring(
   genes = NULL,
   gene.clusters = NULL,
   program.labels = NULL,
-  n.cores = 2
+  n.cores = 2L
 )
 }
 \arguments{
@@ -30,12 +30,16 @@ Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} 
 This function uses \code{\link[UCell]{ScoreSignatures_UCell}} to create a per-cell module score for each of the provided gene clusters. If the
 }
 \examples{
-\dontrun{
-geneProgramScoring(seu_obj,
-                   genes = gene_embed$gene,
-                   gene.clusters = gene_embed$leiden,
-                   program.labels = c("cell cycle", "organogenesis"))
-}
+data(sim_pseudotime)
+data(scLANE_models)
+smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
+                                          pt = sim_pseudotime,
+                                          n.cores = 1L)
+gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
+sim_counts <- geneProgramScoring(sim_counts,
+                                 genes = gene_embed$gene,
+                                 gene.clusters = gene_embed$leiden,
+                                 n.cores = 1L)
 }
 \author{
 Jack Leary

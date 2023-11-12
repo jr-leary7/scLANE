@@ -22,12 +22,13 @@
 #' @seealso \code{\link{modelLRT}}
 #' @export
 #' @examples
-#' \dontrun{
-#' fitGLMM(X_pred = pt_df,
-#'         Y = raw_counts,
-#'         Y.offset = size_factor_vec,
-#'         id.vec = subject_vec)
-#' }
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' glmm_mod <- fitGLMM(X_pred = sim_pseudotime,
+#'                     Y = BiocGenerics::counts(sim_counts)[4, ],
+#'                     Y.offset = cell_offset,
+#'                     id.vec = sim_counts$subject)
 
 fitGLMM <- function(X_pred = NULL,
                     Y = NULL,

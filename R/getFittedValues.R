@@ -20,14 +20,13 @@
 #' @return A data.frame containing depth- and log1p-normalized expression, model predictions, and cell-level metadata.
 #' @export
 #' @examples
-#' \dontrun{
-#' getFittedValues(gene_stats,
-#'                 genes = c("Neurog3", "Epcam", "Krt19"),
-#'                 pt = pt_df,
-#'                 expr.mat = seu_obj,
-#'                 cell.meta.data = seu_obj@meta.data,
-#'                 ci.alpha = 0.05)
-#' }
+#' data(sim_counts)
+#' data(sim_pseudotime)
+#' data(scLANE_models)
+#' fitted_vals <- getFittedValues(scLANE_models,
+#'                                genes = sample(names(scLANE_models), 5),
+#'                                pt = sim_pseudotime,
+#'                                expr.mat = sim_counts)
 
 getFittedValues <- function(test.dyn.res = NULL,
                             genes = NULL,

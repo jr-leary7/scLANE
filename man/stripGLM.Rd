@@ -16,9 +16,13 @@ A slimmed-down \code{glm} object.
 This function removes a \emph{lot} of components from the default GLM object in order to make it take up less memory. It does however retain enough pieces for \code{predict()} to still work. No promises beyond that.
 }
 \examples{
-\dontrun{
-stripGLM(marge_model)
-}
+data(sim_counts)
+data(sim_pseudotime)
+cell_offset <- createCellOffset(sim_counts)
+marge_model <- marge2(sim_pseudotime,
+                      Y = BiocGenerics::counts(sim_counts)[4, ],
+                      Y.offset = cell_offset)
+smaller_model <- stripGLM(marge_model$final_mod)
 }
 \seealso{
 \code{\link{glm}}

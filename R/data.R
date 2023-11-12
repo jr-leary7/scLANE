@@ -17,3 +17,11 @@
 #' }
 #' @usage data(sim_pseudotime)
 "sim_pseudotime"
+
+#' An object of class \code{scLANE}.
+#'
+#' Contains the results from running \code{\link{testDynamic}} on \code{\link{sim_counts}}.
+#'
+#' @format An object of class \code{scLANE}.
+#' @usage data(scLANE_models)
+"scLANE_models"

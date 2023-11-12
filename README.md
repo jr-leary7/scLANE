@@ -1,16 +1,21 @@
 
-- [`scLANE`](#sclane)
-  - [Installation](#installation)
-  - [Model structure](#model-structure)
-- [Usage](#usage)
-  - [Libraries](#libraries)
-  - [Input data](#input-data)
-  - [Trajectory DE testing](#trajectory-de-testing)
-  - [Downstream analysis &
-    visualization](#downstream-analysis--visualization)
-- [Conclusions & best practices](#conclusions--best-practices)
-- [Contact information](#contact-information)
-- [References](#references)
+- <a href="#sclane" id="toc-sclane"><code>scLANE</code></a>
+  - <a href="#installation" id="toc-installation">Installation</a>
+  - <a href="#model-structure" id="toc-model-structure">Model structure</a>
+- <a href="#usage" id="toc-usage">Usage</a>
+  - <a href="#libraries" id="toc-libraries">Libraries</a>
+  - <a href="#input-data" id="toc-input-data">Input data</a>
+  - <a href="#trajectory-de-testing"
+    id="toc-trajectory-de-testing">Trajectory DE testing</a>
+  - <a href="#downstream-analysis--visualization"
+    id="toc-downstream-analysis--visualization">Downstream analysis &amp;
+    visualization</a>
+- <a href="#conclusions--best-practices"
+  id="toc-conclusions--best-practices">Conclusions &amp; best
+  practices</a>
+- <a href="#contact-information" id="toc-contact-information">Contact
+  information</a>
+- <a href="#references" id="toc-references">References</a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -173,7 +178,10 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 21.203 secs
+#> Registered S3 method overwritten by 'bit':
+#>   method   from  
+#>   print.ri gamlss
+#> scLANE testing completed for 100 genes across 1 lineage in 35.114 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -192,13 +200,13 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| MFSD2B | A       |   209.755 |   0.000 |        0.000 |                        1 |
-| FOXD3  | A       |     4.316 |   0.038 |        0.423 |                        0 |
-| NOP14  | A       |     7.712 |   0.005 |        0.115 |                        0 |
-| TMCO3  | A       |   167.633 |   0.000 |        0.000 |                        1 |
-| SMG1   | A       |     5.062 |   0.080 |        0.423 |                        0 |
+| Gene     | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:---------|:--------|----------:|--------:|-------------:|-------------------------:|
+| MFSD2B   | A       |   209.755 |   0.000 |        0.000 |                        1 |
+| GOLGA8EP | A       |     4.390 |   0.036 |        0.537 |                        0 |
+| NOP14    | A       |     7.712 |   0.005 |        0.132 |                        0 |
+| TMCO3    | A       |   167.582 |   0.000 |        0.000 |                        1 |
+| BATF2    | A       |     5.216 |   0.074 |        0.537 |                        0 |
 
 ### GEE mode
 
@@ -221,7 +229,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 2.267 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 2.201 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -240,11 +248,11 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 
 | Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| DGUOK    | A       |  64351.893 |       0 |            0 |                        1 |
-| TBCC     | A       |     40.399 |       0 |            0 |                        1 |
+| DGUOK    | A       | 200675.460 |   0.000 |        0.000 |                        1 |
+| VDAC1    | A       |     13.025 |   0.001 |        0.025 |                        0 |
 | GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
-| PCF11    | A       |   2672.280 |       0 |            0 |                        1 |
-| IDH3G    | A       |    863.479 |       0 |            0 |                        1 |
+| WAPAL    | A       |   3254.351 |   0.000 |        0.000 |                        1 |
+| IDH3G    | A       |    863.479 |   0.000 |        0.000 |                        1 |
 
 ### GLMM mode
 
@@ -268,7 +276,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
                                   n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 2.157 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 3.427 mins
 ```
 
 {% note %}
@@ -298,11 +306,11 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
-| KLHDC10 | A       |   123.059 |   0.000 |            0 |                        1 |
-| DDX41   | A       |    74.493 |   0.000 |            0 |                        1 |
+| DDX1    | A       |   131.707 |   0.000 |            0 |                        1 |
+| TSPAN1  | A       |    78.616 |   0.000 |            0 |                        1 |
 | WDSUB1  | A       |        NA |      NA |           NA |                        0 |
 | FAM135B | A       |        NA |      NA |           NA |                        0 |
-| DAB1    | A       |     8.730 |   0.726 |            1 |                        0 |
+| NLGN4Y  | A       |     9.878 |   0.627 |            1 |                        0 |
 
 ## Downstream analysis & visualization
 

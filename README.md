@@ -122,94 +122,6 @@ data.frame(sim_data@int_colData$reducedDims@listData$PCA[, 1:2]) %>%
   scale_color_gradientn(colors = viridisLite::plasma(n = 20)) + 
   labs(x = "PC 1", y = "PC 2", color = "Pseudotime") + 
   theme_scLANE(umap = TRUE)
-#> Loading required package: S4Vectors
-#> Loading required package: stats4
-#> Loading required package: BiocGenerics
-#> 
-#> Attaching package: 'BiocGenerics'
-#> The following objects are masked from 'package:dplyr':
-#> 
-#>     combine, intersect, setdiff, union
-#> The following objects are masked from 'package:stats':
-#> 
-#>     IQR, mad, sd, var, xtabs
-#> The following objects are masked from 'package:base':
-#> 
-#>     anyDuplicated, aperm, append, as.data.frame, basename, cbind,
-#>     colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
-#>     get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
-#>     match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
-#>     Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
-#>     table, tapply, union, unique, unsplit, which.max, which.min
-#> 
-#> Attaching package: 'S4Vectors'
-#> The following objects are masked from 'package:dplyr':
-#> 
-#>     first, rename
-#> The following object is masked from 'package:utils':
-#> 
-#>     findMatches
-#> The following objects are masked from 'package:base':
-#> 
-#>     expand.grid, I, unname
-#> Loading required package: SingleCellExperiment
-#> Loading required package: SummarizedExperiment
-#> Loading required package: MatrixGenerics
-#> Loading required package: matrixStats
-#> 
-#> Attaching package: 'matrixStats'
-#> The following object is masked from 'package:dplyr':
-#> 
-#>     count
-#> 
-#> Attaching package: 'MatrixGenerics'
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
-#>     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
-#>     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
-#>     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
-#>     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
-#>     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
-#>     colWeightedMeans, colWeightedMedians, colWeightedSds,
-#>     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
-#>     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
-#>     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
-#>     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
-#>     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
-#>     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
-#>     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
-#>     rowWeightedSds, rowWeightedVars
-#> Loading required package: GenomicRanges
-#> Loading required package: IRanges
-#> 
-#> Attaching package: 'IRanges'
-#> The following objects are masked from 'package:dplyr':
-#> 
-#>     collapse, desc, slice
-#> Loading required package: GenomeInfoDb
-#> 
-#> Attaching package: 'GenomicRanges'
-#> The following object is masked from 'package:magrittr':
-#> 
-#>     subtract
-#> Loading required package: Biobase
-#> Welcome to Bioconductor
-#> 
-#>     Vignettes contain introductory material; view with
-#>     'browseVignettes()'. To cite Bioconductor, see
-#>     'citation("Biobase")', and for packages 'citation("pkgname")'.
-#> 
-#> Attaching package: 'Biobase'
-#> The following object is masked from 'package:MatrixGenerics':
-#> 
-#>     rowMedians
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     anyMissing, rowMedians
-#> Registered S3 method overwritten by 'SparseArray':
-#>   method           from        
-#>   rowsum.dgCMatrix DelayedArray
 ```
 
 <img src="man/figures/README-plot-sims-pt-1.png" width="100%" />
@@ -242,14 +154,10 @@ the entire set of genes (usually a few thousand most highly variable
 genes). For the purpose of demonstration, we’ll select 50 genes each
 from the dynamic and non-dynamic populations.
 
-{% note %}
-
 **Note:** In this case we’re working with a single pseudotime lineage,
 though in real datasets several lineages often exist; in order to fit
 models for a subset of lineages simply remove the corresponding columns
 from the cell ordering dataframe passed as input to `testDynamic()`.
-
-{% endnote %}
 
 ``` r
 set.seed(312)
@@ -276,7 +184,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing completed for 100 genes across 1 lineage in 29.977 secs
+#> scLANE testing completed for 100 genes across 1 lineage in 55.872 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -298,10 +206,10 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
 | MFSD2B | A       |   209.755 |   0.000 |        0.000 |                        1 |
-| SMG1   | A       |     5.062 |   0.080 |        0.419 |                        0 |
-| UAP1L1 | A       |     9.118 |   0.010 |        0.199 |                        0 |
+| CPA3   | A       |     4.781 |   0.029 |        0.518 |                        0 |
+| UAP1L1 | A       |     9.436 |   0.009 |        0.188 |                        0 |
 | TMCO3  | A       |   167.582 |   0.000 |        0.000 |                        1 |
-| MYOF   | A       |     4.015 |   0.045 |        0.419 |                        0 |
+| MYOF   | A       |     3.808 |   0.051 |        0.531 |                        0 |
 
 ### GEE mode
 
@@ -324,7 +232,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 3.076 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 3.467 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -343,11 +251,11 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 
 | Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| CKAP4    | A       |  48922.644 |       0 |            0 |                        1 |
+| DGUOK    | A       |  64351.893 |       0 |            0 |                        1 |
 | TBCC     | A       |     32.151 |       0 |            0 |                        1 |
 | GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
 | PFDN2    | A       |   2131.763 |       0 |            0 |                        1 |
-| IDH3G    | A       |    863.479 |       0 |            0 |                        1 |
+| MPG      | A       |    849.362 |       0 |            0 |                        1 |
 
 ### GLMM mode
 
@@ -371,17 +279,13 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
                                   n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 4.863 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 4.489 mins
 ```
-
-{% note %}
 
 **Note:** The GLMM mode is still under development, as we are working on
 further reducing runtime and increasing the odds of the underlying
 optimization process converging successfully. As such, updates will be
 frequent and functionality / results may shift slightly.
-
-{% endnote %}
 
 Like the GLM mode, the GLMM mode uses a likelihood ratio test to compare
 the null & alternate models. We fit the two nested models using maximum
@@ -402,7 +306,7 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
 | PGLS    | A       |   129.086 |   0.000 |            0 |                        1 |
-| TSPAN1  | A       |    85.987 |   0.000 |            0 |                        1 |
+| TSPAN1  | A       |    78.616 |   0.000 |            0 |                        1 |
 | WDSUB1  | A       |        NA |      NA |           NA |                        0 |
 | FAM135B | A       |        NA |      NA |           NA |                        0 |
 | NLGN4Y  | A       |     9.878 |   0.627 |            1 |                        0 |

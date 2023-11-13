@@ -41,8 +41,9 @@ This function takes as input the output from \code{\link{testDynamic}} and clust
 }
 }
 \examples{
-data(sim_pseudotime)
+data(sim_counts)
 data(scLANE_models)
+data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 gene_clusters <- clusterGenes(scLANE_models,
                               pt = sim_pseudotime,

@@ -23,8 +23,9 @@
 #' @seealso \code{\link{plotClusteredGenes}}
 #' @export
 #' @examples
-#' data(sim_pseudotime)
+#' data(sim_counts)
 #' data(scLANE_models)
+#' data(sim_pseudotime)
 #' cell_offset <- createCellOffset(sim_counts)
 #' gene_clusters <- clusterGenes(scLANE_models,
 #'                               pt = sim_pseudotime,

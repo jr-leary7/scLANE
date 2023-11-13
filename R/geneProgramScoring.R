@@ -15,8 +15,9 @@
 #' @return Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
 #' @export
 #' @examples
-#' data(sim_pseudotime)
+#' data(sim_counts)
 #' data(scLANE_models)
+#' data(sim_pseudotime)
 #' smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
 #'                                           pt = sim_pseudotime,
 #'                                           n.cores = 1L)

@@ -30,8 +30,9 @@ Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} 
 This function uses \code{\link[UCell]{ScoreSignatures_UCell}} to create a per-cell module score for each of the provided gene clusters. If the
 }
 \examples{
-data(sim_pseudotime)
+data(sim_counts)
 data(scLANE_models)
+data(sim_pseudotime)
 smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
                                           pt = sim_pseudotime,
                                           n.cores = 1L)

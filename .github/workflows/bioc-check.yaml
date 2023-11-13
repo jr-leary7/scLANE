@@ -5,12 +5,12 @@ on:
   push:
     branches: main
 
-name: bioc-check
+name: Bioc-check
 
 jobs:
   bioc-check:
     runs-on: macos-latest
-    name: BiocCheck
+    name: Bioc-check
     steps:
       - uses: actions/checkout@v3
       - uses: r-lib/actions/setup-pandoc@v2

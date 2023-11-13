@@ -1,5 +1,5 @@
 # load data & prepare for testing
-load(system.file("testdata/sim_test_data.RData", package = "scLANE"))
+load(system.file("testdata/sim_test_data.rda", package = "scLANE"))
 sim_data_seu <- Seurat::as.Seurat(sim_data)
 cell_offset <- createCellOffset(sim_data)
 cell_offset_seu <- createCellOffset(sim_data_seu)
@@ -23,6 +23,8 @@ null_stat_gee <- stat_out_score_gee_null(Y = Y_exp,
                                          id.vec = sim_data$subject,
                                          cor.structure = "ar1",
                                          theta.hat = 1)
+tp1_res <- tp1(x = rnorm(30), t = 0)
+tp2_res <- tp2(x = rnorm(30), t = 0)
 
 # generate scLANE results w/ all three model architectures
 withr::with_output_sink(tempfile(), {
@@ -246,6 +248,8 @@ test_that("internal marge functions", {
   expect_length(stat_out_res, 4)
   expect_length(null_stat_glm, 5)
   expect_length(null_stat_gee, 8)
+  expect_type(tp1_res, "double")
+  expect_type(tp2_res, "double")
 })
 
 test_that("createCellOffset() output", {

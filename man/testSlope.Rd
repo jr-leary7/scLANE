@@ -9,12 +9,12 @@ testSlope(test.dyn.res = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
 \arguments{
 \item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
 
-\item{p.adj.method}{The method used to adjust the \emph{p}-values for each slope. Defaults to "holm".}
+\item{p.adj.method}{The method used to adjust the \emph{p}-values for each coefficient. Defaults to "holm".}
 
 \item{fdr.cutoff}{The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }
 \value{
-A dataframe containing the genes, breakpoints, and slope \emph{p}-values from each model.
+A dataframe containing the genes, breakpoints, and coefficient \emph{p}-values from each model.
 }
 \description{
 This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime interval using a Wald test.

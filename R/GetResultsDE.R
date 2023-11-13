@@ -2,16 +2,16 @@
 #'
 #' @name getResultsDE
 #' @author Jack Leary
-#' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy \code{data.frame}.
+#' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame.
 #' @import magrittr
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr arrange desc mutate across if_else with_groups relocate
 #' @importFrom tidyselect everything
 #' @importFrom stats p.adjust p.adjust.methods
 #' @param test.dyn.res The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
-#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
-#' @param fdr.cutoff (Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.
-#' @return A data.frame containing differential expression results & modeling statistics for each gene.
+#' @param p.adj.method The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
+#' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
+#' @return A data.frame containing differential expression results & test statistics for each gene.
 #' @export
 #' @seealso \code{\link{testDynamic}}
 #' @seealso \code{\link[stats]{p.adjust}}
@@ -34,7 +34,7 @@ getResultsDE <- function(test.dyn.res = NULL,
                                                    dplyr::mutate(dplyr::across(tidyselect::everything(), \(z) unname(unlist(z))))
                                                })
                               }) %>%
-               dplyr::arrange(P_Val, dplyr::desc(Test_Stat)) %>%
+               dplyr::arrange(dplyr::desc(Test_Stat)) %>%
                dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),
                              Gene_Dynamic_Lineage = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0, missing = 0)) %>%
                dplyr::with_groups(Gene,

@@ -2,10 +2,7 @@
 #'
 #' @name geneProgramScoring
 #' @author Jack Leary
-#' @import magrittr
 #' @importFrom Matrix Matrix
-#' @importFrom ggplot2 ggplot aes geom_point geom_vline geom_ribbon geom_line scale_x_continuous labs
-#' @importFrom scales label_number
 #' @description This function uses \code{\link[UCell]{ScoreSignatures_UCell}} to create a per-cell module score for each of the provided gene clusters. If the
 #' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param genes A character vector of gene IDs. Defaults to NULL.

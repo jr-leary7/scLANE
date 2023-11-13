@@ -121,7 +121,6 @@ testDynamic <- function(expr.mat = NULL,
     parallel::clusterSetRNGStream(cl, iseed = random.seed)
   } else {
     cl <- foreach::registerDoSEQ()
-    set.seed(random.seed)
   }
 
   # convert dense counts matrix to file-backed matrix

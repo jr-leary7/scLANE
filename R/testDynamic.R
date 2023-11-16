@@ -30,7 +30,7 @@
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
-#' @param track.time (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Defaults to TRUE.
+#' @param verbose (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Defaults to TRUE.
 #' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
 #' \itemize{
@@ -66,7 +66,7 @@ testDynamic <- function(expr.mat = NULL,
                         parallel.exec = TRUE,
                         n.cores = 2,
                         approx.knot = TRUE,
-                        track.time = TRUE,
+                        verbose = TRUE,
                         random.seed = 312) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
@@ -110,7 +110,7 @@ testDynamic <- function(expr.mat = NULL,
   if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a specified correlation structure.") }
 
   # set up time tracking
-  if (track.time) {
+  if (verbose) {
     start_time <- Sys.time()
   }
 
@@ -161,6 +161,7 @@ testDynamic <- function(expr.mat = NULL,
       # pull cells assigned to lineage j
       lineage_cells <- which(!is.na(pt[, j]))
 
+      gene_time_start <- Sys.time()
       # run MARGE model using one of GLM, GEE, or GLMM backends
       if (!is.glmm) {
         marge_mod <- try({
@@ -185,6 +186,11 @@ testDynamic <- function(expr.mat = NULL,
                   adaptive = glmm.adaptive,
                   return.basis = TRUE)
         }, silent = TRUE)
+      }
+      gene_time_end <- Sys.time() - gene_time_start
+      gene_time_end_numeric <- as.numeric(gene_time_end)
+      if (attributes(gene_time_end)$units == "mins") {
+        gene_time_end_numeric <- gene_time_end_numeric * 60
       }
 
       # build formula for null model
@@ -295,6 +301,7 @@ testDynamic <- function(expr.mat = NULL,
                                Dev_Null = null_sumy$null_dev,
                                Model_Status = mod_status,
                                MARGE_Fit_Notes = marge_sumy$marge_fit_notes,
+                               Gene_Time = gene_time_end_numeric,
                                MARGE_Summary = marge_sumy$marge_sumy_df,
                                Null_Summary = null_sumy$null_sumy_df,
                                MARGE_Preds = marge_sumy$marge_pred_df,
@@ -344,6 +351,7 @@ testDynamic <- function(expr.mat = NULL,
              Dev_MARGE = NA_real_,
              Dev_Null = NA_real_,
              Model_Status = "MARGE model error, null model error",
+             Gene_Time = NA_real_,
              MARGE_Fit_Notes = NA_character_,
              MARGE_Summary = NULL,
              Null_Summary = NULL,
@@ -360,7 +368,7 @@ testDynamic <- function(expr.mat = NULL,
   })
 
   # return results
-  if (track.time) {
+  if (verbose) {
     end_time <- Sys.time()
     total_time <- end_time - start_time
     total_time_units <- attributes(total_time)$units

@@ -1,3 +1,11 @@
+# Changes in version 0.7.8
+
++ Added progress bar to `testDynamic()`. 
+  + Changed parallel backend in `testDynamic()` from `doParallel` to `doSNOW` in order to make this possible. 
++ Updated documentation with more runnable examples. 
++ Passing `BiocCheck` with no errors. 
++ Reduced set of exported functions to just what's necessary for model fitting & downstream analysis. 
+
 # Changes in version 0.7.7
 
 + Added DOI badge to README. 

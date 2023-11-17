@@ -17,11 +17,6 @@
 #' @seealso \code{\link[aod]{wald.test}}
 #' @seealso \code{\link[geeM]{geem}}
 #' @seealso \code{\link{modelLRT}}
-#' @export
-#' @examples
-#' \dontrun{
-#' waldTestGEE(mod.1 = full_model, mod.0 = null_model)
-#' }
 
 waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
   # check inputs
@@ -32,7 +27,7 @@ waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
                 Notes = "No test performed due to model failure.")
     return(res)
   }
-  
+
   mod.1 <- mod.1$final_mod
   if (is.null(mod.1) || is.null(mod.0) || !(inherits(mod.1, "geem") && inherits(mod.0, "geem"))) { stop("You must provide two geeM models to wald_test_gee().") }
   if (length(coef(mod.1)) <= length(coef(mod.0))) {

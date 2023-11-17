@@ -8,14 +8,6 @@
 #' @param mod.0 The model corresponding to the null hypothesis. Defaults to NULL.
 #' @param is.glmm Are the models being compared GLMMs? Defaults to FALSE.
 #' @return A list containing the LRT test statistic, degrees freedom, and the \emph{p}-value computed using the Chi-squared assumption.
-#' @export
-#' @examples
-#' \dontrun{
-#' modelLRT(mod.1 = marge_mod, mod.0 = null_mod)
-#' modelLRT(mod.1 = marge_mod,
-#'          mod.0 = null_mod,
-#'          is.glmm = TRUE)
-#' }
 
 modelLRT <- function(mod.1 = NULL,
                      mod.0 = NULL,

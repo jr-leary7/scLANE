@@ -115,7 +115,8 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  pt = order_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
-                                 n.cores = 4)
+                                 n.cores = 4, 
+                                 verbose = FALSE)
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate a sorted table of DE test results, with one row for each gene & lineage. The GLM mode uses a simple likelihood ratio test to compare the null & alternate models, with the test statistic assumed to be [asymptotically Chi-squared distributed](https://en.wikipedia.org/wiki/Likelihood-ratio_test).  

@@ -7,6 +7,7 @@
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial
 #' @importFrom stats fitted.values
+#' @importFrom Matrix chol chol2inv
 #' @description A function that calculates parts of the score statistic for GEEs only (it is used for the full path for forward selection).
 #' @param Y The response variable Defaults to NULL.
 #' @param B_null The design matrix matrix under the null model Defaults to NULL.
@@ -31,16 +32,16 @@ stat_out_score_gee_null <- function(Y = NULL,
   n_vec <- as.numeric(table(id.vec))
   N <- length(unique(id.vec))
   # fit null NB GEE
-  ests <- geeM::geem(Y ~ 1,
+  ests <- geeM::geem(Y ~ B_null - 1,
                      id = id.vec,
                      data = NULL,
                      corstr = cor.structure,
                      family = MASS::negative.binomial(theta.hat),
                      sandwich = TRUE)
   alpha_est <- ests$alpha
-  mu_est <- as.matrix(rep(mean(Y), length(Y)))
-  # alternate naive estimate -- faster than GAM-based method
-  V_est <- mu_est * (1 + mu_est * (1 / theta.hat))
+  sigma_est <- ests$phi
+  mu_est <- as.matrix(stats::fitted.values(ests))
+  V_est <- mu_est * (1 + mu_est * sigma_est)  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
   n_vec1 <- c(0, n_vec)
   VS_est_list <- AWA_est_list <- J2_list <- Sigma2_list <- vector("list", length = N)
   J11 <- Sigma11 <- matrix(0, ncol(B_null), ncol(B_null))
@@ -69,7 +70,7 @@ stat_out_score_gee_null <- function(Y = NULL,
     V_est_i <- eigenMapMatMult(A = temp_prod,
                                B = diag_sqrt_V_est,
                                n_cores = 1)
-    V_est_i_inv <- chol2inv(chol(V_est_i))
+    V_est_i_inv <- Matrix::chol2inv(Matrix::chol(V_est_i))
     S_est_i <- t(Y)[temp_seq_n] - mu_est_sub
     temp_prod <- eigenMapMatMult(A = S_est_i,
                                  B = t(S_est_i),
@@ -114,7 +115,7 @@ stat_out_score_gee_null <- function(Y = NULL,
   if (nrow(J11) == 1 && ncol(J11) == 1) {
     J11_inv <- 1 / J11
   } else {
-    J11_inv <- chol2inv(chol(J11))
+    J11_inv <- Matrix::chol2inv(Matrix::chol(J11))
   }
   temp_prod <- eigenMapMatMult(A = J11_inv,
                                B = Sigma11,

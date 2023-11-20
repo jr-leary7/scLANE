@@ -5,6 +5,7 @@
 + Updated documentation with more runnable examples. 
 + Passing `BiocCheck` with no errors. 
 + Reduced set of exported functions to just what's necessary for model fitting & downstream analysis. 
++ Reverted changes made to null model scoring internally that lead to worse knot selection i.e., knot selection is improved now. 
 
 # Changes in version 0.7.7
 

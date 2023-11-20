@@ -5,6 +5,7 @@
 #' @author David I. Warton
 #' @author Jack Leary
 #' @importFrom stats lm.fit
+#' @importFrom Matrix chol chol2inv
 #' @description Calculate the score statistic for a GEE model.
 #' @param Y The response variable. Defaults to NULL.
 #' @param N The number of clusters. Defaults to NULL.
@@ -100,7 +101,7 @@ score_fun_gee <- function(Y = NULL,
                                    n_cores = 1)
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
     temp_prod <- eigenMapMatMult(A = t(B.est),
-                                 B = MASS::ginv(Sigma),
+                                 B = Matrix::chol2inv(Matrix::chol(Sigma)),
                                  n_cores = 1)
     score <- eigenMapMatMult(A = temp_prod,
                              B = B.est,

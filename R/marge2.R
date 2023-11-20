@@ -84,7 +84,7 @@ marge2 <- function(X_pred = NULL,
                                 dfr = NN - 1)
   }
 
-  pen <- 2  # penalty for GCV criterion
+  pen <- 2  # penalty for GCV criterion -- could also switch to log(N) later
   colnames(B) <- "Intercept"
   var_name_vec <- "Intercept"
   var_name_list <- list("Intercept")

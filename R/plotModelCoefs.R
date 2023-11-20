@@ -99,20 +99,25 @@ plotModelCoefs <- function(test.dyn.res = NULL,
   # generate coefficient summary
   min_pt <- min(pt[, which(LETTERS == lineage)], na.rm = TRUE)
   max_pt <- max(pt[, which(LETTERS == lineage)], na.rm = TRUE)
-  coef_sumy <- dplyr::select(test.dyn.res[[gene]][[paste0("Lineage_", lineage)]]$Gene_Dynamics,
-                             -dplyr::starts_with("Trend")) %>%
-               tidyr::pivot_longer(dplyr::starts_with("Slope"),
-                                   names_to = "Segment",
-                                   values_to = "Coef") %>%
-               dplyr::mutate(Breakpoint_Lag = dplyr::lag(Breakpoint),
-                             Breakpoint_Lead = dplyr::lead(Breakpoint),
-                             Interval = NA_character_,
-                             .before = 4) %>%
-               dplyr::mutate(Breakpoint_Lag = dplyr::if_else(is.na(Breakpoint_Lag), min_pt, Breakpoint_Lag),
-                             Breakpoint_Lead = dplyr::if_else(is.na(Breakpoint_Lead), max_pt, Breakpoint_Lead),
-                             Interval = paste0("(", round(Breakpoint_Lag, 3), ", ", round(Breakpoint_Lead, 3), ")")) %>%
-               dplyr::select(Interval, Coef) %>%
-               dplyr::mutate(Coef = round(Coef, 3))
+  n_breaks <- sum(grepl("Breakpoint", colnames(test.dyn.res[[gene]][[paste0("Lineage_", lineage)]]$Gene_Dynamics)))
+  if (n_breaks == 1) {
+    coef_sumy <- dplyr::select(test.dyn.res[[gene]][[paste0("Lineage_", lineage)]]$Gene_Dynamics,
+                               -dplyr::starts_with("Trend")) %>%
+                 tidyr::pivot_longer(dplyr::starts_with("Slope"),
+                                     names_to = "Segment",
+                                     values_to = "Coef") %>%
+                 dplyr::mutate(Breakpoint_Lag = dplyr::lag(Breakpoint),
+                               Breakpoint_Lead = dplyr::lead(Breakpoint),
+                               Interval = NA_character_,
+                               .before = 4) %>%
+                 dplyr::mutate(Breakpoint_Lag = dplyr::if_else(is.na(Breakpoint_Lag), min_pt, Breakpoint_Lag),
+                               Breakpoint_Lead = dplyr::if_else(is.na(Breakpoint_Lead), max_pt, Breakpoint_Lead),
+                               Interval = paste0("(", round(Breakpoint_Lag, 3), ", ", round(Breakpoint_Lead, 3), ")")) %>%
+                 dplyr::select(Interval, Coef) %>%
+                 dplyr::mutate(Coef = round(Coef, 3))
+  } else {
+    stop("Number of knots > 1 not currently supported.")
+  }
   # convert coefficient summary to grob
   coef_sumy_grob <- gridExtra::tableGrob(coef_sumy,
                                          cols = c("Interval", "Coefficient"),

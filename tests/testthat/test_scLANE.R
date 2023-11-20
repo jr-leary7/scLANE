@@ -166,8 +166,8 @@ withr::with_output_sink(tempfile(), {
                           plot.null = TRUE,
                           plot.glm = TRUE,
                           plot.gam = TRUE)
-  coef_plot_glm <- plotModelCoefs(glm_gene_stats,
-                                  gene = glm_test_results$Gene[1],
+  coef_plot_glm <- plotModelCoefs(test.dyn.res = glm_gene_stats,
+                                  gene = glm_test_results$Gene[10],
                                   pt = pt_test,
                                   expr.mat = sim_data,
                                   size.factor.offset = cell_offset,
@@ -433,4 +433,3 @@ test_that("npConvolve() output", {
   expect_type(dyn_convolve, "double")
   expect_length(dyn_convolve, nrow(counts_test))
 })
-

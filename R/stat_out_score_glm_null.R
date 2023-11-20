@@ -4,8 +4,9 @@
 #' @author Jakub Stoklosa
 #' @author David I. Warton
 #' @author Jack Leary
+#' @importFrom gamlss gamlss
 #' @importFrom stats fitted.values
-#' @importFrom MASS theta.mm
+#' @importFrom Matrix chol chol2inv
 #' @description A function that calculates parts of the score statistic for GLMs only (it is used for the full path for forward selection).
 #' @param Y : The response variable Defaults to NULL.
 #' @param B_null : Design matrix under the null model. Defaults to NULL.
@@ -18,22 +19,17 @@
 stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   # check inputs
   if (is.null(Y) || is.null(B_null)) { stop("Some inputs to stat_out_score_glm_null() are missing.") }
-  # old version of dispersion estimate
-  # ests <- gamlss::gamlss(Y ~ 1,
-  #                        family = "NBI",
-  #                        trace = FALSE,
-  #                        data = NULL)
-  N <- length(Y)
-  mean_Y <- mean(Y)
-  mu.est <- as.matrix(rep(mean_Y, N))  # faster than calling stats::fitted.values() actually
-  # V.est <- mu.est * (1 + mu.est * (exp(ests$sigma.coef)))
-  theta_hat <- MASS::theta.mm(y = Y,
-                              mu = mean(Y),
-                              dfr = N - 1)
-  V.est <- mu.est * (1 + mu.est * (1 / theta_hat))  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
-  VS.est_list <- (Y - mu.est) / V.est
+  ests <- gamlss::gamlss(Y ~ B_null - 1,
+                         family = "NBI",
+                         trace = FALSE,
+                         data = NULL)
+  sigma_est <- exp(ests$sigma.coef)
+  mu_est <- as.matrix(stats::fitted.values(ests))
+  V_est <- mu_est * (1 + mu_est * sigma_est)  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
+  VS_est_list <- (Y - mu_est) / V_est
+  mu_V_diag <- diag(c(mu_est^2 / V_est))
   temp_prod <- eigenMapMatMult(A = t(B_null),
-                               B = diag(c(mu.est^2 / V.est)),
+                               B = mu_V_diag,
                                n_cores = 1)
   A_list_inv <- eigenMapMatMult(A = temp_prod,
                                 B = B_null,
@@ -41,16 +37,15 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   if (ncol(A_list_inv) == 1 && nrow(A_list_inv) == 1) {
     A_list <- 1 / A_list_inv
   } else {
-    A_list <- chol2inv(chol(A_list_inv))
+    A_list <- Matrix::chol2inv(Matrix::chol(A_list_inv))
   }
-  # B1_list <- t(B_null) %*% diag(c(mu.est^2 / V.est))
   B1_list <- eigenMapMatMult(A = t(B_null),
-                             B = diag(c(mu.est^2 / V.est)),
+                             B = mu_V_diag,
                              n_cores = 1)
-  res <- list(VS.est_list = VS.est_list,
+  res <- list(VS.est_list = VS_est_list,
               A_list = A_list,
               B1_list = B1_list,
-              mu.est = mu.est,
-              V.est = V.est)
+              mu.est = mu_est,
+              V.est = V_est)
   return(res)
 }

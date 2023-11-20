@@ -27,9 +27,9 @@ jobs:
       - name: Run BiocCheck
         run: |
           bc_res <- BiocCheck::BiocCheck()
-          print(paste0("Errors": length(bc_res$error), "\n"))
-          print(paste0("Warnings": length(bc_res$warning), "\n"))
-          print(paste0("Notes": length(bc_res$note), "\n"))
+          print(paste0("Errors: ", length(bc_res$error), "\n"))
+          print(paste0("Warnings: ", length(bc_res$warning), "\n"))
+          print(paste0("Notes: ", length(bc_res$note), "\n"))
           n_errors <- length(bc_res$error)
           Sys.setenv("BC_ERRORS" = n_errors)
         shell: Rscript {0}

@@ -1,6 +1,5 @@
 # workflow derived from: https://github.com/insightsengineering/bioc-check-action
 
-
 on:
   push:
     branches: main

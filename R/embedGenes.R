@@ -121,5 +121,8 @@ embedGenes <- function(smoothed.counts = NULL,
                         umap1 = smoothed_counts_umap[, 1],
                         umap2 = smoothed_counts_umap[, 2])
   gene_df <- dplyr::bind_cols(gene_df, pca_df)
+  if (!cluster.genes) {
+    gene_df <- dplyr::select(gene_df, -leiden)
+  }
   return(gene_df)
 }

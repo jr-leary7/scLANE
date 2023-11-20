@@ -7,8 +7,9 @@
 #' @import magrittr
 #' @importFrom Matrix t
 #' @importFrom bigstatsr as_FBM
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom foreach foreach %dopar% registerDoSEQ
-#' @importFrom doParallel registerDoParallel
+#' @importFrom doSNOW registerDoSNOW
 #' @importFrom parallel makeCluster stopCluster clusterEvalQ clusterExport clusterSetRNGStream
 #' @importFrom withr with_output_sink
 #' @importFrom MASS glm.nb negative.binomial theta.mm
@@ -30,7 +31,7 @@
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
-#' @param verbose (Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Defaults to TRUE.
+#' @param verbose (Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.
 #' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
 #' \itemize{
@@ -110,14 +111,21 @@ testDynamic <- function(expr.mat = NULL,
   if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a specified correlation structure.") }
 
   # set up time tracking
+  start_time <- Sys.time()
+
+  # set up progress bar
   if (verbose) {
-    start_time <- Sys.time()
+    pb <- utils::txtProgressBar(0, length(genes), style = 3)
+    progress_fun <- function(n) utils::setTxtProgressBar(pb, n)
+    snow_opts <- list(progress = progress_fun)
+  } else {
+    snow_opts <- list()
   }
 
   # set up parallel processing
   if (parallel.exec) {
     cl <- parallel::makeCluster(n.cores)
-    doParallel::registerDoParallel(cl)
+    doSNOW::registerDoSNOW(cl)
     parallel::clusterSetRNGStream(cl, iseed = random.seed)
   } else {
     cl <- foreach::registerDoSEQ()
@@ -155,7 +163,8 @@ testDynamic <- function(expr.mat = NULL,
                                  .noexport = no_export,
                                  .errorhandling = "pass",
                                  .inorder = TRUE,
-                                 .verbose = FALSE) %dopar% {
+                                 .verbose = FALSE,
+                                 .options.snow = snow_opts) %dopar% {
     lineage_list <- vector("list", n_lineages)
     for (j in seq(n_lineages)) {
       # pull cells assigned to lineage j
@@ -367,24 +376,24 @@ testDynamic <- function(expr.mat = NULL,
     }
   })
 
+  # finalize time tracking
+  end_time <- Sys.time()
+  total_time <- end_time - start_time
+  total_time_units <- attributes(total_time)$units
+  total_time_numeric <- as.numeric(total_time)
+  time_message <- paste0("\nscLANE testing completed for ",
+                         length(genes),
+                         " genes across ",
+                         n_lineages,
+                         " ",
+                         ifelse(n_lineages == 1, "lineage ", "lineages "),
+                         "in ",
+                         round(total_time_numeric, 3),
+                         " ",
+                         total_time_units)
+  message(time_message)
+
   # return results
-  if (verbose) {
-    end_time <- Sys.time()
-    total_time <- end_time - start_time
-    total_time_units <- attributes(total_time)$units
-    total_time_numeric <- as.numeric(total_time)
-    time_message <- paste0("scLANE testing completed for ",
-                           length(genes),
-                           " genes across ",
-                           n_lineages,
-                           " ",
-                           ifelse(n_lineages == 1, "lineage ", "lineages "),
-                           "in ",
-                           round(total_time_numeric, 3),
-                           " ",
-                           total_time_units)
-    message(time_message)
-  }
   class(test_stats) <- "scLANE"
   return(test_stats)
 }

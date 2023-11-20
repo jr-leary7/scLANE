@@ -23,11 +23,6 @@ Performs a basic Wald test to determine whether an alternate model is significan
 \item The \emph{p}-value is calculated using an asymptotic \eqn{\Chi^2} distribution, with the degrees of freedom equal to the number of non-intercept coefficients in the alternative model.
 }
 }
-\examples{
-\dontrun{
-waldTestGEE(mod.1 = full_model, mod.0 = null_model)
-}
-}
 \seealso{
 \code{\link[multgee]{waldts}}
 

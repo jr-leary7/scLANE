@@ -80,14 +80,15 @@ cell_offset <- createCellOffset(sim_data)
 top1k_hvgs <- getTopHVGs(modelGeneVar(sim_data), n = 1e3)
 ```
 
-The default modeling framework is based on GLMs, which we use here. Parallel processing is turned on by default in order to speed things up.
+The default modeling framework is based on GLMs, which we use here. Parallel processing is turned on by default in order to speed things up. Setting the `verbose = TRUE` parameter would print a progress bar to the console. 
 
 ```{r}
 scLANE_models <- testDynamic(sim_data, 
                              pt = order_df, 
                              genes = top1k_hvgs, 
                              size.factor.offset = cell_offset, 
-                             n.cores = 4)
+                             n.cores = 5, 
+                             verbose = FALSE)
 ```
 
 After model fitting has completed, we generate a tidy table of DE test results and statistics using the `getResultsDE()` function. Each gene is given a binary dynamic vs. static classification (denoted as 1 or 0, respectively) over a given lineage / the trajectory as a whole if it's adjusted *p*-value is less than a specified threshold; the default is 0.01. 
@@ -127,6 +128,15 @@ knitr::kable(scLANE_models[[scLANE_de_res$Gene[1]]]$Lineage_A$Gene_Dynamics,
              digits = 3)
 ```
 
+We can plot the dynamics of a gene of interest along with its coefficients like so:
+
+```{r}
+plotModelCoefs(scLANE_models, 
+               gene = scLANE_de_res$Gene[1], 
+               pt = order_df, 
+               expr.mat = sim_data, 
+               size.factor.offset = cell_offset)
+```
 
 ## Gene dynamics plots
 
@@ -198,15 +208,15 @@ col_anno <- HeatmapAnnotation(Leiden = col_anno_df$leiden,
 
 Now we can finally plot the heatmap:
 
-```{r, fig.cap="Expression cascade heatmap"}
+```{r, fig.cap="Expression cascade of dynamic genes across pseudotime"}
 Heatmap(matrix = heatmap_mat, 
-        name = "mRNA", 
+        name = "Scaled\nmRNA", 
         col = circlize::colorRamp2(colors = viridis::inferno(50), 
                                    breaks = seq(min(heatmap_mat), max(heatmap_mat), length.out = 50)), 
         cluster_columns = FALSE,
         width = 9, 
         height = 6, 
-        column_title = "Dynamic genes across pseudotime",
+        column_title = "",
         cluster_rows = FALSE,
         top_annotation = col_anno, 
         border = TRUE, 
@@ -269,5 +279,5 @@ filter(dyn_gene_enrichment$result, source == "GO:BP") %>%
 # Session info
 
 ```{r}
-sessionInfo()
+sessioninfo::session_info()
 ```

@@ -18,7 +18,7 @@ testDynamic(
   parallel.exec = TRUE,
   n.cores = 2,
   approx.knot = TRUE,
-  track.time = TRUE,
+  verbose = TRUE,
   random.seed = 312
 )
 }
@@ -49,7 +49,7 @@ testDynamic(
 
 \item{approx.knot}{(Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.}
 
-\item{track.time}{(Optional) A boolean indicating whether the amount of time the function takes to run should be tracked and printed to the console. Defaults to TRUE.}
+\item{verbose}{(Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.}
 
 \item{random.seed}{(Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.}
 }

@@ -5,16 +5,7 @@
 #' @description This function removes a \emph{lot} of components from the default GLM object in order to make it take up less memory. It does however retain enough pieces for \code{predict()} to still work. No promises beyond that.
 #' @param glm.obj An object of class GLM from which you'd like to strip out unnecessary components. Defaults to NULL.
 #' @return A slimmed-down \code{glm} object.
-#' @export
 #' @seealso \code{\link{glm}}
-#' @examples
-#' data(sim_counts)
-#' data(sim_pseudotime)
-#' cell_offset <- createCellOffset(sim_counts)
-#' marge_model <- marge2(sim_pseudotime,
-#'                       Y = BiocGenerics::counts(sim_counts)[4, ],
-#'                       Y.offset = cell_offset)
-#' smaller_model <- stripGLM(marge_model$final_mod)
 
 stripGLM <- function(glm.obj = NULL) {
   # check inputs

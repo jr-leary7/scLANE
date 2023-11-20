@@ -19,14 +19,6 @@ A list containing the LRT test statistic, degrees freedom, and the \emph{p}-valu
 \description{
 This function compares two models using a likelihood ratio test (LRT) under the assumption that the test statistic is asymptotically Chi-squared with degrees freedom equal to the difference in the number of parameters between the larger and smaller model.
 }
-\examples{
-\dontrun{
-modelLRT(mod.1 = marge_mod, mod.0 = null_mod)
-modelLRT(mod.1 = marge_mod,
-         mod.0 = null_mod,
-         is.glmm = TRUE)
-}
-}
 \author{
 Jack Leary
 }

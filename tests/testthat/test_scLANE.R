@@ -43,8 +43,7 @@ withr::with_output_sink(tempfile(), {
                                 is.gee = TRUE,
                                 cor.structure = "ar1",
                                 id.vec = sim_data$subject,
-                                n.cores = 2,
-                                track.time = FALSE)
+                                n.cores = 2)
   glmm_gene_stats <- testDynamic(sim_data,
                                  pt = pt_test,
                                  genes = genes_to_test,
@@ -54,7 +53,7 @@ withr::with_output_sink(tempfile(), {
                                  glmm.adaptive = TRUE,
                                  id.vec = sim_data$subject,
                                  n.cores = 2,
-                                 track.time = FALSE)
+                                 verbose = FALSE)
   # get results tables overall
   glm_test_results <- getResultsDE(glm_gene_stats)
   gee_test_results <- getResultsDE(gee_gene_stats)
@@ -122,7 +121,7 @@ withr::with_output_sink(tempfile(), {
                                  return.WIC = TRUE)
   # run GLMM model -- no offset
   glmm_mod <- fitGLMM(X_pred = pt_test,
-                      Y = counts_test[, 3],
+                      Y = counts_test[, 4],
                       id.vec = sim_data$subject,
                       adaptive = TRUE,
                       M.glm = 3,
@@ -130,7 +129,7 @@ withr::with_output_sink(tempfile(), {
                       return.GCV = TRUE)
   # run GLMM model -- with offset
   glmm_mod_offset <- fitGLMM(X_pred = pt_test,
-                             Y = counts_test[, 3],
+                             Y = counts_test[, 4],
                              Y.offset = cell_offset,
                              id.vec = sim_data$subject,
                              adaptive = TRUE,

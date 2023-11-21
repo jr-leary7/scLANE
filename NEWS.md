@@ -18,7 +18,7 @@
 
 # Changes in version 0.7.6
 
-+ Added [Zenodo tracking](https://doi.org/10.5281/zenodo.10030621).
++ Added [Zenodo tracking](https://doi.org/10.5281/zenodo.10182497).
 + Added simulated dataset to `data/`.
 
 # Changes in version 0.7.5

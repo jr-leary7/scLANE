@@ -45,6 +45,11 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+      - name: Extra dependencies
+        id: extra-deps
+        run: |
+          install.packages("Matrix", type = "source", force = TRUE)
+          install.packages("irlba", type = "source", force = TRUE)
 
       - name: Check
         id: rcmdcheck

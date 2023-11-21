@@ -1,4 +1,5 @@
 # workflow derived from: https://github.com/insightsengineering/bioc-check-action
+# but the above action doesn't actually work lol, it always fails, so I changed it
 
 on:
   push:
@@ -19,5 +20,21 @@ jobs:
           http-user-agent: release
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@v2
+      - name: Install dependencies
+        run: |
+          install.packages("BiocManager")
+          BiocManager::install("BiocCheck")
+        shell: Rscript {0}
       - name: Run BiocCheck
-        uses: insightsengineering/bioc-check-action@v1
+        run: |
+          bc_res <- BiocCheck::BiocCheck()
+          print(paste0("Errors: ", length(bc_res$error)))
+          print(paste0("Warnings: ", length(bc_res$warning)))
+          print(paste0("Notes: ", length(bc_res$note)))
+          n_errors <- length(bc_res$error)
+          Sys.setenv("BC_ERRORS" = n_errors)
+        shell: Rscript {0}
+      - name: Check BiocCheck results
+        run: |
+          if [[ $BC_ERRORS -gt 0 ]]; then exit 1; else echo "BiocCheck passed!"; fi
+        shell: bash

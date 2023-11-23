@@ -29,7 +29,7 @@ knitr::opts_chunk$set(warning = FALSE,
 ![last commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
-[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.5281/zenodo.10106689&color=blue)](https://doi.org/10.5281/zenodo.10106689)
+[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.5281/zenodo.10182497&color=blue)](https://doi.org/10.5281/zenodo.10182497)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
@@ -49,11 +49,11 @@ A quickstart guide on how to use `scLANE` with simulated data continues below, a
 
 # Usage
 
-Our method relies on a relatively simple test in order to define whether a given gene is differentially expressed (or "dynamic") over the provided trajectory. While the exact structure of the test differs by model backend, the concept is the same: the spline-based NB GLM / GEE / GLMM is treated as the alternate model, and a null model is fit using the corresponding model backend. If the GLM backend is used, then the null model is simply an intercept-only NB GLM; the GEE backend fits an intercept-only model with the same working correlation structure as the alternate model, and if the GLMM backend is used then the null model is an intercept-only model with random intercepts for each subject. The alternate hypothesis is thus that at least one of the estimated coefficients is significantly different from zero. We predict a given gene to be dynamic if the adjusted *p*-value of the test is less than an *a priori* threshold; the default threshold is 0.01, and the default adjustment method is [the Holm correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method). 
+Our method relies on a relatively simple test in order to define whether a given gene is differentially expressed (or "dynamic") over the provided trajectory. While the exact structure of the test differs by model backend, the concept is the same: the spline-based NB GLM / GEE / GLMM is treated as the alternate model, and a null model is fit using the corresponding model backend. If the GLM backend is used, then the null model is simply an intercept-only NB GLM; the GEE backend fits an intercept-only model with the same working correlation structure as the alternate model, and if the GLMM backend is used then the null model is an intercept-only model with random intercepts for each subject. The alternate hypothesis is thus that at least one of the estimated coefficients is significantly different from zero. We predict a given gene to be dynamic if the adjusted *p*-value of the test is less than an *a priori* threshold; the default threshold is $\alpha = 0.01$, and the default adjustment method is [the Holm correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method). 
 
 ## Libraries 
 
-First we'll also need to load a couple dependencies & resolve a function conflict. 
+First we'll need to load a couple packages. 
 
 ```{r libraries, results='hide', message=FALSE}
 library(dplyr)

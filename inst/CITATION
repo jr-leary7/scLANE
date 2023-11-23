@@ -4,11 +4,11 @@ citEntry(
   entry    = "Manual",
   title    = "Single Cell Linear Adaptive Expression Testing (scLANE)",
   journal  = "Zenodo",
-  author   = c(person(given = c("Jack", "R."), family = "Leary").
+  author   = c(person(given = c("Jack", "R."), family = "Leary"),
                person(given = "Rhonda", family = "Bacher"))
   year     = "2023",
   note     = "R package version 0.7.7",
-  url      = "https://doi.org/10.5281/zenodo.10106689",
+  url      = "https://doi.org/10.5281/zenodo.10182497",
   textVersion = paste(
 
   )

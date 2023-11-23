@@ -30,7 +30,7 @@
 commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
-[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.5281/zenodo.10106689&color=blue)](https://doi.org/10.5281/zenodo.10106689)
+[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.5281/zenodo.10182497&color=blue)](https://doi.org/10.5281/zenodo.10182497)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
@@ -84,14 +84,13 @@ an intercept-only model with random intercepts for each subject. The
 alternate hypothesis is thus that at least one of the estimated
 coefficients is significantly different from zero. We predict a given
 gene to be dynamic if the adjusted *p*-value of the test is less than an
-*a priori* threshold; the default threshold is 0.01, and the default
-adjustment method is [the Holm
+*a priori* threshold; the default threshold is $\alpha = 0.01$, and the
+default adjustment method is [the Holm
 correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method).
 
 ## Libraries
 
-First we’ll also need to load a couple dependencies & resolve a function
-conflict.
+First we’ll need to load a couple packages.
 
 ``` r
 library(dplyr)
@@ -180,11 +179,13 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  pt = order_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
-                                 n.cores = 4)
+                                 n.cores = 4, 
+                                 verbose = FALSE)
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing completed for 100 genes across 1 lineage in 55.872 secs
+#> 
+#> scLANE testing completed for 100 genes across 1 lineage in 56.302 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -205,11 +206,11 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| MFSD2B | A       |   209.755 |   0.000 |        0.000 |                        1 |
-| CPA3   | A       |     4.781 |   0.029 |        0.518 |                        0 |
-| UAP1L1 | A       |     9.436 |   0.009 |        0.188 |                        0 |
-| TMCO3  | A       |   167.582 |   0.000 |        0.000 |                        1 |
-| MYOF   | A       |     3.808 |   0.051 |        0.531 |                        0 |
+| MFSD2B | A       |   216.750 |   0.000 |        0.000 |                        1 |
+| TMC6   | A       |     5.384 |   0.068 |        0.503 |                        0 |
+| SMG1   | A       |     9.711 |   0.008 |        0.163 |                        0 |
+| TMCO3  | A       |   166.288 |   0.000 |        0.000 |                        1 |
+| UAP1L1 | A       |     4.102 |   0.043 |        0.503 |                        0 |
 
 ### GEE mode
 
@@ -231,8 +232,10 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  is.gee = TRUE, 
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
-                                 n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 3.467 mins
+                                 n.cores = 4, 
+                                 verbose = FALSE)
+#> 
+#> scLANE testing completed for 100 genes across 1 lineage in 2.112 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -252,10 +255,10 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
 | DGUOK    | A       |  64351.893 |       0 |            0 |                        1 |
-| TBCC     | A       |     32.151 |       0 |            0 |                        1 |
+| TRAPPC1  | A       |     29.648 |       0 |            0 |                        1 |
 | GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
-| PFDN2    | A       |   2131.763 |       0 |            0 |                        1 |
-| MPG      | A       |    849.362 |       0 |            0 |                        1 |
+| PFDN2    | A       |   2306.467 |       0 |            0 |                        1 |
+| DAB1     | A       |   1000.205 |       0 |            0 |                        1 |
 
 ### GLMM mode
 
@@ -278,8 +281,10 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   is.glmm = TRUE, 
                                   glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
-                                  n.cores = 4)
-#> scLANE testing completed for 100 genes across 1 lineage in 4.489 mins
+                                  n.cores = 4, 
+                                  verbose = FALSE)
+#> 
+#> scLANE testing completed for 100 genes across 1 lineage in 2.789 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -305,8 +310,8 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
-| PGLS    | A       |   129.086 |   0.000 |            0 |                        1 |
-| TSPAN1  | A       |    78.616 |   0.000 |            0 |                        1 |
+| MRPL20  | A       |   131.772 |   0.000 |            0 |                        1 |
+| TSPAN1  | A       |    79.164 |   0.000 |            0 |                        1 |
 | WDSUB1  | A       |        NA |      NA |           NA |                        0 |
 | FAM135B | A       |        NA |      NA |           NA |                        0 |
 | NLGN4Y  | A       |     9.878 |   0.627 |            1 |                        0 |
@@ -330,7 +335,7 @@ more interpretable & has a narrower confidence interval.
 
 ``` r
 plotModels(scLANE_models_glm, 
-           gene = "JARID2", 
+           gene = scLANE_res_glm$Gene[1], 
            pt = order_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
@@ -347,7 +352,7 @@ being that we now provide a vector of subject IDs.
 
 ``` r
 plotModels(scLANE_models_gee, 
-           gene = "DGUOK", 
+           gene = scLANE_res_gee$Gene[1], 
            is.gee = TRUE, 
            id.vec = sim_data$subject, 
            pt = order_df, 
@@ -368,7 +373,7 @@ dynamics differ significantly by subject.
 
 ``` r
 plotModels(scLANE_models_glmm, 
-           gene = "FLOT2", 
+           gene = scLANE_res_glmm$Gene[1], 
            pt = order_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
@@ -400,7 +405,19 @@ scLANE_models_glm[["JARID2"]]$Lineage_A$Gene_Dynamics %>%
 
 | Gene   | Lineage | Breakpoint | First Slope | Second Slope | First Trend | Second Trend |
 |:-------|:--------|-----------:|------------:|-------------:|------------:|-------------:|
-| JARID2 | A       |       0.11 |      -32.96 |         4.01 |          -1 |            1 |
+| JARID2 | A       |        0.1 |      -38.09 |         3.93 |          -1 |            1 |
+
+Coefficients can also be plotted like so:
+
+``` r
+plotModelCoefs(scLANE_models_glm, 
+               gene = "JARID2", 
+               pt = order_df, 
+               expr.mat = sim_data,
+               size.factor.offset = cell_offset)
+```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 ### Knot distribution
 
@@ -427,7 +444,7 @@ ggplot(knot_dist, aes(x = knot)) +
 #> `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
 ### Smoothed dynamics matrix
 

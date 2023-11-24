@@ -20,9 +20,16 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@v2
       - uses: r-lib/actions/setup-pandoc@v2
-
       - name: install CRAN packages
         run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "devtools", "BiocManager", "Seurat"), force = TRUE)'
+      - name: Extra dependencies
+        id: extra-deps
+        run: |
+          install.packages("Matrix", type = "source", force = TRUE)
+          install.packages("irlba", type = "source", force = TRUE)
+          install.packages("TMB", type = "source", force = TRUE)
+          install.packages("glmmTMB", type = "source", force = TRUE)
+        shell: Rscript {0}
       - name: install BioConductor packages
         run: Rscript -e 'BiocManager::install(c("SingleCellExperiment", "scater", "scran", "scuttle", "bluster"), force = TRUE)'
       - name: install GitHub packages

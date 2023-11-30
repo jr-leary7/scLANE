@@ -2,7 +2,7 @@
 #'
 #' @name testDynamic
 #' @author Jack Leary
-#' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
+#' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) model using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 #' @import glm2
 #' @import magrittr
 #' @importFrom Matrix t
@@ -381,7 +381,7 @@ testDynamic <- function(expr.mat = NULL,
   total_time <- end_time - start_time
   total_time_units <- attributes(total_time)$units
   total_time_numeric <- as.numeric(total_time)
-  time_message <- paste0("\nscLANE testing completed for ",
+  time_message <- paste0("scLANE testing completed for ",
                          length(genes),
                          " genes across ",
                          n_lineages,

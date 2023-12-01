@@ -2,7 +2,7 @@
 #'
 #' @name testDynamic
 #' @author Jack Leary
-#' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) NB GLM using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
+#' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) model using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 #' @import glm2
 #' @import magrittr
 #' @importFrom Matrix t
@@ -115,7 +115,9 @@ testDynamic <- function(expr.mat = NULL,
 
   # set up progress bar
   if (verbose) {
-    pb <- utils::txtProgressBar(0, length(genes), style = 3)
+    withr::with_output_sink(tempfile(), {
+      pb <- utils::txtProgressBar(0, length(genes), style = 3)
+    })
     progress_fun <- function(n) utils::setTxtProgressBar(pb, n)
     snow_opts <- list(progress = progress_fun)
   } else {
@@ -381,7 +383,7 @@ testDynamic <- function(expr.mat = NULL,
   total_time <- end_time - start_time
   total_time_units <- attributes(total_time)$units
   total_time_numeric <- as.numeric(total_time)
-  time_message <- paste0("\nscLANE testing completed for ",
+  time_message <- paste0("scLANE testing completed for ",
                          length(genes),
                          " genes across ",
                          n_lineages,
@@ -391,6 +393,9 @@ testDynamic <- function(expr.mat = NULL,
                          round(total_time_numeric, 3),
                          " ",
                          total_time_units)
+  if (verbose) {
+    time_message <- paste0("\n", time_message)
+  }
   message(time_message)
 
   # return results

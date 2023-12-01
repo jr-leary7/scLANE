@@ -1,21 +1,16 @@
 
-- <a href="#sclane" id="toc-sclane"><code>scLANE</code></a>
-  - <a href="#installation" id="toc-installation">Installation</a>
-  - <a href="#model-structure" id="toc-model-structure">Model structure</a>
-- <a href="#usage" id="toc-usage">Usage</a>
-  - <a href="#libraries" id="toc-libraries">Libraries</a>
-  - <a href="#input-data" id="toc-input-data">Input data</a>
-  - <a href="#trajectory-de-testing"
-    id="toc-trajectory-de-testing">Trajectory DE testing</a>
-  - <a href="#downstream-analysis--visualization"
-    id="toc-downstream-analysis--visualization">Downstream analysis &amp;
-    visualization</a>
-- <a href="#conclusions--best-practices"
-  id="toc-conclusions--best-practices">Conclusions &amp; best
-  practices</a>
-- <a href="#contact-information" id="toc-contact-information">Contact
-  information</a>
-- <a href="#references" id="toc-references">References</a>
+- [`scLANE`](#sclane)
+  - [Installation](#installation)
+  - [Model structure](#model-structure)
+- [Usage](#usage)
+  - [Libraries](#libraries)
+  - [Input data](#input-data)
+  - [Trajectory DE testing](#trajectory-de-testing)
+  - [Downstream analysis &
+    visualization](#downstream-analysis--visualization)
+- [Conclusions & best practices](#conclusions--best-practices)
+- [Contact information](#contact-information)
+- [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -48,21 +43,18 @@ remotes::install_github("jr-leary7/scLANE")
 The `scLANE` package enables users to accurately determine differential
 expression of genes over pseudotime or latent time, and to characterize
 gene’s dynamics using interpretable model coefficients. `scLANE` builds
-upon the [`marge` modeling
-framework](https://github.com/JakubStats/marge), allowing users to
-characterize their trajectory’s effects on mRNA expression using
-negative binomial
-[GLMs](https://en.wikipedia.org/wiki/Generalized_linear_model),
-[GEEs](https://en.wikipedia.org/wiki/Generalized_estimating_equation),
-or
-[GLMMs](https://en.wikipedia.org/wiki/Generalized_linear_mixed_model),
-depending on the experimental design & biological questions of interest.
-This modeling framework is an extension of the well-known [Multivariate
-Adapative Regression Splines
+upon the `marge` modeling
+framework([GitHub](https://github.com/JakubStats/marge),
+[paper](https://doi.org/10.1080/10618600.2017.1360780)), allowing users
+to characterize their trajectory’s effects on gene expression using
+negative binomial GLMs, GEEs, or GLMMs depending on the experimental
+design & biological questions of interest. This modeling framework is an
+extension of the [Multivariate Adapative Regression Splines
 (MARS)](https://en.wikipedia.org/wiki/Multivariate_adaptive_regression_spline)
-method, which uses truncated power basis splines to build nonlinear
-models using a [generalized cross validation (GCV)
-criterion](https://doi.org/10.48550/arXiv.1706.02495).
+method, which builds nonlinear models out of piecewise linear
+components. `scLANE` is agnostic with respect to the ordering estimation
+method used, and can be implemented downstream of any pseudotime or RNA
+velocity method.
 
 A quickstart guide on how to use `scLANE` with simulated data continues
 below, and a more detailed vignette showcasing its performance on real
@@ -74,11 +66,22 @@ data can be found
 Our method relies on a relatively simple test in order to define whether
 a given gene is differentially expressed (or “dynamic”) over the
 provided trajectory. While the exact structure of the test differs by
-model backend, the concept is the same: the spline-based NB GLM / GEE /
+model mode, the concept is the same: the spline-based NB GLM / GEE /
 GLMM is treated as the alternate model, and a null model is fit using
-the corresponding model backend. If the GLM backend is used, then the
-null model is simply an intercept-only NB GLM; the GEE backend fits an
+the corresponding model mode. If the GLM mode is used, then the null
+model is simply an intercept-only NB GLM; the GEE mode fits an
 intercept-only model with the same working correlation structure as the
+<<<<<<< HEAD
+alternate model, and if the GLMM mode is used then the null model is an
+intercept-only model with random intercepts for each subject. The
+alternate hypothesis is that at least one of the estimated coefficients
+is significantly different from zero. We predict a given gene to be
+dynamic if the adjusted *p*-value of the test is less than the default
+$\alpha = 0.01$ threshold, and classify it as static otherwise.
+
+## Libraries
+
+=======
 alternate model, and if the GLMM backend is used then the null model is
 an intercept-only model with random intercepts for each subject. The
 alternate hypothesis is thus that at least one of the estimated
@@ -92,6 +95,7 @@ correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method).
 
 First we’ll need to load a couple packages.
 
+>>>>>>> main
 ``` r
 library(dplyr)
 library(scLANE)
@@ -184,16 +188,19 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
+<<<<<<< HEAD
+#> scLANE testing completed for 100 genes across 1 lineage in 20.94 secs
+=======
 #> 
 #> scLANE testing completed for 100 genes across 1 lineage in 56.302 secs
+>>>>>>> main
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
 a sorted table of DE test results, with one row for each gene & lineage.
 The GLM mode uses a simple likelihood ratio test to compare the null &
-alternate models, with the test statistic assumed to be [asymptotically
-Chi-squared
-distributed](https://en.wikipedia.org/wiki/Likelihood-ratio_test).
+alternate models, with the test statistic assumed to be asymptotically
+Chi-squared distributed.
 
 ``` r
 scLANE_res_glm <- getResultsDE(scLANE_models_glm)
@@ -207,22 +214,28 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
 | MFSD2B | A       |   216.750 |   0.000 |        0.000 |                        1 |
+<<<<<<< HEAD
+| TTC5   | A       |     5.481 |   0.019 |        0.385 |                        0 |
+| UAP1L1 | A       |     9.747 |   0.008 |        0.183 |                        0 |
+| TMCO3  | A       |   166.288 |   0.000 |        0.000 |                        1 |
+| SFMBT2 | A       |     4.294 |   0.117 |        0.646 |                        0 |
+=======
 | TMC6   | A       |     5.384 |   0.068 |        0.503 |                        0 |
 | SMG1   | A       |     9.711 |   0.008 |        0.163 |                        0 |
 | TMCO3  | A       |   166.288 |   0.000 |        0.000 |                        1 |
 | UAP1L1 | A       |     4.102 |   0.043 |        0.503 |                        0 |
+>>>>>>> main
 
 ### GEE mode
 
 The function call is essentially the same when using the GLM mode, with
 the exception of needing to provide a sorted vector of subject IDs & a
-desired correlation structure, the default being [the AR1
-structure](https://en.wikipedia.org/wiki/Autoregressive_model). We also
-need to flip the `is.gee` flag in order to indicate that we’d like to
-fit estimating equations models (instead of mixed models). Since fitting
-GEEs is more computationally complex than fitting GLMs, DE testing with
-the GEE mode takes a bit longer. Using more cores and / or running the
-tests on an HPC cluster speeds things up considerably.
+desired correlation structure. We also need to flip the `is.gee` flag in
+order to indicate that we’d like to fit estimating equations models
+(instead of mixed models). Since fitting GEEs is more computationally
+complex than fitting GLMs, DE testing with the GEE mode takes a bit
+longer. Using more cores and / or running the tests on an HPC cluster
+speeds things up considerably.
 
 ``` r
 scLANE_models_gee <- testDynamic(sim_data, 
@@ -234,13 +247,16 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 4, 
                                  verbose = FALSE)
+<<<<<<< HEAD
+#> scLANE testing completed for 100 genes across 1 lineage in 1.624 mins
+=======
 #> 
 #> scLANE testing completed for 100 genes across 1 lineage in 2.112 mins
+>>>>>>> main
 ```
 
 We again generate the table of DE test results. The variance of the
-estimated coefficients is determined using [the sandwich
-estimator](https://online.stat.psu.edu/stat504/lesson/12/12.3), and a
+estimated coefficients is determined using the sandwich estimator, and a
 Wald test is used to compare the null & alternate models.
 
 ``` r
@@ -252,6 +268,15 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "Wald stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
+<<<<<<< HEAD
+| Gene   | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:-------|:--------|-----------:|--------:|-------------:|-------------------------:|
+| UAP1L1 | A       | 374246.277 |       0 |            0 |                        1 |
+| BAD    | A       |     28.606 |       0 |            0 |                        1 |
+| LY6G5C | A       |         NA |      NA |           NA |                        0 |
+| TMCO3  | A       |   3581.339 |       0 |            0 |                        1 |
+| PFDN2  | A       |   2306.467 |       0 |            0 |                        1 |
+=======
 | Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
 | DGUOK    | A       |  64351.893 |       0 |            0 |                        1 |
@@ -259,6 +284,7 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
 | PFDN2    | A       |   2306.467 |       0 |            0 |                        1 |
 | DAB1     | A       |   1000.205 |       0 |            0 |                        1 |
+>>>>>>> main
 
 ### GLMM mode
 
@@ -283,8 +309,12 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 4, 
                                   verbose = FALSE)
+<<<<<<< HEAD
+#> scLANE testing completed for 100 genes across 1 lineage in 2.273 mins
+=======
 #> 
 #> scLANE testing completed for 100 genes across 1 lineage in 2.789 mins
+>>>>>>> main
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -293,11 +323,7 @@ optimization process converging successfully. As such, updates will be
 frequent and functionality / results may shift slightly.
 
 Like the GLM mode, the GLMM mode uses a likelihood ratio test to compare
-the null & alternate models. We fit the two nested models using maximum
-likelihood estimation instead of
-[REML](https://en.wikipedia.org/wiki/Restricted_maximum_likelihood) in
-order to perform this test; the null model in this case is a negative
-binomial GLMM with a random intercept for each subject.
+the null & alternate models.
 
 ``` r
 scLANE_res_glmm <- getResultsDE(scLANE_models_glmm)
@@ -310,11 +336,16 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
+<<<<<<< HEAD
+| DDX1    | A       |   132.501 |   0.000 |            0 |                        1 |
+| TSPAN1  | A       |    78.518 |   0.000 |            0 |                        1 |
+=======
 | MRPL20  | A       |   131.772 |   0.000 |            0 |                        1 |
 | TSPAN1  | A       |    79.164 |   0.000 |            0 |                        1 |
+>>>>>>> main
 | WDSUB1  | A       |        NA |      NA |           NA |                        0 |
 | FAM135B | A       |        NA |      NA |           NA |                        0 |
-| NLGN4Y  | A       |     9.878 |   0.627 |            1 |                        0 |
+| NLGN4Y  | A       |     9.909 |   0.624 |            1 |                        0 |
 
 ## Downstream analysis & visualization
 
@@ -331,7 +362,7 @@ against which the scLANE model is compared using the likelihood ratio
 test and the GLM displays the inadequacy of monotonic modeling
 architectures for nonlinear dynamics. A GAM shows essentially the same
 trend as the `scLANE` model, though the fitted trend from `scLANE` is
-more interpretable & has a narrower confidence interval.
+more interpretable.
 
 ``` r
 plotModels(scLANE_models_glm, 
@@ -347,6 +378,8 @@ plotModels(scLANE_models_glm,
 
 <img src="man/figures/README-plot-models-glm-1.png" width="100%" />
 
+<<<<<<< HEAD
+=======
 Model comparison using the GEE mode is similar, with the only change
 being that we now provide a vector of subject IDs.
 
@@ -366,6 +399,7 @@ plotModels(scLANE_models_gee,
 
 <img src="man/figures/README-plot-models-gee-1.png" width="100%" />
 
+>>>>>>> main
 When plotting the models generated using the GLMM mode, we split by
 lineage & color the points by subject ID instead of by lineage. The gene
 in question highlights the utility of the scLANE model, since the gene
@@ -379,8 +413,7 @@ plotModels(scLANE_models_glmm,
            size.factor.offset = cell_offset, 
            id.vec = sim_data$subject, 
            is.glmm = TRUE, 
-           plot.null = FALSE, 
-           plot.glm = TRUE, 
+           plot.glm = TRUE,
            plot.gam = TRUE, 
            plot.scLANE = TRUE)
 ```
@@ -417,7 +450,11 @@ plotModelCoefs(scLANE_models_glm,
                size.factor.offset = cell_offset)
 ```
 
+<<<<<<< HEAD
+<img src="man/figures/README-plot-model-coefs-1.png" width="100%" />
+=======
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+>>>>>>> main
 
 ### Knot distribution
 
@@ -444,7 +481,11 @@ ggplot(knot_dist, aes(x = knot)) +
 #> `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ```
 
+<<<<<<< HEAD
+<img src="man/figures/README-plot-knot-dist-1.png" width="100%" />
+=======
 <img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+>>>>>>> main
 
 ### Smoothed dynamics matrix
 

@@ -120,7 +120,7 @@ plotModelCoefs <- function(test.dyn.res = NULL,
   }
   # convert coefficient summary to grob
   coef_sumy_grob <- gridExtra::tableGrob(coef_sumy,
-                                         cols = c("Interval", "Coefficient"),
+                                         cols = c("Interval", "Slope"),
                                          theme = gridExtra::ttheme_minimal(base_size = 11,
                                                                            core = list(fg_params = list(hjust = 0, x = 0.05)),
                                                                            colhead = list(fg_params = list(hjust = 0, x = 0.05))),

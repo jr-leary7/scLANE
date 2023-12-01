@@ -18,8 +18,8 @@ knitr::opts_chunk$set(warning = FALSE,
                       fig.path = "man/figures/README-",
                       out.width = "100%", 
                       fig.retina = TRUE, 
-                      fig.width = 5, 
-                      fig.height = 3)
+                      fig.width = 6, 
+                      fig.height = 4)
 ```
 
 # `scLANE`

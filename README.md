@@ -1,16 +1,21 @@
 
-- [`scLANE`](#sclane)
-  - [Installation](#installation)
-  - [Model structure](#model-structure)
-- [Usage](#usage)
-  - [Libraries](#libraries)
-  - [Input data](#input-data)
-  - [Trajectory DE testing](#trajectory-de-testing)
-  - [Downstream analysis &
-    visualization](#downstream-analysis--visualization)
-- [Conclusions & best practices](#conclusions--best-practices)
-- [Contact information](#contact-information)
-- [References](#references)
+- <a href="#sclane" id="toc-sclane"><code>scLANE</code></a>
+  - <a href="#installation" id="toc-installation">Installation</a>
+  - <a href="#model-structure" id="toc-model-structure">Model structure</a>
+- <a href="#usage" id="toc-usage">Usage</a>
+  - <a href="#libraries" id="toc-libraries">Libraries</a>
+  - <a href="#input-data" id="toc-input-data">Input data</a>
+  - <a href="#trajectory-de-testing"
+    id="toc-trajectory-de-testing">Trajectory DE testing</a>
+  - <a href="#downstream-analysis--visualization"
+    id="toc-downstream-analysis--visualization">Downstream analysis &amp;
+    visualization</a>
+- <a href="#conclusions--best-practices"
+  id="toc-conclusions--best-practices">Conclusions &amp; best
+  practices</a>
+- <a href="#contact-information" id="toc-contact-information">Contact
+  information</a>
+- <a href="#references" id="toc-references">References</a>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -71,7 +76,6 @@ GLMM is treated as the alternate model, and a null model is fit using
 the corresponding model mode. If the GLM mode is used, then the null
 model is simply an intercept-only NB GLM; the GEE mode fits an
 intercept-only model with the same working correlation structure as the
-<<<<<<< HEAD
 alternate model, and if the GLMM mode is used then the null model is an
 intercept-only model with random intercepts for each subject. The
 alternate hypothesis is that at least one of the estimated coefficients
@@ -81,21 +85,6 @@ $\alpha = 0.01$ threshold, and classify it as static otherwise.
 
 ## Libraries
 
-=======
-alternate model, and if the GLMM backend is used then the null model is
-an intercept-only model with random intercepts for each subject. The
-alternate hypothesis is thus that at least one of the estimated
-coefficients is significantly different from zero. We predict a given
-gene to be dynamic if the adjusted *p*-value of the test is less than an
-*a priori* threshold; the default threshold is $\alpha = 0.01$, and the
-default adjustment method is [the Holm
-correction](https://en.wikipedia.org/wiki/Holm–Bonferroni_method).
-
-## Libraries
-
-First we’ll need to load a couple packages.
-
->>>>>>> main
 ``` r
 library(dplyr)
 library(scLANE)
@@ -188,12 +177,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-<<<<<<< HEAD
-#> scLANE testing completed for 100 genes across 1 lineage in 20.94 secs
-=======
-#> 
-#> scLANE testing completed for 100 genes across 1 lineage in 56.302 secs
->>>>>>> main
+#> scLANE testing completed for 100 genes across 1 lineage in 45.702 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -211,20 +195,13 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| MFSD2B | A       |   216.750 |   0.000 |        0.000 |                        1 |
-<<<<<<< HEAD
-| TTC5   | A       |     5.481 |   0.019 |        0.385 |                        0 |
-| UAP1L1 | A       |     9.747 |   0.008 |        0.183 |                        0 |
-| TMCO3  | A       |   166.288 |   0.000 |        0.000 |                        1 |
-| SFMBT2 | A       |     4.294 |   0.117 |        0.646 |                        0 |
-=======
-| TMC6   | A       |     5.384 |   0.068 |        0.503 |                        0 |
-| SMG1   | A       |     9.711 |   0.008 |        0.163 |                        0 |
-| TMCO3  | A       |   166.288 |   0.000 |        0.000 |                        1 |
-| UAP1L1 | A       |     4.102 |   0.043 |        0.503 |                        0 |
->>>>>>> main
+| Gene     | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:---------|:--------|----------:|--------:|-------------:|-------------------------:|
+| MFSD2B   | A       |   216.750 |   0.000 |        0.000 |                        1 |
+| RPL29    | A       |     5.632 |   0.018 |        0.353 |                        0 |
+| UAP1L1   | A       |     9.880 |   0.007 |        0.157 |                        0 |
+| TMCO3    | A       |   167.709 |   0.000 |        0.000 |                        1 |
+| GOLGA8EP | A       |     4.359 |   0.037 |        0.487 |                        0 |
 
 ### GEE mode
 
@@ -247,12 +224,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 4, 
                                  verbose = FALSE)
-<<<<<<< HEAD
-#> scLANE testing completed for 100 genes across 1 lineage in 1.624 mins
-=======
-#> 
-#> scLANE testing completed for 100 genes across 1 lineage in 2.112 mins
->>>>>>> main
+#> scLANE testing completed for 100 genes across 1 lineage in 2.201 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -268,23 +240,13 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "Wald stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-<<<<<<< HEAD
-| Gene   | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| UAP1L1 | A       | 374246.277 |       0 |            0 |                        1 |
-| BAD    | A       |     28.606 |       0 |            0 |                        1 |
-| LY6G5C | A       |         NA |      NA |           NA |                        0 |
-| TMCO3  | A       |   3581.339 |       0 |            0 |                        1 |
-| PFDN2  | A       |   2306.467 |       0 |            0 |                        1 |
-=======
 | Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
 | DGUOK    | A       |  64351.893 |       0 |            0 |                        1 |
-| TRAPPC1  | A       |     29.648 |       0 |            0 |                        1 |
+| TBCC     | A       |     32.151 |       0 |            0 |                        1 |
 | GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
-| PFDN2    | A       |   2306.467 |       0 |            0 |                        1 |
-| DAB1     | A       |   1000.205 |       0 |            0 |                        1 |
->>>>>>> main
+| TMC6     | A       |   5052.168 |       0 |            0 |                        1 |
+| JARID2   | A       |   1512.240 |       0 |            0 |                        1 |
 
 ### GLMM mode
 
@@ -309,12 +271,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 4, 
                                   verbose = FALSE)
-<<<<<<< HEAD
-#> scLANE testing completed for 100 genes across 1 lineage in 2.273 mins
-=======
-#> 
-#> scLANE testing completed for 100 genes across 1 lineage in 2.789 mins
->>>>>>> main
+#> scLANE testing completed for 100 genes across 1 lineage in 2.968 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -336,16 +293,11 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
-<<<<<<< HEAD
-| DDX1    | A       |   132.501 |   0.000 |            0 |                        1 |
-| TSPAN1  | A       |    78.518 |   0.000 |            0 |                        1 |
-=======
-| MRPL20  | A       |   131.772 |   0.000 |            0 |                        1 |
-| TSPAN1  | A       |    79.164 |   0.000 |            0 |                        1 |
->>>>>>> main
+| DDX1    | A       |   132.422 |   0.000 |            0 |                        1 |
+| GGNBP2  | A       |    73.683 |   0.000 |            0 |                        1 |
 | WDSUB1  | A       |        NA |      NA |           NA |                        0 |
 | FAM135B | A       |        NA |      NA |           NA |                        0 |
-| NLGN4Y  | A       |     9.909 |   0.624 |            1 |                        0 |
+| DAB1    | A       |     9.217 |   0.684 |            1 |                        0 |
 
 ## Downstream analysis & visualization
 
@@ -378,28 +330,6 @@ plotModels(scLANE_models_glm,
 
 <img src="man/figures/README-plot-models-glm-1.png" width="100%" />
 
-<<<<<<< HEAD
-=======
-Model comparison using the GEE mode is similar, with the only change
-being that we now provide a vector of subject IDs.
-
-``` r
-plotModels(scLANE_models_gee, 
-           gene = scLANE_res_gee$Gene[1], 
-           is.gee = TRUE, 
-           id.vec = sim_data$subject, 
-           pt = order_df, 
-           expr.mat = sim_data, 
-           size.factor.offset = cell_offset, 
-           plot.null = TRUE, 
-           plot.glm = TRUE, 
-           plot.gam = TRUE, 
-           plot.scLANE = TRUE)
-```
-
-<img src="man/figures/README-plot-models-gee-1.png" width="100%" />
-
->>>>>>> main
 When plotting the models generated using the GLMM mode, we split by
 lineage & color the points by subject ID instead of by lineage. The gene
 in question highlights the utility of the scLANE model, since the gene
@@ -450,11 +380,7 @@ plotModelCoefs(scLANE_models_glm,
                size.factor.offset = cell_offset)
 ```
 
-<<<<<<< HEAD
 <img src="man/figures/README-plot-model-coefs-1.png" width="100%" />
-=======
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
->>>>>>> main
 
 ### Knot distribution
 
@@ -481,11 +407,7 @@ ggplot(knot_dist, aes(x = knot)) +
 #> `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ```
 
-<<<<<<< HEAD
 <img src="man/figures/README-plot-knot-dist-1.png" width="100%" />
-=======
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
->>>>>>> main
 
 ### Smoothed dynamics matrix
 

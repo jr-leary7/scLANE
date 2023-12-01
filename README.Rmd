@@ -215,6 +215,7 @@ plotModels(scLANE_models_glmm,
            size.factor.offset = cell_offset, 
            id.vec = sim_data$subject, 
            is.glmm = TRUE, 
+           plot.glm = TRUE,
            plot.gam = TRUE, 
            plot.scLANE = TRUE)
 ```
@@ -232,7 +233,7 @@ scLANE_models_glm[["JARID2"]]$Lineage_A$Gene_Dynamics %>%
 
 Coefficients can also be plotted like so:
 
-```{r}
+```{r plot-model-coefs}
 plotModelCoefs(scLANE_models_glm, 
                gene = "JARID2", 
                pt = order_df, 
@@ -244,7 +245,7 @@ plotModelCoefs(scLANE_models_glm,
 
 Lastly, we can pull the locations in pseudotime of all the knots fitted by `scLANE`. Visualizing this distribution gives us some idea of where transcriptional switches are occurring in the set of genes classified as dynamic. 
 
-```{r}
+```{r, plot-knot-dist}
 dyn_genes <- filter(scLANE_res_glm, Gene_Dynamic_Overall == 1) %>% 
              pull(Gene)
 knot_dist <- getKnotDist(scLANE_models_glm, dyn.genes = dyn_genes)

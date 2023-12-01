@@ -115,7 +115,9 @@ testDynamic <- function(expr.mat = NULL,
 
   # set up progress bar
   if (verbose) {
-    pb <- utils::txtProgressBar(0, length(genes), style = 3)
+    withr::with_output_sink(tempfile(), {
+      pb <- utils::txtProgressBar(0, length(genes), style = 3)
+    })
     progress_fun <- function(n) utils::setTxtProgressBar(pb, n)
     snow_opts <- list(progress = progress_fun)
   } else {
@@ -391,6 +393,9 @@ testDynamic <- function(expr.mat = NULL,
                          round(total_time_numeric, 3),
                          " ",
                          total_time_units)
+  if (verbose) {
+    time_message <- paste0("\n", time_message)
+  }
   message(time_message)
 
   # return results

@@ -10,3 +10,4 @@ codecov.yml
 R/.DS_Store
 .Rproj
 src/*.o
+src/*.so

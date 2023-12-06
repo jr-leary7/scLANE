@@ -7,3 +7,7 @@ inst/doc
 codecov.yml
 /doc/
 /Meta/
+R/.DS_Store
+.Rproj
+src/*.o
+src/*.so

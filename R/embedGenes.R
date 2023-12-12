@@ -56,7 +56,8 @@ embedGenes <- function(smoothed.counts = NULL,
                                        init = "spectral",
                                        nn_method = "annoy",
                                        seed = random.seed,
-                                       n_threads = n.cores)
+                                       n_threads = n.cores,
+                                       verbose = FALSE)
   } else {
     smoothed_counts_umap <- uwot::umap(smoothed.counts,
                                        n_components = 2,
@@ -65,7 +66,8 @@ embedGenes <- function(smoothed.counts = NULL,
                                        init = "spectral",
                                        nn_method = "annoy",
                                        seed = random.seed,
-                                       n_threads = n.cores)
+                                       n_threads = n.cores,
+                                       verbose = FALSE)
   }
   # clustering w/ silhouette score parameter tuning
   if (cluster.genes) {
@@ -74,13 +76,13 @@ embedGenes <- function(smoothed.counts = NULL,
                                                    k = k.param,
                                                    type = "jaccard",
                                                    BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"),
-                                                   BPPARAM = BiocParallel::SnowParam(workers = n.cores))
+                                                   BPPARAM = BiocParallel::SnowParam(workers = n.cores, RNGseed = random.seed))
     } else {
       smoothed_counts_snn <- bluster::makeSNNGraph(smoothed.counts,
                                                    k = k.param,
                                                    type = "jaccard",
                                                    BNPARAM = BiocNeighbors::AnnoyParam(distance = "Cosine"),
-                                                   BPPARAM = BiocParallel::SnowParam(workers = n.cores))
+                                                   BPPARAM = BiocParallel::SnowParam(workers = n.cores, RNGseed = random.seed))
     }
     if (is.null(resolution.param)) {
       if (pca.init) {

@@ -4,6 +4,10 @@
 .Ruserdata
 .Rbuildignore
 inst/doc
+inst/.DS_Store
+inst/rmarkdown/.DS_Store
+inst/rmarkdown/templates/.DS_Store
+inst/rmarkdown/templates/Bacher_Group_HTML/.DS_Store
 codecov.yml
 /doc/
 /Meta/

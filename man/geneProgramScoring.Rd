@@ -27,7 +27,7 @@ geneProgramScoring(
 Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
 }
 \description{
-This function uses \code{\link[UCell]{ScoreSignatures_UCell}} to create a per-cell module score for each of the provided gene clusters. If the
+This function uses \code{\link[UCell]{ScoreSignatures_UCell}} to create a per-cell module score for each of the provided gene clusters. If the input matrix is a \code{Seurat} or \code{SingleCellExperiment} object, then the resulting scores will be added to the \code{meta.data} or the \code{colData} slot, respectively. Otherwise, a data.frame of the per-program scores is returned.
 }
 \examples{
 data(sim_counts)
@@ -41,6 +41,9 @@ sim_counts <- geneProgramScoring(sim_counts,
                                  genes = gene_embed$gene,
                                  gene.clusters = gene_embed$leiden,
                                  n.cores = 1L)
+}
+\seealso{
+\code{\link{geneProgramDrivers}}
 }
 \author{
 Jack Leary

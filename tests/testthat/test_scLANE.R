@@ -226,6 +226,13 @@ withr::with_output_sink(tempfile(), {
   sim_data_seu <- geneProgramScoring(sim_data_seu,
                                      genes = gene_embedding$gene,
                                      gene.clusters = gene_embedding$leiden)
+  # gene program drivers
+  program_drivers <- geneProgramDrivers(sim_data,
+                                        genes = gene_embedding$gene,
+                                        gene.program = sim_data$cluster_0)
+  program_drivers_seu <- geneProgramDrivers(sim_data_seu,
+                                            genes = gene_embedding$gene,
+                                            gene.program = sim_data_seu$cluster_0)
   # enrichment analysis
   gsea_res <- enrichDynamicGenes(glm_test_results, species = "hsapiens")
   # coefficients
@@ -397,6 +404,13 @@ test_that("geneProgramScoring() output", {
   expect_equal(colnames(SummarizedExperiment::colData(sim_data))[8], "cluster_1")
   expect_equal(colnames(sim_data_seu@meta.data)[10], "cluster_0")
   expect_equal(colnames(sim_data_seu@meta.data)[11], "cluster_1")
+})
+
+test_that("geneProgramDrivers() output", {
+  expect_s3_class(program_drivers, "data.frame")
+  expect_s3_class(program_drivers_seu, "data.frame")
+  expect_equal(ncol(program_drivers), 4)
+  expect_equal(ncol(program_drivers_seu), 4)
 })
 
 test_that("sortGenesHeatmap() output", {

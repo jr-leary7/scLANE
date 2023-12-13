@@ -36,5 +36,6 @@ jobs:
         shell: Rscript {0}
       - name: Check BiocCheck results
         run: |
+          echo "total errors: $BC_ERRORS_TOTAL"
           if [[ $BC_ERRORS_TOTAL -gt 0 ]]; then exit 1; else echo "BiocCheck passed!"; fi
         shell: bash

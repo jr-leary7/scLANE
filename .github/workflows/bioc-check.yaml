@@ -32,10 +32,10 @@ jobs:
           bc_res <- BiocCheck::BiocCheck()
           bc_gc_res <- BiocCheck::BiocCheckGitClone()
           n_errors <- length(bc_res$error) + length(bc_gc_res$error)
-          Sys.setenv("BC_ERRORS_TOTAL" = n_errors)
+          if (n_errors > 0) {
+            message("BiocCheck failed ...")
+            system("exit 1")
+          } else {
+            message("BiocCheck passed !")
+          }
         shell: Rscript {0}
-      - name: Check BiocCheck results
-        run: |
-          echo "total errors: $BC_ERRORS_TOTAL"
-          if [[ $BC_ERRORS_TOTAL -gt 0 ]]; then exit 1; else echo "BiocCheck passed!"; fi
-        shell: bash

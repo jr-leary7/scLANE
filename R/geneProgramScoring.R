@@ -10,6 +10,7 @@
 #' @param program.labels (Optional) A character vector specifying a label for each gene cluster. Defaults to NULL.
 #' @param n.cores (Optional) The number of cores used under the hood in \code{\link[UCell]{ScoreSignatures_UCell}}. Defaults to 2.
 #' @return Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
+#' @seealso \code{\link[UCell]{ScoreSignatures_UCell}}
 #' @seealso \code{\link{geneProgramDrivers}}
 #' @export
 #' @examples

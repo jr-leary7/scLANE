@@ -12,6 +12,7 @@
 #' @param gene.program A vector of program scores as returned by \code{\link{geneProgramScoring}}. Defaults to NULL.
 #' @param cor.method (Optional) The correlation method to be used. Defaults to "spearman".
 #' @param fdr.cutoff (Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.
+#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
 #' @return Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
 #' @seealso \code{\link{geneProgramScoring}}
 #' @seealso \code{\link[stats]{cor.test}}
@@ -37,9 +38,12 @@ geneProgramDrivers <- function(expr.mat = NULL,
                                genes = NULL,
                                gene.program = NULL,
                                cor.method = "spearman",
-                               fdr.cutoff = 0.01) {
+                               fdr.cutoff = 0.01,
+                               p.adj.method = "holm") {
   # check inputs
   if (is.null(expr.mat) || is.null(genes) || is.null(gene.program)) { stop("Arguments to geneProgramDrivers() are missing.") }
+  cor.method <- tolower(cor.method)
+  if (!cor.method %in% c("pearson", "spearman", "kendall")) { stop("Please specify a valid correlation metric.") }
   # set up counts matrix
   if (inherits(expr.mat, "SingleCellExperiment")) {
     counts_matrix <- SingleCellExperiment::logcounts(expr.mat)
@@ -50,11 +54,11 @@ geneProgramDrivers <- function(expr.mat = NULL,
   } else if (inherits(expr.mat, "dgCMatrix")) {
     counts_matrix <- Matrix::Matrix(expr.mat, sparse = FALSE)
   }
-  # iteratively compute correlations
+  # iteratively compute correlations & p-values
   cor_tests <- purrr::map(genes, \(g) {
     cor_res <- stats::cor.test(counts_matrix[g, ],
                                gene.program,
-                               method = "spearman",
+                               method = cor.method,
                                exact = FALSE)
     cor_df <- data.frame(gene = g,
                          corr = unname(cor_res$estimate),
@@ -62,10 +66,11 @@ geneProgramDrivers <- function(expr.mat = NULL,
     return(cor_df)
   })
   cor_tests <- purrr::reduce(cor_tests, rbind)
+  rownames(cor_tests) <- genes
   cor_tests <- dplyr::arrange(cor_tests,
                               pvalue,
                               dplyr::desc(abs(corr))) %>%
-               dplyr::mutate(pvalue_adj = stats::p.adjust(pvalue, method = "holm")) %>%
+               dplyr::mutate(pvalue_adj = stats::p.adjust(pvalue, method = p.adj.method)) %>%
                dplyr::filter(pvalue_adj < fdr.cutoff)
   return(cor_tests)
 }

@@ -9,8 +9,8 @@
 #' @importFrom tidyselect everything
 #' @importFrom stats p.adjust p.adjust.methods
 #' @param test.dyn.res The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
-#' @param p.adj.method The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
-#' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
+#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
+#' @param fdr.cutoff (Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @return A data.frame containing differential expression results & test statistics for each gene.
 #' @export
 #' @seealso \code{\link{testDynamic}}

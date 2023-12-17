@@ -18,7 +18,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 
                       comment = NA, 
-                      message = FALSE, 
                       warning = FALSE, 
                       fig.align = "center", 
                       dev = "png", 

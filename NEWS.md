@@ -1,3 +1,8 @@
+# Changes in version 0.7.9
+
++ Added `geneProgramDrivers()` function to compute & test correlations of expression with gene module scores.
++ Updated documentation & unit tests.
+
 # Changes in version 0.7.8
 
 + Added progress bar to `testDynamic()`. 

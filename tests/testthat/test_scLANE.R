@@ -144,7 +144,8 @@ withr::with_output_sink(tempfile(), {
                          expr.mat = sim_data,
                          plot.null = TRUE,
                          plot.glm = TRUE,
-                         plot.gam = TRUE)
+                         plot.gam = TRUE) +
+              theme_scLANE()
   plot_gee <- plotModels(test.dyn.res = gee_gene_stats,
                          gene = "ABR",
                          pt = pt_test,

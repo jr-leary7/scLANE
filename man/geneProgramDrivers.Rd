@@ -9,7 +9,8 @@ geneProgramDrivers(
   genes = NULL,
   gene.program = NULL,
   cor.method = "spearman",
-  fdr.cutoff = 0.01
+  fdr.cutoff = 0.01,
+  p.adj.method = "holm"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ geneProgramDrivers(
 \item{cor.method}{(Optional) The correlation method to be used. Defaults to "spearman".}
 
 \item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
+
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".}
 }
 \value{
 Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.

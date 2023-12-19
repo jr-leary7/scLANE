@@ -278,7 +278,8 @@ plotModels <- function(test.dyn.res = NULL,
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, group = ID)) +
          ggplot2::geom_point(mapping = ggplot2::aes(color = ID),
                              alpha = 0.5,
-                             size = 0.5)
+                             size = 2,
+                             stroke = 0)
     if (requireNamespace("ggh4x", quietly = TRUE)) {
       p <- p + ggh4x::facet_nested_wrap(~paste0("Lineage ", LINEAGE) + MODEL + ID,
                                         nrow = length(levels(counts_df$MODEL)),
@@ -312,7 +313,8 @@ plotModels <- function(test.dyn.res = NULL,
   } else {
     p <- ggplot2::ggplot(counts_df, ggplot2::aes(x = PT, y = COUNT, color = LINEAGE)) +
          ggplot2::geom_point(alpha = 0.5,
-                             size = 0.5,
+                             size = 2,
+                             stroke = 0,
                              show.legend = ifelse(ncol(pt) > 1, TRUE, FALSE))
     if (requireNamespace("ggh4x", quietly = TRUE)) {
       p <- p + ggh4x::facet_nested_wrap(~paste0("Lineage ", LINEAGE) + MODEL,

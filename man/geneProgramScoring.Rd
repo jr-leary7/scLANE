@@ -43,6 +43,8 @@ sim_counts <- geneProgramScoring(sim_counts,
                                  n.cores = 1L)
 }
 \seealso{
+\code{\link[UCell]{ScoreSignatures_UCell}}
+
 \code{\link{geneProgramDrivers}}
 }
 \author{

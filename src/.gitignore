@@ -1,3 +1,6 @@
 *.o
 *.so
 *.dll
+scLANE.so
+eigenMapMatMult.o
+RcppExports.o

@@ -10,7 +10,9 @@ geneProgramDrivers(
   gene.program = NULL,
   cor.method = "spearman",
   fdr.cutoff = 0.01,
-  p.adj.method = "holm"
+  p.adj.method = "holm",
+  n.cores = 2L,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -25,6 +27,10 @@ geneProgramDrivers(
 \item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
 
 \item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".}
+
+\item{n.cores}{(Optional) The number of cores used when iterating over genes to perform testing. Defaults to 2.}
+
+\item{verbose}{(Optional) Should a progress bar be printed to the console during processing? Defaults to TRUE.}
 }
 \value{
 Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.

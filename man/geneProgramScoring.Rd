@@ -9,6 +9,7 @@ geneProgramScoring(
   genes = NULL,
   gene.clusters = NULL,
   program.labels = NULL,
+  minmax.norm = FALSE,
   n.cores = 2L
 )
 }
@@ -20,6 +21,8 @@ geneProgramScoring(
 \item{gene.clusters}{A factor containing the cluster assignment of each gene in \code{genes}. Defaults to NULL.}
 
 \item{program.labels}{(Optional) A character vector specifying a label for each gene cluster. Defaults to NULL.}
+
+\item{minmax.norm}{(Optional) Should each program's score be min-max normalized to be on [0, 1]? Defaults to FALSE.}
 
 \item{n.cores}{(Optional) The number of cores used under the hood in \code{\link[UCell]{ScoreSignatures_UCell}}. Defaults to 2.}
 }

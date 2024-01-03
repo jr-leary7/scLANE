@@ -228,9 +228,9 @@ withr::with_output_sink(tempfile(), {
                                      genes = gene_embedding$gene,
                                      gene.clusters = gene_embedding$leiden)
   # gene program significance
-  progam_significance <- geneProgramSignificance(list(sim_data$cluster_0),
-                                                 pt = pt_test$PT,
-                                                 program.labels = c("Cluster0"))
+  program_significance <- geneProgramSignificance(list(sim_data$cluster_0),
+                                                  pt = pt_test$PT,
+                                                  program.labels = c("Cluster0"))
   # gene program drivers
   program_drivers <- geneProgramDrivers(sim_data,
                                         genes = gene_embedding$gene,

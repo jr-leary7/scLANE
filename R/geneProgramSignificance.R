@@ -1,0 +1,71 @@
+#' Test significance of gene program enrichment across a trajectory.
+#'
+#' @name geneProgramSignificance
+#' @author Jack Leary
+#' @import magrittr
+#' @importFrom purrr map reduce
+#' @importFrom gamlss gamlss LR.test
+#' @importFrom dplyr arrange desc mutate
+#' @importFrom stats p.adjust
+#' @description This function fits a Beta GAM with pseudotime as a covariate and gene program score as the response. The fitted model is then compared to a null, intercept-only model in order to determine the significance of the relationship between gene program and pseudotime.
+#' @param gene.programs A list of vectors of program scores as returned by \code{\link{geneProgramScoring}}. Defaults to NULL.
+#' @param pt A vector of pseudotime values for each cell. May contain NAs, which are handled internally. Defaults to NULL.
+#' @param program.labels (Optional) A character vector specifying a label for each gene cluster. Defaults to NULL.
+#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
+#' @return A table of statistical output showing the significance of the association between pseudotime and program scores.
+#' @seealso \code{\link{geneProgramScoring}}
+#' @export
+#' @examples
+#' data(sim_counts)
+#' data(scLANE_models)
+#' data(sim_pseudotime)
+#' smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
+#'                                           pt = sim_pseudotime,
+#'                                           n.cores = 1L)
+#' gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
+#' sim_counts <- geneProgramScoring(sim_counts,
+#'                                  genes = gene_embed$gene,
+#'                                  gene.clusters = gene_embed$leiden,
+#'                                  n.cores = 1L)
+#' program_enrichment_stats <- geneProgramSignificance(list(sim_counts$cluster_0),
+#'                                                     pt = sim_pseudotime$PT,
+#'                                                     program.labels = c("Program Name"))
+
+geneProgramSignificance <- function(gene.programs = NULL,
+                                    pt = NULL,
+                                    program.labels = NULL,
+                                    p.adj.method = "holm") {
+  # check inputs
+  if (is.null(gene.programs) || is.null(pt)) { stop("Inputs to geneProgramSignificance() are missing.") }
+  if (is.null(program.labels)) {
+    program.labels <- paste0("cluster_", seq(length(gene.programs)) - 1)
+  }
+  if (length(gene.programs) != length(program.labels)) { stop("program.labels must have the same length as gene.programs.") }
+  # iterate over gene programs and fit Beta GAMs
+  program_models <- purrr::map(seq(gene.programs), \(g) {
+    pseudotime_vec <- pt[!is.na(pt)]
+    program_score_vec <- gene.programs[[g]][!is.na(pt)]
+    alt_model <- gamlss::gamlss(program_score_vec ~ pseudotime_vec,
+                                family = "BE",
+                                data = NULL,
+                                control = gamlss::gamlss.control(trace = FALSE))
+    null_model <- gamlss::gamlss(program_score_vec ~ 1,
+                                 family = "BE",
+                                 data = NULL,
+                                 control = gamlss::gamlss.control(trace = FALSE))
+    lr_test_res <- gamlss::LR.test(null = null_model,
+                                   alternative = alt_model,
+                                   print = FALSE)
+    res <- data.frame(Program = program.labels[g],
+                      LRT_Stat = lr_test_res$chi,
+                      DF = lr_test_res$df,
+                      P_Value = lr_test_res$p.val)
+    return(res)
+  })
+  # prepare test results
+  program_sig_df <- purrr::reduce(program_models, rbind) %>%
+                    dplyr::arrange(P_Value, dplyr::desc(LRT_Stat)) %>%
+                    dplyr::mutate(P_Value = dplyr::if_else(P_Value == 0, 2e-16, P_Value),
+                                  P_Value_Adj = stats::p.adjust(P_Value, method = p.adj.method))
+  return(program_sig_df)
+}

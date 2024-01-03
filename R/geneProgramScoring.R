@@ -8,7 +8,8 @@
 #' @param genes A character vector of gene IDs. Defaults to NULL.
 #' @param gene.clusters A factor containing the cluster assignment of each gene in \code{genes}. Defaults to NULL.
 #' @param program.labels (Optional) A character vector specifying a label for each gene cluster. Defaults to NULL.
-#' @param minmax.norm (Optional) Should each program's score be min-max normalized to be on [0, 1]? Defaults to FALSE.
+#' @param minmax.norm (Optional) Should each program's score be min-max normalized to be on (0, 1)? Defaults to TRUE.
+#' @param minmax.epsilon (Optional) The tolerance used to ensure that program scores equal to 0 or 1 do not occur. Defaults to 0.01.
 #' @param n.cores (Optional) The number of cores used under the hood in \code{\link[UCell]{ScoreSignatures_UCell}}. Defaults to 2.
 #' @return Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
 #' @seealso \code{\link[UCell]{ScoreSignatures_UCell}}
@@ -31,7 +32,8 @@ geneProgramScoring <- function(expr.mat = NULL,
                                genes = NULL,
                                gene.clusters = NULL,
                                program.labels = NULL,
-                               minmax.norm = FALSE,
+                               minmax.norm = TRUE,
+                               minmax.epsilon = 1e-2,
                                n.cores = 2L) {
   # check inputs
   if (is.null(expr.mat) || is.null(genes) || is.null(gene.clusters)) { stop("Arguments to geneProgramScoring() are missing.") }
@@ -65,11 +67,11 @@ geneProgramScoring <- function(expr.mat = NULL,
   program_scores <- UCell::ScoreSignatures_UCell(counts_matrix,
                                                  features = program_list,
                                                  ncores = n.cores)
-  # min-max normalize if desired
+  # min-max normalize with tol to (0, 1) if desired
   if (minmax.norm) {
     program_scores <- purrr::map(seq(ncol(program_scores)), \(i) {
       scores <- program_scores[, i]
-      normed_scores <- (scores - min(scores)) / (max(scores) - min(scores))
+      normed_scores <- minmax.epsilon + (((scores - min(scores)) * (1 - 2 * minmax.epsilon)) / (max(scores) - min(scores)))
       return(normed_scores)
     })
     program_scores <- purrr::reduce(program_scores, cbind)

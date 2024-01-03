@@ -2,6 +2,7 @@
 
 + Added `geneProgramDrivers()` function to compute & test correlations of expression with gene module scores.
 + Updated documentation & unit tests.
++ Added `geneProgramSignificance` function to estimate associations between gene program module scores and pseudotime. 
 
 # Changes in version 0.7.8
 

@@ -9,7 +9,8 @@ geneProgramScoring(
   genes = NULL,
   gene.clusters = NULL,
   program.labels = NULL,
-  minmax.norm = FALSE,
+  minmax.norm = TRUE,
+  minmax.epsilon = 0.01,
   n.cores = 2L
 )
 }
@@ -22,7 +23,9 @@ geneProgramScoring(
 
 \item{program.labels}{(Optional) A character vector specifying a label for each gene cluster. Defaults to NULL.}
 
-\item{minmax.norm}{(Optional) Should each program's score be min-max normalized to be on [0, 1]? Defaults to FALSE.}
+\item{minmax.norm}{(Optional) Should each program's score be min-max normalized to be on (0, 1)? Defaults to TRUE.}
+
+\item{minmax.epsilon}{(Optional) The tolerance used to ensure that program scores equal to 0 or 1 do not occur. Defaults to 0.01.}
 
 \item{n.cores}{(Optional) The number of cores used under the hood in \code{\link[UCell]{ScoreSignatures_UCell}}. Defaults to 2.}
 }

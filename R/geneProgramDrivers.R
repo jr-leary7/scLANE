@@ -11,7 +11,7 @@
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom stats cor.test p.adjust
 #' @importFrom dplyr arrange desc mutate filter
-#' @description This function computes the correlation
+#' @description This function computes the correlation between smoothed gene expression and gene program scores in order to identify genes are significantly associated with program scores i.e., the "drivers" of the gene program.
 #' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of normalized counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param genes A character vector of genes to test. Defaults to NULL.
 #' @param gene.program A vector of program scores as returned by \code{\link{geneProgramScoring}}. Defaults to NULL.
@@ -39,7 +39,8 @@
 #' program_drivers <- geneProgramDrivers(sim_counts,
 #'                                       genes = gene_embed$gene,
 #'                                       gene.program = sim_counts$cluster_0,
-#'                                       fdr.cutoff = 0.05)
+#'                                       fdr.cutoff = 0.05,
+#'                                       n.cores = 1L)
 
 geneProgramDrivers <- function(expr.mat = NULL,
                                genes = NULL,

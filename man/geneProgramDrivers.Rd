@@ -36,7 +36,7 @@ geneProgramDrivers(
 Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
 }
 \description{
-This function computes the correlation
+This function computes the correlation between smoothed gene expression and gene program scores in order to identify genes are significantly associated with program scores i.e., the "drivers" of the gene program.
 }
 \examples{
 data(sim_counts)
@@ -53,7 +53,8 @@ sim_counts <- geneProgramScoring(sim_counts,
 program_drivers <- geneProgramDrivers(sim_counts,
                                       genes = gene_embed$gene,
                                       gene.program = sim_counts$cluster_0,
-                                      fdr.cutoff = 0.05)
+                                      fdr.cutoff = 0.05,
+                                      n.cores = 1L)
 }
 \seealso{
 \code{\link{geneProgramScoring}}

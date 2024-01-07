@@ -115,7 +115,7 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  pt = order_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
-                                 n.cores = 4, 
+                                 n.cores = 4L, 
                                  verbose = FALSE)
 ```
 
@@ -142,7 +142,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  is.gee = TRUE, 
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
-                                 n.cores = 4, 
+                                 n.cores = 4L, 
                                  verbose = FALSE)
 ```
 
@@ -168,9 +168,8 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   size.factor.offset = cell_offset, 
                                   n.potential.basis.fns = 3, 
                                   is.glmm = TRUE, 
-                                  glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
-                                  n.cores = 4, 
+                                  n.cores = 4L, 
                                   verbose = FALSE)
 ```
 

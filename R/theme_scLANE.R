@@ -31,7 +31,8 @@ theme_scLANE <- function(base.size = 12,
                                          base_line_size = base.lwd,
                                          base_rect_size = base.lwd) +
                   ggplot2::theme(strip.clip = "off",
-                                 strip.background = ggplot2::element_rect(linewidth = base.lwd))
+                                 strip.background = ggplot2::element_rect(linewidth = base.lwd),
+                                 axis.line = ggplot2::element_line(lineend = "square"))
   if (umap) {
     scLANE_theme <- scLANE_theme +
                     ggplot2::theme(axis.ticks = ggplot2::element_blank(),

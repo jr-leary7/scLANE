@@ -31,7 +31,7 @@ knitr::opts_chunk$set(warning = FALSE,
 ![last commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
-[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.5281/zenodo.10182497&color=blue)](https://doi.org/10.5281/zenodo.10182497)
+[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.1101/2023.12.19.572477&color=blue)](https://doi.org/10.1101/2023.12.19.572477)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
@@ -115,7 +115,7 @@ scLANE_models_glm <- testDynamic(sim_data,
                                  pt = order_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
-                                 n.cores = 4, 
+                                 n.cores = 4L, 
                                  verbose = FALSE)
 ```
 
@@ -142,7 +142,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  is.gee = TRUE, 
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
-                                 n.cores = 4, 
+                                 n.cores = 4L, 
                                  verbose = FALSE)
 ```
 
@@ -168,9 +168,8 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   size.factor.offset = cell_offset, 
                                   n.potential.basis.fns = 3, 
                                   is.glmm = TRUE, 
-                                  glmm.adaptive = TRUE, 
                                   id.vec = sim_data$subject, 
-                                  n.cores = 4, 
+                                  n.cores = 4L, 
                                   verbose = FALSE)
 ```
 

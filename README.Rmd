@@ -17,8 +17,8 @@ knitr::opts_chunk$set(warning = FALSE,
                       comment = "#>",
                       fig.path = "man/figures/README-",
                       out.width = "100%", 
-                      fig.retina = TRUE, 
-                      fig.width = 6, 
+                      fig.retina = TRUE,
+                      fig.width = 6,
                       fig.height = 4)
 ```
 

@@ -1,21 +1,16 @@
 
-- <a href="#sclane" id="toc-sclane"><code>scLANE</code></a>
-  - <a href="#installation" id="toc-installation">Installation</a>
-  - <a href="#model-structure" id="toc-model-structure">Model structure</a>
-- <a href="#usage" id="toc-usage">Usage</a>
-  - <a href="#libraries" id="toc-libraries">Libraries</a>
-  - <a href="#input-data" id="toc-input-data">Input data</a>
-  - <a href="#trajectory-de-testing"
-    id="toc-trajectory-de-testing">Trajectory DE testing</a>
-  - <a href="#downstream-analysis--visualization"
-    id="toc-downstream-analysis--visualization">Downstream analysis &amp;
-    visualization</a>
-- <a href="#conclusions--best-practices"
-  id="toc-conclusions--best-practices">Conclusions &amp; best
-  practices</a>
-- <a href="#contact-information" id="toc-contact-information">Contact
-  information</a>
-- <a href="#references" id="toc-references">References</a>
+- [`scLANE`](#sclane)
+  - [Installation](#installation)
+  - [Model structure](#model-structure)
+- [Usage](#usage)
+  - [Libraries](#libraries)
+  - [Input data](#input-data)
+  - [Trajectory DE testing](#trajectory-de-testing)
+  - [Downstream analysis &
+    visualization](#downstream-analysis--visualization)
+- [Conclusions & best practices](#conclusions--best-practices)
+- [Contact information](#contact-information)
+- [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -177,7 +172,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing completed for 100 genes across 1 lineage in 35.37 secs
+#> scLANE testing completed for 100 genes across 1 lineage in 19.707 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -195,13 +190,13 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene       | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-----------|:--------|----------:|--------:|-------------:|-------------------------:|
-| RAB1B      | A       |   219.950 |   0.000 |        0.000 |                        1 |
-| LY75.CD302 | A       |     4.858 |   0.028 |        0.541 |                        0 |
-| UAP1L1     | A       |     9.894 |   0.007 |        0.163 |                        0 |
-| TMCO3      | A       |   167.311 |   0.000 |        0.000 |                        1 |
-| GOLGA8EP   | A       |     4.201 |   0.040 |        0.567 |                        0 |
+| Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
+| MFSD2B | A       |   216.750 |   0.000 |        0.000 |                        1 |
+| TTC5   | A       |     5.481 |   0.019 |        0.346 |                        0 |
+| SMG1   | A       |     8.736 |   0.013 |        0.254 |                        0 |
+| TMCO3  | A       |   167.311 |   0.000 |        0.000 |                        1 |
+| FOXD3  | A       |     4.282 |   0.039 |        0.475 |                        0 |
 
 ### GEE mode
 
@@ -224,7 +219,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 4L, 
                                  verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 1.525 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 1.638 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -240,13 +235,13 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "Wald stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene     | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:---------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| DGUOK    | A       | 200675.460 |       0 |            0 |                        1 |
-| TBCC     | A       |     40.399 |       0 |            0 |                        1 |
-| GOLGA8EP | A       |         NA |      NA |           NA |                        0 |
-| EMC3     | A       |   8397.337 |       0 |            0 |                        1 |
-| DDX41    | A       |   3486.998 |       0 |            0 |                        1 |
+| Gene   | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:-------|:--------|-----------:|--------:|-------------:|-------------------------:|
+| BAD    | A       | 136315.561 |       0 |            0 |                        1 |
+| MPLKIP | A       |     29.814 |       0 |            0 |                        1 |
+| LY6G5C | A       |         NA |      NA |           NA |                        0 |
+| PCF11  | A       |   4336.078 |       0 |            0 |                        1 |
+| WAPAL  | A       |   2761.705 |       0 |            0 |                        1 |
 
 ### GLMM mode
 
@@ -270,7 +265,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 4L, 
                                   verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 3.133 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 4.52 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -290,13 +285,13 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| VDAC1  | A       |   205.644 |   0.000 |            0 |                        1 |
-| CKAP4  | A       |   139.246 |   0.000 |            0 |                        1 |
-| MRTO4  | A       |     5.048 |   0.998 |            1 |                        0 |
-| FOXD3  | A       |     2.586 |   1.000 |            1 |                        0 |
-| UBE2Q1 | A       |    94.077 |   0.000 |            0 |                        1 |
+| Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:--------|:--------|----------:|--------:|-------------:|-------------------------:|
+| TIMP1   | A       |   172.327 |   0.000 |            0 |                        1 |
+| NPC2    | A       |   128.963 |   0.000 |            0 |                        1 |
+| ARL8A   | A       |     4.819 |   0.998 |            1 |                        0 |
+| SFMBT2  | A       |     2.454 |   1.000 |            1 |                        0 |
+| TRAPPC1 | A       |    89.370 |   0.000 |            0 |                        1 |
 
 ## Downstream analysis & visualization
 

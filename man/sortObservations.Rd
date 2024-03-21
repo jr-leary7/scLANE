@@ -4,12 +4,12 @@
 \alias{sortObservations}
 \title{Sort observations by sample ID and pseudotime.}
 \usage{
-sortObservations(expr.mat = NULL, pt = NULL, id.vec = NULL)
+sortObservations(expr.mat = NULL, pt.vec = NULL, id.vec = NULL)
 }
 \arguments{
 \item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
 
-\item{pt}{A vector of pseudotime values used to sort the observations. May contain NA values. Defaults to NULL.}
+\item{pt.vec}{A vector of pseudotime values used to sort the observations. May contain NA values. Defaults to NULL.}
 
 \item{id.vec}{A vector of subject IDs used to sort the observations. Defaults to NULL.}
 }

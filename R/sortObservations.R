@@ -36,5 +36,8 @@ sortObservations <- function(expr.mat = NULL,
                             PT)
   # sort object by cells
   expr.mat <- expr.mat[, subj_df$Cell]
+  if (!is.unsorted(colnames(expr.mat))) {
+    stop("Sorting has failed.")
+  }
   return(expr.mat)
 }

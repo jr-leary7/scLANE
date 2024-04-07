@@ -11,6 +11,7 @@
 #' @details
 #' \itemize{
 #' \item If the input is a matrix, it is assumed that the columns are cells - and are named as such - and the rows are genes.
+#' \item If the input is a Seurat object, sorting requires converting to \code{SingleCellExperiment} object first, then ordering, then converting back toa \code{Seurat} object. Some information might be lost, so it is recommended not to overwrite your original \code{Seurat} object.
 #' }
 #' @export
 #' @examples
@@ -27,17 +28,23 @@ sortObservations <- function(expr.mat = NULL,
   if (is.null(expr.mat) || is.null(pt) || is.null(id.vec)) { stop("You forgot some inputs to sortObservations().") }
   if (any(is.na(id.vec))) { stop("The subject ID vector must not contain any NA values.") }
   # create table with subject ID and pseudotime
-  subj_df <- data.frame(ID = id.vec,
-                        PT = pt.vec,
-                        Cell = colnames(expr.mat))
+  subj_df <- data.frame(Cell = colnames(expr.mat),
+                        ID = id.vec,
+                        PT = pt.vec)
   # arrange by subject ID then pseudotime
   subj_df <- dplyr::arrange(subj_df,
                             ID,
                             PT)
   # sort object by cells
-  expr.mat <- expr.mat[, subj_df$Cell]
-  if (!is.unsorted(colnames(expr.mat))) {
-    stop("Sorting has failed.")
+  if (inherits(expr.mat, "SingleCellExperiment") || inherits(expr.mat, "matrix") || inherits(expr.mat, "dgCMatrix")) {
+    expr.mat <- expr.mat[, subj_df$Cell]
+  } else if (inherits(expr.mat, "Seurat")) {
+    warning("Ordering a Seurat object requires conversion to SingleCellExperiment, and some information might be lost.")
+    sce <- Seurat::as.SingleCellExperiment(expr.mat)
+    sce <- sce[, subj_df$Cell]
+    expr.mat <- Seurat::as.Seurat(sce)
+  } else {
+    stop("Unrecognized input class.")
   }
   return(expr.mat)
 }

@@ -22,6 +22,7 @@ Since the GEE & GLMM modes require data to be sorted by sample ID and pseudotime
 \details{
 \itemize{
 \item If the input is a matrix, it is assumed that the columns are cells - and are named as such - and the rows are genes.
+\item If the input is a Seurat object, sorting requires converting to \code{SingleCellExperiment} object first, then ordering, then converting back toa \code{Seurat} object. Some information might be lost, so it is recommended not to overwrite your original \code{Seurat} object.
 }
 }
 \examples{

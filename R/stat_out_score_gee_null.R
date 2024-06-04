@@ -41,7 +41,7 @@ stat_out_score_gee_null <- function(Y = NULL,
   alpha_est <- ests$alpha
   sigma_est <- ests$phi
   mu_est <- as.matrix(stats::fitted.values(ests))
-  V_est <- mu_est * (1 + mu_est * sigma_est)  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
+  V_est <- mu_est * (1 + mu_est * sigma_est)  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / phi
   n_vec1 <- c(0, n_vec)
   VS_est_list <- AWA_est_list <- J2_list <- Sigma2_list <- vector("list", length = N)
   J11 <- Sigma11 <- matrix(0, ncol(B_null), ncol(B_null))
@@ -52,7 +52,8 @@ stat_out_score_gee_null <- function(Y = NULL,
     if (cor.structure == "independence") {
       R_alpha <- diag(1, n_vec[i], n_vec[i])
     } else if (cor.structure == "exchangeable") {
-      R_alpha <- matrix(alpha_est, n_vec[i], n_vec[i]) + diag(c(1 - alpha_est), n_vec[i], n_vec[i])
+      R_alpha <- matrix(alpha_est, nrow = n_vec[i], ncol = n_vec[i])
+      R_alpha <- R_alpha + diag(c(1 - alpha_est), nrow = n_vec[i], ncol = n_vec[i])
     } else if (cor.structure == "ar1") {
       R_alpha <- alpha_est^outer(seq(n_vec[i]), seq(n_vec[i]), \(x, y) abs(x - y))
     } else {

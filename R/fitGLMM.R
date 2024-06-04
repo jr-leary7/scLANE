@@ -74,10 +74,23 @@ fitGLMM <- function(X_pred = NULL,
                                      })
     marge_style_names <- glm_marge_knots$old_coef
     coef_names <- glm_marge_knots$coef
+    # run NB LASSO with all possible basis functions
+    lasso_formula <- stats::as.formula(paste0("Y ~ ", paste0(colnames(glmm_basis_df), collapse = " + ")))
+    pruned_model <- mpath::glmregNB(lasso_formula,
+                                    data = glmm_basis_df,
+                                    offset = log(1 / Y.offset),
+                                    parallel = FALSE,
+                                    nlambda = 50,
+                                    alpha = 1,
+                                    standardize = TRUE,
+                                    trace = FALSE,
+                                    link = log)
+    # identify nonzero basis functions in minimum AIC model
+    nonzero_coefs <- which(as.numeric(pruned_model$beta[, which.min(pruned_model$aic)]) != 0)
     # build formula automatically
     mod_formula <- stats::as.formula(paste0("Y ~ ",
-                                            paste(colnames(glmm_basis_df), collapse = " + "),
-                                            " + (1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
+                                            paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
+                                            " + (1 + ", paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
                                             " | subject)"))
     glmm_basis_df <- dplyr::mutate(glmm_basis_df,
                                    Y = Y,
@@ -128,8 +141,8 @@ fitGLMM <- function(X_pred = NULL,
     }
   }
   # set up results
-  marge_style_names <- c("B_finalIntercept", marge_style_names)
-  coef_names <- c("Intercept", coef_names)
+  marge_style_names <- c("B_finalIntercept", marge_style_names[nonzero_coefs])
+  coef_names <- c("Intercept", coef_names[nonzero_coefs])
   res <- list(final_mod = glmm_mod,
               basis_mtx = NULL,
               WIC_mtx = NULL,  # only used in GLM / GEE models

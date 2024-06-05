@@ -16,6 +16,7 @@
 #' @param M.glm The number of possible basis functions to use in the calls to \code{\link{marge2}} when choosing basis functions adaptively.
 #' @param return.basis (Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
+#' param vebose (Optional) Should intermediate output be printed to the console? Defaults to FALSE.
 #' @return An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 #' @seealso \code{\link[glmmTMB]{glmmTMB}}
 #' @seealso \code{\link{testDynamic}}
@@ -38,7 +39,8 @@ fitGLMM <- function(X_pred = NULL,
                     approx.knot = TRUE,
                     M.glm = 3,
                     return.basis = FALSE,
-                    return.GCV = FALSE) {
+                    return.GCV = FALSE,
+                    verbose = FALSE) {
   # check inputs
   if (is.null(X_pred) || is.null(Y) || is.null(id.vec)) { stop("You forgot some inputs to fitGLMM().") }
   if (is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running fitGLMM().") }
@@ -74,17 +76,35 @@ fitGLMM <- function(X_pred = NULL,
                                      })
     marge_style_names <- glm_marge_knots$old_coef
     coef_names <- glm_marge_knots$coef
+    if (verbose) {
+      message(paste0("Generated a total of ",
+                     length(coef_names),
+                     " basis functions across ",
+                     length(unique(id.vec)),
+                     " subjects."))
+    }
     # run NB LASSO with all possible basis functions
     lasso_formula <- stats::as.formula(paste0("Y ~ ", paste0(colnames(glmm_basis_df), collapse = " + ")))
-    pruned_model <- mpath::glmregNB(lasso_formula,
-                                    data = glmm_basis_df,
-                                    offset = log(1 / Y.offset),
-                                    parallel = FALSE,
-                                    nlambda = 50,
-                                    alpha = 1,
-                                    standardize = TRUE,
-                                    trace = FALSE,
-                                    link = log)
+    if (is.null(Y.offset)) {
+      pruned_model <- mpath::glmregNB(lasso_formula,
+                                      data = glmm_basis_df,
+                                      parallel = FALSE,
+                                      nlambda = 50,
+                                      alpha = 1,
+                                      standardize = TRUE,
+                                      trace = FALSE,
+                                      link = log)
+    } else {
+      pruned_model <- mpath::glmregNB(lasso_formula,
+                                      data = glmm_basis_df,
+                                      offset = log(1 / Y.offset),
+                                      parallel = FALSE,
+                                      nlambda = 50,
+                                      alpha = 1,
+                                      standardize = TRUE,
+                                      trace = FALSE,
+                                      link = log)
+    }
     # identify nonzero basis functions in minimum AIC model
     nonzero_coefs <- which(as.numeric(pruned_model$beta[, which.min(pruned_model$aic)]) != 0)
     # build formula automatically

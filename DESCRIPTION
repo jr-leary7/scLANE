@@ -17,6 +17,7 @@ Depends:
 Imports: 
     geeM,
     MASS,
+    mpath, 
     dplyr,
     stats,
     utils, 

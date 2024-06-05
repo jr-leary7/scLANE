@@ -13,7 +13,8 @@ fitGLMM(
   approx.knot = TRUE,
   M.glm = 3,
   return.basis = FALSE,
-  return.GCV = FALSE
+  return.GCV = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -33,7 +34,8 @@ fitGLMM(
 
 \item{return.basis}{(Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 
-\item{return.GCV}{(Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
+\item{return.GCV}{(Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
+param vebose (Optional) Should intermediate output be printed to the console? Defaults to FALSE.}
 }
 \value{
 An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).

@@ -161,8 +161,8 @@ fitGLMM <- function(X_pred = NULL,
     }
   }
   # set up results
-  marge_style_names <- c("B_finalIntercept", marge_style_names)
-  coef_names <- c("Intercept", coef_names)
+  marge_style_names <- c("B_finalIntercept", marge_style_names[nonzero_coefs])
+  coef_names <- c("Intercept", coef_names[nonzero_coefs])
   res <- list(final_mod = glmm_mod,
               basis_mtx = NULL,
               WIC_mtx = NULL,  # only used in GLM / GEE models

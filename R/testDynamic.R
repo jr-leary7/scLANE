@@ -15,6 +15,7 @@
 #' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom dplyr rename mutate relocate
 #' @importFrom broom.mixed tidy
+#' @importFrom purrr imap reduce
 #' @importFrom stats predict logLik deviance offset
 #' @importFrom geeM geem
 #' @importFrom glmmTMB glmmTMB nbinom2
@@ -287,16 +288,24 @@ testDynamic <- function(expr.mat = NULL,
                                       Gene = genes[i],
                                       Lineage = LETTERS[j],
                                       .before = 1)
-     # solve values of slopes across pseudotime intervals -- TODO: add support for GLMM backend
-     if (!is.glmm) {
-       marge_dynamic_df <- summarizeModel(marge.model = marge_mod,
-                                                   pt = pt[lineage_cells, j, drop = FALSE])
+     # solve values of slopes across pseudotime intervals
+     marge_dynamic_df <- summarizeModel(marge.model = marge_mod, 
+                                        pt = pt[lineage_cells, j, drop = FALSE], 
+                                        is.glmm = is.glmm)
+     if (is.glmm) {
+       marge_dynamic_df <- purrr::imap(marge_dynamic_df, \(x, y) {
+         data.frame(t(unlist(x))) %>%
+         dplyr::mutate(Subject = y, 
+                       Gene = genes[i],
+                       Lineage = LETTERS[j],
+                       .before = 1)
+       })
+       marge_dynamic_df <- purrr::reduce(marge_dynamic_df, rbind)
+     } else {
        marge_dynamic_df <- data.frame(t(unlist(marge_dynamic_df))) %>%
                            dplyr::mutate(Gene = genes[i],
                                          Lineage = LETTERS[j],
                                          .before = 1)
-     } else {
-       marge_dynamic_df <- NULL
      }
 
      # format results list

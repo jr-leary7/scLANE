@@ -9,7 +9,7 @@ fitGLMM(
   Y = NULL,
   Y.offset = NULL,
   id.vec = NULL,
-  adaptive = FALSE,
+  adaptive = TRUE,
   approx.knot = TRUE,
   M.glm = 3,
   return.basis = FALSE,
@@ -26,7 +26,7 @@ fitGLMM(
 
 \item{id.vec}{A vector of subject IDs. Defaults to NULL.}
 
-\item{adaptive}{Should basis functions be chosen adaptively? Defaults to FALSE.}
+\item{adaptive}{Should basis functions be chosen adaptively? Defaults to TRUE.}
 
 \item{approx.knot}{Should knot approximation be used in the calls to \code{\link{marge2}}? This speeds up computation somewhat. Defaults to TRUE.}
 

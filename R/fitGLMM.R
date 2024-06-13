@@ -145,6 +145,7 @@ fitGLMM <- function(X_pred = NULL,
                     paste0("h_PT_", round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
                     paste0("h_", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4), "_PT"),
                     paste0("h_PT_", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)))
+    nonzero_coefs <- seq(4)
     if (is.null(Y.offset)) {
       glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),
                                    data = glmm_basis_df,

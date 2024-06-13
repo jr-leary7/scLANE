@@ -1,3 +1,8 @@
+# Changes in version 0.8.0
+
++ Added implicit regularization of selected basis functions to the GLMM mode using a NB LASSO. 
++ Switched candidate knot subsampling to a uniform sequence of candidate knots across pseudotime's support. 
+
 # Changes in version 0.7.9
 
 + Added `geneProgramDrivers()` function to compute & test correlations of expression with gene module scores.

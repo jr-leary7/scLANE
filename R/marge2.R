@@ -157,7 +157,9 @@ marge2 <- function(X_pred = NULL,
         q95 <- stats::quantile(X_pred[, v], 0.95)
         X_red <- X_red[X_red > q05 & X_red < q95]
         if (length(X_red) > n.knot.max) {
-          X_red <- sample(X_red, size = n.knot.max)
+          X_red <- seq(min(X_red),
+                       max(X_red),
+                       length.out = n.knot.max)
         }
       } else {
         # original candidate knot selection from 2017 Stoklosa & Warton paper

@@ -4,18 +4,20 @@
 \alias{summarizeModel}
 \title{Represent a \code{marge} model as a series of piecewise equations.}
 \usage{
-summarizeModel(marge.model = NULL, pt = NULL)
+summarizeModel(marge.model = NULL, pt = NULL, is.glmm = FALSE)
 }
 \arguments{
 \item{marge.model}{The fitted model output from \code{\link{marge2}} (this function is internally called by \code{\link{testDynamic}}). Defaults to NULL.}
 
 \item{pt}{The predictor matrix of pseudotime. Defaults to NULL.}
+
+\item{is.glmm}{Flag specifying whether or not data were generated using GLMM mode. Defaults to FALSE.}
 }
 \value{
 A data.frame of the model coefficients, cutpoint intervals, and formatted equations.
 }
 \description{
-This function summarizes the model for each gene and allows for quantiative interpretation of fitted gene dynamics.
+This function summarizes the model for each gene and allows for quantitative interpretation of fitted gene dynamics.
 }
 \examples{
 data(sim_counts)

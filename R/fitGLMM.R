@@ -145,6 +145,7 @@ fitGLMM <- function(X_pred = NULL,
                     paste0("h_PT_", round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
                     paste0("h_", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4), "_PT"),
                     paste0("h_PT_", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)))
+    nonzero_coefs <- seq(4)
     if (is.null(Y.offset)) {
       glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),
                                    data = glmm_basis_df,
@@ -161,8 +162,8 @@ fitGLMM <- function(X_pred = NULL,
     }
   }
   # set up results
-  marge_style_names <- c("B_finalIntercept", marge_style_names)
-  coef_names <- c("Intercept", coef_names)
+  marge_style_names <- c("B_finalIntercept", marge_style_names[nonzero_coefs])
+  coef_names <- c("Intercept", coef_names[nonzero_coefs])
   res <- list(final_mod = glmm_mod,
               basis_mtx = NULL,
               WIC_mtx = NULL,  # only used in GLM / GEE models

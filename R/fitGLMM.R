@@ -11,7 +11,7 @@
 #' @param Y A vector of raw single cell counts. Defaults to NULL.
 #' @param Y.offset (Optional) An offset to be included in the final model fit. Defaults to NULL.
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
-#' @param adaptive Should basis functions be chosen adaptively? Defaults to FALSE.
+#' @param adaptive Should basis functions be chosen adaptively? Defaults to TRUE.
 #' @param approx.knot Should knot approximation be used in the calls to \code{\link{marge2}}? This speeds up computation somewhat. Defaults to TRUE.
 #' @param M.glm The number of possible basis functions to use in the calls to \code{\link{marge2}} when choosing basis functions adaptively.
 #' @param return.basis (Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE.
@@ -35,7 +35,7 @@ fitGLMM <- function(X_pred = NULL,
                     Y = NULL,
                     Y.offset = NULL,
                     id.vec = NULL,
-                    adaptive = FALSE,
+                    adaptive = TRUE,
                     approx.knot = TRUE,
                     M.glm = 3,
                     return.basis = FALSE,

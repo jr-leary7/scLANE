@@ -44,7 +44,7 @@ chooseCandidateGenes <- function(obj = NULL,
     grouped_stats <- purrr::map(seq(unique(id.vec)), \(i) {
       sub_matrix <- counts_matrix[, which(id.vec == unique(id.vec)[i])]
       gene_means <- Matrix::rowMeans(sub_matrix)
-      gene_sds <- sqrt(Matrix::rowMeans((sub_matrix - Matrix::rowMeans(sub_matrix))^2))
+      gene_sds <- sqrt(Matrix::rowMeans((sub_matrix - gene_means)^2))
       gene_sparsity <- Matrix::rowMeans(sub_matrix == 0)
       res <- data.frame(subject = unique(id.vec)[i],
                         gene = rownames(sub_matrix),
@@ -62,7 +62,7 @@ chooseCandidateGenes <- function(obj = NULL,
 
   } else {
     gene_means <- Matrix::rowMeans(counts_matrix)
-    gene_sds <- sqrt(Matrix::rowMeans((counts_matrix - Matrix::rowMeans(counts_matrix))^2))
+    gene_sds <- sqrt(Matrix::rowMeans((counts_matrix - gene_means)^2))
     gene_sparsity <- Matrix::rowMeans(counts_matrix == 0)
     gene_df <- data.frame(gene = rownames(counts_matrix),
                           mu = unname(gene_means),

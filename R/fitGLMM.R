@@ -16,7 +16,7 @@
 #' @param M.glm The number of possible basis functions to use in the calls to \code{\link{marge2}} when choosing basis functions adaptively.
 #' @param return.basis (Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
-#' param vebose (Optional) Should intermediate output be printed to the console? Defaults to FALSE.
+#' @param verbose (Optional) Should intermediate output be printed to the console? Defaults to FALSE.
 #' @return An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 #' @seealso \code{\link[glmmTMB]{glmmTMB}}
 #' @seealso \code{\link{testDynamic}}

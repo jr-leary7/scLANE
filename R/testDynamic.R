@@ -331,7 +331,9 @@ testDynamic <- function(expr.mat = NULL,
 
      # compute test stat using asymptotic Chi-squared approximation
      if (is.gee) {
-       test_res <- waldTestGEE(mod.1 = marge_mod, mod.0 = null_mod)
+       test_res <- waldTestGEE(mod.1 = marge_mod, 
+                               mod.0 = null_mod, 
+                               bias.correct = ifelse(length(unique(id.vec)) < 30, TRUE, FALSE))
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,
                             mod.0 = null_mod,

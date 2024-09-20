@@ -4,12 +4,19 @@
 \alias{waldTestGEE}
 \title{Use a Wald test to compare nested GEE models.}
 \usage{
-waldTestGEE(mod.1 = NULL, mod.0 = NULL)
+waldTestGEE(
+  mod.1 = NULL,
+  mod.0 = NULL,
+  bias.correct = FALSE,
+  correction.method = "df"
+)
 }
 \arguments{
 \item{mod.1}{The model under the alternative hypothesis. Must be of class \code{geem}. Defaults to NULL.}
 
 \item{mod.0}{The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.}
+
+\item{bias.correct}{Boolean specifying whether a small-sample bias correction should be applied to the estimated sandwich variance-covariance matrix. Useful when the number of subjects is small. Defaults to FALSE.}
 }
 \value{
 A list containing the Wald test statistic, a \emph{p}-value, and the degrees of freedom used in the test.

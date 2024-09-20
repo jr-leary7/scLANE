@@ -7,6 +7,7 @@
 #' @importFrom stats pchisq
 #' @param mod.1 The model under the alternative hypothesis. Must be of class \code{geem}. Defaults to NULL.
 #' @param mod.0 The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.
+#' @param bias.correct Boolean specifying whether a small-sample bias correction should be applied to the estimated sandwich variance-covariance matrix. Useful when the number of subjects is small. Defaults to FALSE.
 #' @return A list containing the Wald test statistic, a \emph{p}-value, and the degrees of freedom used in the test.
 #' @details
 #' \itemize{
@@ -18,7 +19,10 @@
 #' @seealso \code{\link[geeM]{geem}}
 #' @seealso \code{\link{modelLRT}}
 
-waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
+waldTestGEE <- function(mod.1 = NULL,
+                        mod.0 = NULL, 
+                        bias.correct = FALSE, 
+                        correction.method = "df") {
   # check inputs
   if (inherits(mod.1, "try-error") || inherits(mod.0, "try-error")) {
     res <- list(Wald_Stat = NA,
@@ -27,9 +31,10 @@ waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
                 Notes = "No test performed due to model failure.")
     return(res)
   }
-
+  correction.method <- tolower(correction.method)
+  if (!correction.method %in% c("df")) { stop("Unsupported bias correction method in waldTestGEE().") }
   mod.1 <- mod.1$final_mod
-  if (is.null(mod.1) || is.null(mod.0) || !(inherits(mod.1, "geem") && inherits(mod.0, "geem"))) { stop("You must provide two geeM models to wald_test_gee().") }
+  if (is.null(mod.1) || is.null(mod.0) || !(inherits(mod.1, "geem") && inherits(mod.0, "geem"))) { stop("You must provide two geeM models to waldTestGee().") }
   if (length(coef(mod.1)) <= length(coef(mod.0))) {
     # can't calculate Wald statistic if both models are intercept-only
     res <- list(Wald_Stat = 0,
@@ -47,6 +52,13 @@ waldTestGEE <- function(mod.1 = NULL, mod.0 = NULL) {
     }
     coef_vals <- as.matrix(coef(mod.1)[coef_idx])
     vcov_mat <- as.matrix(mod.1$var)[coef_idx, coef_idx]
+    if (bias.correct) {
+      if (correction.method == "df") {
+        n_s <- length(mod.1$clusz)
+        p <- ncol(mod.1$X) - 1
+        vcov_mat <- (n_s / (n_s - p)) * vcov_mat
+      }
+    }
     wald_test_stat <- try({
       as.numeric(crossprod(coef_vals, MASS::ginv(vcov_mat)) %*% coef_vals)
     }, silent = TRUE)

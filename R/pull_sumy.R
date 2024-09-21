@@ -67,7 +67,7 @@ pull.marge.sumy <- function(mod.obj,
     res <- list(marge_pred_df = NA,
                 marge_sumy_df = NA,
                 ll_marge = NA_real_,
-                marge_fit_notes = NA_character_)
+                marge_fit_notes = mod.obj[1])
   } else {
     # pull model summary
     if (is.gee) {

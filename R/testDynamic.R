@@ -19,7 +19,7 @@
 #' @importFrom stats predict logLik deviance offset
 #' @importFrom geeM geem
 #' @importFrom glmmTMB glmmTMB nbinom2
-#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
+#' @param expr.mat Either a \code{SingleCellExperiment}, \code{Seurat}, or \code{CellDataSet} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param pt Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.
 #' @param genes A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.
 #' @param n.potential.basis.fns (Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
@@ -37,7 +37,7 @@
 #' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
 #' \itemize{
-#' \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
+#' \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} or \code{CellDataSet} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
 #' \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
 #' \item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results. 
 #' }
@@ -87,6 +87,8 @@ testDynamic <- function(expr.mat = NULL,
                                      slot = "counts",
                                      assay = Seurat::DefaultAssay(expr.mat))
     expr.mat <- expr.mat[genes, ]
+  } else if (inherits(expr.mat, "cell_data_set")) {
+    expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
   } else if (inherits(expr.mat, "dgCMatrix") || inherits(expr.mat, "dgRMatrix")) {
     expr.mat <- expr.mat[genes, ]
   } else {
@@ -143,7 +145,7 @@ testDynamic <- function(expr.mat = NULL,
                                 is_read_only = TRUE)
 
   # build list of objects to prevent from being sent to parallel workers
-  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm",
+  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correct", 
                       "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],

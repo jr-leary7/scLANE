@@ -26,10 +26,11 @@
 #' @param size.factor.offset (Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
+#' @param gee.bias.correct Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to TRUE. 
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param parallel.exec A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.
-#' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2.
+#' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 4L.
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
 #' @param verbose (Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.
@@ -38,6 +39,7 @@
 #' \itemize{
 #' \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
 #' \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
+#' \item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results. 
 #' }
 #' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
@@ -62,11 +64,12 @@ testDynamic <- function(expr.mat = NULL,
                         size.factor.offset = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
+                        gee.bias.correct = TRUE, 
                         is.glmm = FALSE,
                         glmm.adaptive = FALSE,
                         id.vec = NULL,
                         parallel.exec = TRUE,
-                        n.cores = 2,
+                        n.cores = 4L,
                         approx.knot = TRUE,
                         verbose = TRUE,
                         random.seed = 312) {
@@ -333,7 +336,7 @@ testDynamic <- function(expr.mat = NULL,
      if (is.gee) {
        test_res <- waldTestGEE(mod.1 = marge_mod, 
                                mod.0 = null_mod, 
-                               bias.correct = ifelse(length(unique(id.vec)) < 30, TRUE, FALSE))
+                               bias.correct = gee.bias.correct)
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,
                             mod.0 = null_mod,

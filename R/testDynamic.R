@@ -87,7 +87,7 @@ testDynamic <- function(expr.mat = NULL,
                                      slot = "counts",
                                      assay = Seurat::DefaultAssay(expr.mat))
     expr.mat <- expr.mat[genes, ]
-  } else if (inherits(expr.mat, "dgCMatrix")) {
+  } else if (inherits(expr.mat, "dgCMatrix") || inherits(expr.mat, "dgRMatrix")) {
     expr.mat <- expr.mat[genes, ]
   } else {
     expr.mat <- expr.mat[genes, ]

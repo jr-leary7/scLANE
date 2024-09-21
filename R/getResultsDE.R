@@ -11,6 +11,7 @@
 #' @param test.dyn.res The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
 #' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
 #' @param fdr.cutoff (Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.
+#' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2L.
 #' @return A data.frame containing differential expression results & test statistics for each gene.
 #' @export
 #' @seealso \code{\link{testDynamic}}
@@ -21,19 +22,22 @@
 
 getResultsDE <- function(test.dyn.res = NULL,
                          p.adj.method = "holm",
-                         fdr.cutoff = 0.01) {
+                         fdr.cutoff = 0.01, 
+                         n.cores = 2L) {
   # check inputs
   if (is.null(test.dyn.res)) { stop("Please provide a result list.") }
   if (!p.adj.method %in% stats::p.adjust.methods) { stop("Please choose a valid p-value adjustment method.") }
+  # set up parallel processing 
+  future::plan(future::multisession, workers = n.cores)
   # iterates first over genes, then over lineages per-gene & coerces to final data.frame after unlisting everything
-  result_df <- purrr::map_dfr(test.dyn.res,
-                              function(x) {
-                                purrr::map_dfr(x,
-                                               function(y) {
-                                                 as.data.frame(rbind(y[seq(13)])) %>%
-                                                   dplyr::mutate(dplyr::across(tidyselect::everything(), \(z) unname(unlist(z))))
-                                               })
-                              }) %>%
+  result_df <- furrr::future_map_dfr(test.dyn.res,
+                                     function(x) {
+                                       purrr::map_dfr(x,
+                                                      function(y) {
+                                                        as.data.frame(rbind(y[seq(13)])) %>%
+                                                          dplyr::mutate(dplyr::across(tidyselect::everything(), \(z) unname(unlist(z))))
+                                                      })
+                                     }) %>%
                dplyr::arrange(dplyr::desc(Test_Stat)) %>%
                dplyr::mutate(P_Val_Adj = stats::p.adjust(P_Val, method = p.adj.method),
                              Gene_Dynamic_Lineage = dplyr::if_else(P_Val_Adj < fdr.cutoff, 1, 0, missing = 0)) %>%
@@ -44,5 +48,7 @@ getResultsDE <- function(test.dyn.res = NULL,
                                Lineage,
                                Test_Stat,
                                P_Val)
+  # shut down parallel processing 
+  future::plan(future::sequential)
   return(result_df)
 }

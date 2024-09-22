@@ -17,3 +17,4 @@ R/.DS_Store
 src/RcppExports.o
 src/eigenMapMatMult.o
 src/scLANE.so
+.DS_Store

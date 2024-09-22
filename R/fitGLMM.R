@@ -82,50 +82,62 @@ fitGLMM <- function(X_pred = NULL,
                                        colnames(basis_df) <- paste0("X", i)
                                        return(basis_df)
                                      })
-    marge_style_names <- glm_marge_knots$old_coef
-    coef_names <- glm_marge_knots$coef
-    if (verbose) {
-      message(paste0("Generated a total of ",
-                     length(coef_names),
-                     " basis functions across ",
-                     length(unique(id.vec)),
-                     " subjects."))
-    }
-    # run NB LASSO with all possible basis functions
-    lasso_formula <- stats::as.formula(paste0("Y ~ ", paste0(colnames(glmm_basis_df), collapse = " + ")))
-    if (is.null(Y.offset)) {
-      pruned_model <- mpath::glmregNB(lasso_formula,
-                                      data = glmm_basis_df,
-                                      parallel = FALSE,
-                                      nlambda = 50, penalty="snet",
-                                      alpha = .5, 
-                                      standardize = TRUE,
-                                      trace = FALSE,
-                                      maxit.theta = 1,
-                                      link = log)
-    } else {
-      pruned_model <- mpath::glmregNB(lasso_formula,
-                                      data = glmm_basis_df,
-                                      offset = log(1 / Y.offset),
-                                      parallel = FALSE,
-                                      nlambda = 50, penalty="snet",
-                                      alpha = .5, 
-                                      standardize = TRUE,
-                                      trace = FALSE,
-                                      maxit.theta = 1,
-                                      link = log)
-    }
-    # identify nonzero basis functions in minimum AIC model
-    nonzero_coefs <- which(as.numeric(pruned_model$beta[, which.min(pruned_model$aic)]) != 0)
-    # build formula automatically
-    mod_formula <- stats::as.formula(paste0("Y ~ ",
-                                            paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
-                                            " + (1 + ", paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
-                                            " | subject)"))
-    glmm_basis_df_new <- dplyr::mutate(glmm_basis_df,
-                                   Y = Y,
-                                   subject = id.vec,
-                                   .before = 1)
+        if (ncol(glmm_basis_df) == 1) {
+            mod_formula <- stats::as.formula(paste0("Y ~ ",
+                                                    paste(colnames(glmm_basis_df), collapse = " + "),
+                                                    " + (1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
+                                                    " | subject)"))
+            glmm_basis_df_new <- dplyr::mutate(glmm_basis_df,
+                                           Y = Y,
+                                           subject = id.vec,
+                                           .before = 1)
+            nonzero_coefs <- 1
+        } else {
+            marge_style_names <- glm_marge_knots$old_coef
+            coef_names <- glm_marge_knots$coef
+            if (verbose) {
+              message(paste0("Generated a total of ",
+                             length(coef_names),
+                             " basis functions across ",
+                             length(unique(id.vec)),
+                             " subjects."))
+            }
+            # run NB LASSO with all possible basis functions
+            lasso_formula <- stats::as.formula(paste0("Y ~ ", paste0(colnames(glmm_basis_df), collapse = " + ")))
+            if (is.null(Y.offset)) {
+              pruned_model <- mpath::glmregNB(lasso_formula,
+                                              data = glmm_basis_df,
+                                              parallel = FALSE,
+                                              nlambda = 50, penalty="snet",
+                                              alpha = .5, 
+                                              standardize = TRUE,
+                                              trace = FALSE,
+                                              maxit.theta = 1,
+                                              link = log)
+            } else {
+              pruned_model <- mpath::glmregNB(lasso_formula,
+                                              data = glmm_basis_df,
+                                              offset = log(1 / Y.offset),
+                                              parallel = FALSE,
+                                              nlambda = 50, penalty="snet",
+                                              alpha = .5, 
+                                              standardize = TRUE,
+                                              trace = FALSE,
+                                              maxit.theta = 1,
+                                              link = log)
+            }
+            # identify nonzero basis functions in minimum AIC model
+            nonzero_coefs <- which(as.numeric(pruned_model$beta[, which.min(pruned_model$aic)]) != 0)
+            # build formula automatically
+            mod_formula <- stats::as.formula(paste0("Y ~ ",
+                                                    paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
+                                                    " + (1 + ", paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
+                                                    " | subject)"))
+            glmm_basis_df_new <- dplyr::mutate(glmm_basis_df,
+                                           Y = Y,
+                                           subject = id.vec,
+                                           .before = 1)
+       }  
     if (is.null(Y.offset)) {
       glmm_mod <- glmmTMB::glmmTMB(mod_formula,
                                    data = glmm_basis_df_new,

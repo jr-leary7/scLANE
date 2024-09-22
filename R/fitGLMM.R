@@ -93,6 +93,7 @@ fitGLMM <- function(X_pred = NULL,
                                       alpha = 1,
                                       standardize = TRUE,
                                       trace = FALSE,
+                                      maxit.theta = 1,
                                       link = log)
     } else {
       pruned_model <- mpath::glmregNB(lasso_formula,
@@ -103,6 +104,7 @@ fitGLMM <- function(X_pred = NULL,
                                       alpha = 1,
                                       standardize = TRUE,
                                       trace = FALSE,
+                                      maxit.theta = 1,
                                       link = log)
     }
     # identify nonzero basis functions in minimum AIC model

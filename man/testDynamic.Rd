@@ -12,18 +12,19 @@ testDynamic(
   size.factor.offset = NULL,
   is.gee = FALSE,
   cor.structure = "ar1",
+  gee.bias.correct = TRUE,
   is.glmm = FALSE,
   glmm.adaptive = FALSE,
   id.vec = NULL,
   parallel.exec = TRUE,
-  n.cores = 2,
+  n.cores = 4L,
   approx.knot = TRUE,
   verbose = TRUE,
   random.seed = 312
 )
 }
 \arguments{
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment}, \code{Seurat}, or \code{CellDataSet} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
 
 \item{pt}{Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.}
 
@@ -37,6 +38,8 @@ testDynamic(
 
 \item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".}
 
+\item{gee.bias.correct}{Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to TRUE.}
+
 \item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
 
 \item{glmm.adaptive}{(Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.}
@@ -45,7 +48,7 @@ testDynamic(
 
 \item{parallel.exec}{A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.}
 
-\item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2.}
+\item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 4L.}
 
 \item{approx.knot}{(Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.}
 
@@ -61,8 +64,9 @@ This function tests whether a NB \code{marge} model is better than a null (inter
 }
 \details{
 \itemize{
-\item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
+\item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} or \code{CellDataSet} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
 \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
+\item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results. 
 }
 }
 \examples{

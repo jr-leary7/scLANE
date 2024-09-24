@@ -1,11 +1,13 @@
 # Changes in version 0.8.1
 
++ Added small-sample bias correction method to GEE sandwich variance-covariance matrix, results in smaller Wald test statistics. 
++ Parallelized `getResultsDE()` using `future` backend. 
 + Added a function called `chooseCandidateGenes()` to identify good genes for trajectory DE testing based on mean / SD expression and sparsity. 
 
 # Changes in version 0.8.0
 
 + Added implicit regularization of selected basis functions to the GLMM mode using a NB LASSO. 
-+ Switched candidate knot subsampling to a uniform sequence of candidate1 knots across pseudotime's support. 
++ Switched candidate knot subsampling to a uniform sequence of candidate knots across pseudotime's support. 
 
 # Changes in version 0.7.9
 

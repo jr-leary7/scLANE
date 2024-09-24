@@ -1,3 +1,9 @@
+# Changes in version 0.8.2
+
++ Sped up the NB LASSSO implementation in `fitGLMM()`
++ Fixed some errors related to intercept-only `marge` models
++ Added DF and KC corrections to new function `biasCorrectGEE()`
+
 # Changes in version 0.8.1
 
 + Added small-sample bias correction method to GEE sandwich variance-covariance matrix, results in smaller Wald test statistics. 

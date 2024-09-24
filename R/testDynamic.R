@@ -26,7 +26,7 @@
 #' @param size.factor.offset (Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
-#' @param gee.bias.correct Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to TRUE. 
+#' @param gee.bias.correct Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to FALSE. 
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param parallel.exec A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.
@@ -64,7 +64,7 @@ testDynamic <- function(expr.mat = NULL,
                         size.factor.offset = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
-                        gee.bias.correct = TRUE, 
+                        gee.bias.correct = FALSE, 
                         is.glmm = FALSE,
                         glmm.adaptive = FALSE,
                         id.vec = NULL,
@@ -338,7 +338,9 @@ testDynamic <- function(expr.mat = NULL,
      if (is.gee) {
        test_res <- waldTestGEE(mod.1 = marge_mod, 
                                mod.0 = null_mod, 
-                               bias.correct = gee.bias.correct)
+                               bias.correct = gee.bias.correct,
+                               correction.method = "kc", 
+                               id.vec = id.vec[lineage_cells])
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,
                             mod.0 = null_mod,

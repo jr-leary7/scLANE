@@ -42,6 +42,7 @@ summarizeModel <- function(marge.model = NULL,
     } else {
       coef_vcov <- stats::vcov(marge.model$final_mod)
     }
+    if (length( stats::coef(marge.model$final_mod)) > 1) {
     if (is.glmm) {
       coef_df_full <- stats::coef(marge.model$final_mod)[[1]][[1]] %>% 
                       dplyr::mutate(subject = rownames(.), .before = 1)
@@ -127,6 +128,12 @@ summarizeModel <- function(marge.model = NULL,
       mod_summ <- mod_summ_list[[1]]
     } else {
       mod_summ <- mod_summ_list
+    }
+    }  else {
+    ## If intercept only model:
+    mod_summ <- list(Breakpoint = NA,
+                       Slope.Segment = 0,
+                       Trend.Segment = 0)
     }
   }
   return(mod_summ)

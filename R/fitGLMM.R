@@ -47,21 +47,29 @@ fitGLMM <- function(X_pred = NULL,
   pen <- 2  # GCV criterion penalty -- matches marge2()
   # fit NB GLMM
   if (adaptive) {
-    glm_marge_knots <- purrr::map_dfr(unique(id.vec),
-                                      function(x) {
-                                        marge_mod_sub <- marge2(X_pred = X_pred[which(id.vec == x), , drop = FALSE],
-                                                                Y = Y[which(id.vec == x)],
-                                                                Y.offset = Y.offset[which(id.vec == x)],
-                                                                approx.knot = approx.knot,
-                                                                M = M.glm,
-                                                                return.basis = TRUE)
-                                        knot_df <- data.frame(knot = extractBreakpoints(marge_mod_sub)$Breakpoint,
-                                                              coef = names(coef(marge_mod_sub$final_mod)[-1]),
-                                                              old_coef = paste0("B_final", marge_mod_sub$marge_coef_names[-1])) %>%
-                                                   dplyr::mutate(tp_fun = dplyr::if_else(grepl("h_[0-9]", coef), "tp2", "tp1"))
-                                        return(knot_df)
-                                      })
-    glmm_basis_df <- purrr::pmap_dfc(list(glm_marge_knots$knot,
+      glm_marge_knots <- purrr::map(unique(id.vec),
+                                          function(x) {
+                                            marge_mod_sub <- marge2(X_pred = X_pred[which(id.vec == x), , drop = FALSE],
+                                                                    Y = Y[which(id.vec == x)],
+                                                                    Y.offset = Y.offset[which(id.vec == x)],
+                                                                    approx.knot = approx.knot,
+                                                                    M = M.glm,
+                                                                    return.basis = TRUE)
+                                            })
+        keepmods <- which(sapply(glm_marge_knots, function(x) length(x$coef_names)) > 1)
+        glm_marge_knots <- glm_marge_knots[keepmods]
+  
+        allKnots <- lapply(glm_marge_knots, function(x) extractBreakpoints(x)$Breakpoint)
+        allCoef <- lapply(glm_marge_knots, function(x) names(coef(x$final_mod)[-1]))
+        allOldCoef <- lapply(glm_marge_knots, function(x) paste0("B_final", x$marge_coef_names[-1]))
+        tp_fun <- lapply(allCoef, function(x) dplyr::if_else(grepl("h_[0-9]", x), "tp2", "tp1"))    
+        
+        glm_marge_knots <- data.frame(knot = do.call(c, allKnots),
+                                     coef = do.call(c, allCoef),
+                                     old_coef = do.call(c, allOldCoef),
+                                     tp_fun = do.call(c, tp_fun))
+        
+        glmm_basis_df <- purrr::pmap_dfc(list(glm_marge_knots$knot,
                                           glm_marge_knots$tp_fun,
                                           seq_len(nrow(glm_marge_knots))),
                                      function(k, f, i) {
@@ -74,64 +82,78 @@ fitGLMM <- function(X_pred = NULL,
                                        colnames(basis_df) <- paste0("X", i)
                                        return(basis_df)
                                      })
-    marge_style_names <- glm_marge_knots$old_coef
-    coef_names <- glm_marge_knots$coef
-    if (verbose) {
-      message(paste0("Generated a total of ",
-                     length(coef_names),
-                     " basis functions across ",
-                     length(unique(id.vec)),
-                     " subjects."))
-    }
-    # run NB LASSO with all possible basis functions
-    lasso_formula <- stats::as.formula(paste0("Y ~ ", paste0(colnames(glmm_basis_df), collapse = " + ")))
-    if (is.null(Y.offset)) {
-      pruned_model <- mpath::glmregNB(lasso_formula,
-                                      data = glmm_basis_df,
-                                      parallel = FALSE,
-                                      nlambda = 50,
-                                      alpha = 1,
-                                      standardize = TRUE,
-                                      trace = FALSE,
-                                      link = log)
-    } else {
-      pruned_model <- mpath::glmregNB(lasso_formula,
-                                      data = glmm_basis_df,
-                                      offset = log(1 / Y.offset),
-                                      parallel = FALSE,
-                                      nlambda = 50,
-                                      alpha = 1,
-                                      standardize = TRUE,
-                                      trace = FALSE,
-                                      link = log)
-    }
-    # identify nonzero basis functions in minimum AIC model
-    nonzero_coefs <- which(as.numeric(pruned_model$beta[, which.min(pruned_model$aic)]) != 0)
-    # build formula automatically
-    mod_formula <- stats::as.formula(paste0("Y ~ ",
-                                            paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
-                                            " + (1 + ", paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
-                                            " | subject)"))
-    glmm_basis_df <- dplyr::mutate(glmm_basis_df,
-                                   Y = Y,
-                                   subject = id.vec,
-                                   .before = 1)
+        if (ncol(glmm_basis_df) == 1) {
+            mod_formula <- stats::as.formula(paste0("Y ~ ",
+                                                    paste(colnames(glmm_basis_df), collapse = " + "),
+                                                    " + (1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
+                                                    " | subject)"))
+            glmm_basis_df_new <- dplyr::mutate(glmm_basis_df,
+                                           Y = Y,
+                                           subject = id.vec,
+                                           .before = 1)
+            nonzero_coefs <- 1
+        } else {
+            marge_style_names <- glm_marge_knots$old_coef
+            coef_names <- glm_marge_knots$coef
+            if (verbose) {
+              message(paste0("Generated a total of ",
+                             length(coef_names),
+                             " basis functions across ",
+                             length(unique(id.vec)),
+                             " subjects."))
+            }
+            # run NB LASSO with all possible basis functions
+            lasso_formula <- stats::as.formula(paste0("Y ~ ", paste0(colnames(glmm_basis_df), collapse = " + ")))
+            if (is.null(Y.offset)) {
+              pruned_model <- mpath::glmregNB(lasso_formula,
+                                              data = glmm_basis_df,
+                                              parallel = FALSE,
+                                              nlambda = 50, penalty="snet",
+                                              alpha = .5, 
+                                              standardize = TRUE,
+                                              trace = FALSE,
+                                              maxit.theta = 1,
+                                              link = log)
+            } else {
+              pruned_model <- mpath::glmregNB(lasso_formula,
+                                              data = glmm_basis_df,
+                                              offset = log(1 / Y.offset),
+                                              parallel = FALSE,
+                                              nlambda = 50, penalty="snet",
+                                              alpha = .5, 
+                                              standardize = TRUE,
+                                              trace = FALSE,
+                                              maxit.theta = 1,
+                                              link = log)
+            }
+            # identify nonzero basis functions in minimum AIC model
+            nonzero_coefs <- which(as.numeric(pruned_model$beta[, which.min(pruned_model$aic)]) != 0)
+            # build formula automatically
+            mod_formula <- stats::as.formula(paste0("Y ~ ",
+                                                    paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
+                                                    " + (1 + ", paste(colnames(glmm_basis_df)[nonzero_coefs], collapse = " + "),
+                                                    " | subject)"))
+            glmm_basis_df_new <- dplyr::mutate(glmm_basis_df,
+                                           Y = Y,
+                                           subject = id.vec,
+                                           .before = 1)
+       }  
     if (is.null(Y.offset)) {
       glmm_mod <- glmmTMB::glmmTMB(mod_formula,
-                                   data = glmm_basis_df,
+                                   data = glmm_basis_df_new,
                                    family = glmmTMB::nbinom2(link = "log"),
                                    se = TRUE,
                                    REML = FALSE)
     } else {
       glmm_mod <- glmmTMB::glmmTMB(mod_formula,
-                                   data = glmm_basis_df,
+                                   data = glmm_basis_df_new,
                                    offset = log(1 / Y.offset),
                                    family = glmmTMB::nbinom2(link = "log"),
                                    se = TRUE,
                                    REML = FALSE)
     }
   } else {
-    glmm_basis_df <- data.frame(X1 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
+    glmm_basis_df_new <- data.frame(X1 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
                                 X2 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)),
                                 X3 = tp2(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
                                 X4 = tp2(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)),
@@ -148,13 +170,13 @@ fitGLMM <- function(X_pred = NULL,
     nonzero_coefs <- seq(4)
     if (is.null(Y.offset)) {
       glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),
-                                   data = glmm_basis_df,
+                                   data = glmm_basis_df_new,
                                    family = glmmTMB::nbinom2(link = "log"),
                                    se = TRUE,
                                    REML = FALSE)
     } else {
       glmm_mod <- glmmTMB::glmmTMB(Y ~ X1 + X2 + X3 + X4 + (1 + X1 + X2 + X3 + X4 | subject),
-                                   data = glmm_basis_df,
+                                   data = glmm_basis_df_new,
                                    offset = log(1 / Y.offset),
                                    family = glmmTMB::nbinom2(link = "log"),
                                    se = TRUE,
@@ -172,7 +194,7 @@ fitGLMM <- function(X_pred = NULL,
               coef_names = coef_names,
               marge_coef_names = marge_style_names)
   if (return.basis) {
-    res$basis_mtx <- dplyr::select(glmm_basis_df, -c(subject, Y))
+    res$basis_mtx <- dplyr::select(glmm_basis_df_new, -c(subject, Y))
   }
   if (return.GCV) {
     p_2 <- attributes(stats::logLik(glmm_mod))$df  # degrees of freedom, differs from how it's done in GLM / GEE marge2() -- might need to change to approximation method later idk

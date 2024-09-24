@@ -38,7 +38,7 @@ waldTestGEE <- function(mod.1 = NULL,
   }
   correction.method <- tolower(correction.method)
   if (!correction.method %in% c("df", "kc")) { stop("Unsupported bias correction method in waldTestGEE().") }
-  if (bias.correct && correction.mehod == "kc" && is.null(id.vec)) { stop("The Kauermann and Carroll bias correction method requires a vector of subject IDs.") } 
+  if (bias.correct && correction.method == "kc" && is.null(id.vec)) { stop("The Kauermann and Carroll bias correction method requires a vector of subject IDs.") } 
   mod.1 <- mod.1$final_mod
   if (is.null(mod.1) || is.null(mod.0) || !(inherits(mod.1, "geem") && inherits(mod.0, "geem"))) { stop("You must provide two geeM models to waldTestGee().") }
   if (length(coef(mod.1)) <= length(coef(mod.0))) {

@@ -340,8 +340,7 @@ testDynamic <- function(expr.mat = NULL,
                                mod.0 = null_mod, 
                                bias.correct = gee.bias.correct,
                                correction.method = "kc", 
-                               id.vec = id.vec[lineage_cells], 
-                               bias.correct = gee.bias.correct)
+                               id.vec = id.vec[lineage_cells])
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,
                             mod.0 = null_mod,

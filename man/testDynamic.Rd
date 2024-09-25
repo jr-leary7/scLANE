@@ -66,7 +66,7 @@ This function tests whether a NB \code{marge} model is better than a null (inter
 \itemize{
 \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} or \code{CellDataSet} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
 \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
-\item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results. 
+\item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results.
 }
 }
 \examples{

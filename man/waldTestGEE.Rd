@@ -9,7 +9,8 @@ waldTestGEE(
   mod.0 = NULL,
   bias.correct = FALSE,
   correction.method = "df",
-  id.vec = NULL
+  id.vec = NULL,
+  verbose = FALSE
 )
 }
 \arguments{

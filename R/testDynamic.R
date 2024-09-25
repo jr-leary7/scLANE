@@ -26,7 +26,7 @@
 #' @param size.factor.offset (Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
-#' @param gee.bias.correct Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to FALSE. 
+#' @param gee.bias.correct Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to FALSE.
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param parallel.exec A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.
@@ -39,7 +39,7 @@
 #' \itemize{
 #' \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} or \code{CellDataSet} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
 #' \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
-#' \item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results. 
+#' \item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results.
 #' }
 #' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
@@ -64,7 +64,7 @@ testDynamic <- function(expr.mat = NULL,
                         size.factor.offset = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
-                        gee.bias.correct = FALSE, 
+                        gee.bias.correct = FALSE,
                         is.glmm = FALSE,
                         glmm.adaptive = FALSE,
                         id.vec = NULL,
@@ -145,9 +145,8 @@ testDynamic <- function(expr.mat = NULL,
                                 is_read_only = TRUE)
 
   # build list of objects to prevent from being sent to parallel workers
-  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correct", 
-                      "verbose",
-                      "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
+  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correct",
+                      "verbose", "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
                    ls()[-which(ls() %in% necessary_vars)])
@@ -295,13 +294,13 @@ testDynamic <- function(expr.mat = NULL,
                                       Lineage = LETTERS[j],
                                       .before = 1)
      # solve values of slopes across pseudotime intervals
-     marge_dynamic_df <- summarizeModel(marge.model = marge_mod, 
-                                        pt = pt[lineage_cells, j, drop = FALSE], 
+     marge_dynamic_df <- summarizeModel(marge.model = marge_mod,
+                                        pt = pt[lineage_cells, j, drop = FALSE],
                                         is.glmm = is.glmm)
      if (is.glmm) {
        marge_dynamic_df <- purrr::imap(marge_dynamic_df, \(x, y) {
          data.frame(t(unlist(x))) %>%
-         dplyr::mutate(Subject = y, 
+         dplyr::mutate(Subject = y,
                        Gene = genes[i],
                        Lineage = LETTERS[j],
                        .before = 1)
@@ -337,10 +336,10 @@ testDynamic <- function(expr.mat = NULL,
 
      # compute test stat using asymptotic Chi-squared approximation
      if (is.gee) {
-       test_res <- waldTestGEE(mod.1 = marge_mod, 
-                               mod.0 = null_mod, 
+       test_res <- waldTestGEE(mod.1 = marge_mod,
+                               mod.0 = null_mod,
                                bias.correct = gee.bias.correct,
-                               correction.method = "kc", 
+                               correction.method = "kc",
                                id.vec = id.vec[lineage_cells],
                                verbose = verbose)
      } else {

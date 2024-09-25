@@ -1,3 +1,4 @@
+#' @export
 pull.null.sumy <- function(mod.obj, is.gee, is.glmm) {
   # check inputs
   if (inherits(mod.obj, "try-error")) {
@@ -57,8 +58,7 @@ pull.null.sumy <- function(mod.obj, is.gee, is.glmm) {
 
 
 
-
-
+#' @export
 pull.marge.sumy <- function(mod.obj,
                             is.gee,
                             is.glmm) {

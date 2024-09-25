@@ -146,6 +146,7 @@ testDynamic <- function(expr.mat = NULL,
 
   # build list of objects to prevent from being sent to parallel workers
   necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correct", 
+                      "verbose",
                       "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
@@ -340,7 +341,8 @@ testDynamic <- function(expr.mat = NULL,
                                mod.0 = null_mod, 
                                bias.correct = gee.bias.correct,
                                correction.method = "kc", 
-                               id.vec = id.vec[lineage_cells])
+                               id.vec = id.vec[lineage_cells],
+                               verbose = verbose)
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,
                             mod.0 = null_mod,

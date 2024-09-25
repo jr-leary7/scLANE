@@ -13,7 +13,7 @@ biasCorrectGEE(
 )
 }
 \arguments{
-\item{fitted.model}{The fitted model of class \code{geem} returned by \code{\linnk{marge2}}. Defaults to NULL.}
+\item{fitted.model}{The fitted model of class \code{geem} returned by \code{\link{marge2}}. Defaults to NULL.}
 
 \item{correction.method}{A string specifying the correction method to be used. Currently supported options are "df" and "kc". Defaults to "kc".}
 

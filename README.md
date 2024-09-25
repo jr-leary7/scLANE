@@ -25,7 +25,7 @@
 commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
-[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.1101/2023.12.19.572477&color=blue)](https://doi.org/10.1101/2023.12.19.572477)
+[![Preprint](https://img.shields.io/static/v1?label=DOI&message=10.1101/2023.12.19.572477&color=blue)](https://doi.org/10.1101/2023.12.19.572477)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
@@ -84,6 +84,7 @@ $\alpha = 0.01$ threshold, and classify it as static otherwise.
 library(dplyr)
 library(scLANE)
 library(ggplot2)
+library(SingleCellExperiment)
 ```
 
 ## Input data
@@ -98,7 +99,7 @@ pseudotime values are stored in the `colData` slot of the
 sim_data <- readRDS(url("https://zenodo.org/records/8433077/files/scLANE_sim_data.Rds"))
 ```
 
-The PCA embeddings show us a pretty simple trajectory that’s strongly
+The PCA embedding shows us a pretty simple trajectory that’s strongly
 correlated with the first principal component.
 
 ``` r
@@ -133,13 +134,13 @@ Since we have multi-subject data, we can use any of the three model
 modes to run our DE testing. We’ll start with the simplest model, the
 GLM, then work our way through the other options in order of increasing
 complexity. We first prepare our inputs - a dataframe containing our
-cell ordering, a set of genes to build models for, and a vector of
-per-cell size factors to be used as offsets during estimation. In
-reality, it’s usually unnecessary to fit a model for every single gene
-in a dataset, as trajectories are usually estimated using a subset of
-the entire set of genes (usually a few thousand most highly variable
-genes). For the purpose of demonstration, we’ll select 50 genes each
-from the dynamic and non-dynamic populations.
+pseudotime / latent time cellular ordering, a set of genes to build
+models for, and a vector of per-cell size factors to be used as offsets
+during estimation. In reality, it’s usually unnecessary to fit a model
+for every single gene in a dataset, as trajectories are usually
+estimated using a subset of the entire set of genes (usually a few
+thousand most highly variable genes). For the purpose of demonstration,
+we’ll select 50 genes each from the dynamic and non-dynamic populations.
 
 **Note:** In this case we’re working with a single pseudotime lineage,
 though in real datasets several lineages often exist; in order to fit
@@ -150,7 +151,7 @@ from the cell ordering dataframe passed as input to `testDynamic()`.
 set.seed(312)
 gene_sample <- c(sample(rownames(sim_data)[rowData(sim_data)$geneStatus_overall == "Dynamic"], size = 50), 
                  sample(rownames(sim_data)[rowData(sim_data)$geneStatus_overall == "NotDynamic"], size = 50))
-order_df <- data.frame(X = sim_data$cell_time_normed)
+pt_df <- data.frame(PT = sim_data$cell_time_normed)
 cell_offset <- createCellOffset(sim_data)
 ```
 
@@ -160,19 +161,19 @@ Running `testDynamic()` provides us with a nested list containing model
 output & DE test results for each gene over each pseudotime / latent
 time lineage. In this case, since we have a true cell ordering we only
 have one lineage. Parallel processing is turned on by default, and we
-use 4 cores here to speed up runtime.
+use 6 cores here to speed up runtime.
 
 ``` r
 scLANE_models_glm <- testDynamic(sim_data, 
-                                 pt = order_df, 
+                                 pt = pt_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
-                                 n.cores = 4L, 
+                                 n.cores = 6L, 
                                  verbose = FALSE)
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing completed for 100 genes across 1 lineage in 19.707 secs
+#> scLANE testing completed for 100 genes across 1 lineage in 22.382 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -192,11 +193,11 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| MFSD2B | A       |   216.750 |   0.000 |        0.000 |                        1 |
-| TTC5   | A       |     5.481 |   0.019 |        0.346 |                        0 |
-| SMG1   | A       |     8.736 |   0.013 |        0.254 |                        0 |
-| TMCO3  | A       |   167.311 |   0.000 |        0.000 |                        1 |
-| FOXD3  | A       |     4.282 |   0.039 |        0.475 |                        0 |
+| MFSD2B | A       |   217.016 |   0.000 |        0.000 |                        1 |
+| LGR4   | A       |     6.685 |   0.035 |        1.000 |                        0 |
+| UAP1L1 | A       |     9.882 |   0.007 |        0.365 |                        0 |
+| TMCO3  | A       |   167.764 |   0.000 |        0.000 |                        1 |
+| MRTO4  | A       |     4.771 |   0.092 |        1.000 |                        0 |
 
 ### GEE mode
 
@@ -211,15 +212,15 @@ speeds things up considerably.
 
 ``` r
 scLANE_models_gee <- testDynamic(sim_data, 
-                                 pt = order_df, 
+                                 pt = pt_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
                                  is.gee = TRUE, 
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
-                                 n.cores = 4L, 
+                                 n.cores = 6L, 
                                  verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 1.638 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 1.411 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -235,13 +236,13 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
                col.names = c("Gene", "Lineage", "Wald stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene   | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-------|:--------|-----------:|--------:|-------------:|-------------------------:|
-| BAD    | A       | 136315.561 |       0 |            0 |                        1 |
-| MPLKIP | A       |     29.814 |       0 |            0 |                        1 |
-| LY6G5C | A       |         NA |      NA |           NA |                        0 |
-| PCF11  | A       |   4336.078 |       0 |            0 |                        1 |
-| WAPAL  | A       |   2761.705 |       0 |            0 |                        1 |
+| Gene  | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:------|:--------|-----------:|--------:|-------------:|-------------------------:|
+| BAD   | A       | 159682.044 |       0 |            0 |                        1 |
+| RPL29 | A       |     32.647 |       0 |            0 |                        1 |
+| HOXC8 | A       |         NA |      NA |           NA |                        0 |
+| DDX41 | A       |   4216.586 |       0 |            0 |                        1 |
+| PFDN2 | A       |   2362.431 |       0 |            0 |                        1 |
 
 ### GLMM mode
 
@@ -257,15 +258,15 @@ correlation structure.
 
 ``` r
 scLANE_models_glmm <- testDynamic(sim_data, 
-                                  pt = order_df, 
+                                  pt = pt_df, 
                                   genes = gene_sample, 
                                   size.factor.offset = cell_offset, 
                                   n.potential.basis.fns = 3, 
                                   is.glmm = TRUE, 
                                   id.vec = sim_data$subject, 
-                                  n.cores = 4L, 
+                                  n.cores = 6L, 
                                   verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 4.52 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 3.385 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -287,11 +288,11 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
-| TIMP1   | A       |   172.327 |   0.000 |            0 |                        1 |
-| NPC2    | A       |   128.963 |   0.000 |            0 |                        1 |
-| ARL8A   | A       |     4.819 |   0.998 |            1 |                        0 |
-| SFMBT2  | A       |     2.454 |   1.000 |            1 |                        0 |
-| TRAPPC1 | A       |    89.370 |   0.000 |            0 |                        1 |
+| DGUOK   | A       |   189.791 |   0.000 |            0 |                        1 |
+| MRPL42  | A       |   140.485 |   0.000 |            0 |                        1 |
+| MYOF    | A       |     5.036 |   0.998 |            1 |                        0 |
+| FOXD3   | A       |     2.589 |   1.000 |            1 |                        0 |
+| KLHDC10 | A       |   108.050 |   0.000 |            0 |                        1 |
 
 ## Downstream analysis & visualization
 
@@ -313,7 +314,7 @@ more interpretable.
 ``` r
 plotModels(scLANE_models_glm, 
            gene = scLANE_res_glm$Gene[1], 
-           pt = order_df, 
+           pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
            plot.null = TRUE, 
@@ -332,7 +333,7 @@ dynamics differ significantly by subject.
 ``` r
 plotModels(scLANE_models_glmm, 
            gene = scLANE_res_glmm$Gene[1], 
-           pt = order_df, 
+           pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
            id.vec = sim_data$subject, 
@@ -362,14 +363,14 @@ scLANE_models_glm[["JARID2"]]$Lineage_A$Gene_Dynamics %>%
 
 | Gene   | Lineage | Breakpoint | First Slope | Second Slope | First Trend | Second Trend |
 |:-------|:--------|-----------:|------------:|-------------:|------------:|-------------:|
-| JARID2 | A       |        0.1 |      -38.09 |         3.93 |          -1 |            1 |
+| JARID2 | A       |       0.11 |      -34.03 |         3.99 |          -1 |            1 |
 
 Coefficients can also be plotted like so:
 
 ``` r
 plotModelCoefs(scLANE_models_glm, 
                gene = "JARID2", 
-               pt = order_df, 
+               pt = pt_df, 
                expr.mat = sim_data,
                size.factor.offset = cell_offset)
 ```
@@ -398,7 +399,6 @@ ggplot(knot_dist, aes(x = knot)) +
                linewidth = 0.75) + 
   labs(x = "Knot Location", y = "Density") + 
   theme_scLANE()
-#> `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ```
 
 <img src="man/figures/README-plot-knot-dist-1.png" width="100%" />
@@ -411,7 +411,7 @@ the `smoothedCountsMatrix()` function.
 ``` r
 smoothed_dynamics <- smoothedCountsMatrix(scLANE_models_glm, 
                                           size.factor.offset = cell_offset, 
-                                          pt = order_df, 
+                                          pt = pt_df, 
                                           genes = dyn_genes)
 ```
 
@@ -435,7 +435,7 @@ vs. random effects though, and consult a biostatistician if necessary.
 If you have a large dataset (10,000+ cells), you should start with the
 GLM mode, since standard error estimates don’t differ much between
 modeling methods given high enough *n*. In addition, running the tests
-on an HPC cluster with 4+ CPUs and 64+ GB of RAM will help your
+on an HPC cluster with 12+ CPUs and 64+ GB of RAM will help your
 computations to complete swiftly. Datasets with smaller numbers of cells
 or fewer genes of interest may be easily analyzed in an R session on a
 local machine.

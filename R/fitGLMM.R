@@ -58,17 +58,17 @@ fitGLMM <- function(X_pred = NULL,
                                             })
         keepmods <- which(sapply(glm_marge_knots, function(x) length(x$coef_names)) > 1)
         glm_marge_knots <- glm_marge_knots[keepmods]
-  
+
         allKnots <- lapply(glm_marge_knots, function(x) extractBreakpoints(x)$Breakpoint)
         allCoef <- lapply(glm_marge_knots, function(x) names(coef(x$final_mod)[-1]))
         allOldCoef <- lapply(glm_marge_knots, function(x) paste0("B_final", x$marge_coef_names[-1]))
-        tp_fun <- lapply(allCoef, function(x) dplyr::if_else(grepl("h_[0-9]", x), "tp2", "tp1"))    
-        
+        tp_fun <- lapply(allCoef, function(x) dplyr::if_else(grepl("h_[0-9]", x), "tp2", "tp1"))
+
         glm_marge_knots <- data.frame(knot = do.call(c, allKnots),
                                      coef = do.call(c, allCoef),
                                      old_coef = do.call(c, allOldCoef),
                                      tp_fun = do.call(c, tp_fun))
-        
+
         glmm_basis_df <- purrr::pmap_dfc(list(glm_marge_knots$knot,
                                           glm_marge_knots$tp_fun,
                                           seq_len(nrow(glm_marge_knots))),
@@ -88,9 +88,9 @@ fitGLMM <- function(X_pred = NULL,
                                                     " + (1 + ", paste(colnames(glmm_basis_df), collapse = " + "),
                                                     " | subject)"))
             glmm_basis_df_new <- dplyr::mutate(glmm_basis_df,
-                                           Y = Y,
-                                           subject = id.vec,
-                                           .before = 1)
+                                               Y = Y,
+                                               subject = id.vec,
+                                               .before = 1)
             nonzero_coefs <- 1
         } else {
             marge_style_names <- glm_marge_knots$old_coef
@@ -108,8 +108,9 @@ fitGLMM <- function(X_pred = NULL,
               pruned_model <- mpath::glmregNB(lasso_formula,
                                               data = glmm_basis_df,
                                               parallel = FALSE,
-                                              nlambda = 50, penalty="snet",
-                                              alpha = .5, 
+                                              nlambda = 50,
+                                              penalty = "snet",
+                                              alpha = .5,
                                               standardize = TRUE,
                                               trace = FALSE,
                                               maxit.theta = 1,
@@ -119,8 +120,9 @@ fitGLMM <- function(X_pred = NULL,
                                               data = glmm_basis_df,
                                               offset = log(1 / Y.offset),
                                               parallel = FALSE,
-                                              nlambda = 50, penalty="snet",
-                                              alpha = .5, 
+                                              nlambda = 50,
+                                              penalty = "snet",
+                                              alpha = .5,
                                               standardize = TRUE,
                                               trace = FALSE,
                                               maxit.theta = 1,
@@ -137,7 +139,7 @@ fitGLMM <- function(X_pred = NULL,
                                            Y = Y,
                                            subject = id.vec,
                                            .before = 1)
-       }  
+       }
     if (is.null(Y.offset)) {
       glmm_mod <- glmmTMB::glmmTMB(mod_formula,
                                    data = glmm_basis_df_new,
@@ -154,11 +156,11 @@ fitGLMM <- function(X_pred = NULL,
     }
   } else {
     glmm_basis_df_new <- data.frame(X1 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
-                                X2 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)),
-                                X3 = tp2(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
-                                X4 = tp2(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)),
-                                Y = Y,
-                                subject = id.vec)
+                                    X2 = tp1(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)),
+                                    X3 = tp2(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4)),
+                                    X4 = tp2(X_pred[, 1], t = round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4)),
+                                    Y = Y,
+                                    subject = id.vec)
     marge_style_names <- c(paste0("B_final(", round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4), "-PT)"),
                            paste0("B_final(PT-", round(as.numeric(stats::quantile(X_pred[, 1], 1/3)), 4), ")"),
                            paste0("B_final(", round(as.numeric(stats::quantile(X_pred[, 1], 2/3)), 4), "-PT)"),

@@ -7,7 +7,7 @@
 #' @importFrom dplyr with_groups summarise
 #' @importFrom MASS ginv
 #' @importFrom Matrix bdiag
-#' @param fitted.model The fitted model of class \code{geem} returned by \code{\linnk{marge2}}. Defaults to NULL.
+#' @param fitted.model The fitted model of class \code{geem} returned by \code{\link{marge2}}. Defaults to NULL.
 #' @param correction.method A string specifying the correction method to be used. Currently supported options are "df" and "kc". Defaults to "kc".
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
 #' @param cor.structure A string specifying the correlation structure used in fitting the model. Defaults to "ar1".  

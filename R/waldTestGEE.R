@@ -27,7 +27,7 @@ waldTestGEE <- function(mod.1 = NULL,
                         mod.0 = NULL, 
                         bias.correct = FALSE, 
                         correction.method = "df", 
-                        id.vec = NULL) {
+                        id.vec = NULL, verbose = FALSE) {
   # check inputs
   if (inherits(mod.1, "try-error") || inherits(mod.0, "try-error")) {
     res <- list(Wald_Stat = NA_real_,

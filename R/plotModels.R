@@ -63,6 +63,7 @@ plotModels <- function(test.dyn.res = NULL,
                        gg.theme = theme_scLANE()) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt) || is.null(gene) || is.null(test.dyn.res)) { stop("You forgot one or more of the arguments to plotModels().") }
+  if ((is.gee || is.glmm) && is.null(id.vec)) { stop("id.vec must be provided to plotModels() when running in GEE or GLMM mode.") }
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)

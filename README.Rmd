@@ -31,7 +31,7 @@ knitr::opts_chunk$set(warning = FALSE,
 ![last commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
-[![DOI](https://img.shields.io/static/v1?label=DOI&message=10.1101/2023.12.19.572477&color=blue)](https://doi.org/10.1101/2023.12.19.572477)
+[![Preprint](https://img.shields.io/static/v1?label=DOI&message=10.1101/2023.12.19.572477&color=blue)](https://doi.org/10.1101/2023.12.19.572477)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
@@ -55,10 +55,11 @@ Our method relies on a relatively simple test in order to define whether a given
 
 ## Libraries 
 
-```{r libraries, results='hide', message=FALSE}
+```{r libraries, results='hide', message=FALSE, warning=FALSE}
 library(dplyr)
 library(scLANE)
 library(ggplot2)
+library(SingleCellExperiment)
 ```
 
 ## Input data 
@@ -69,7 +70,7 @@ We read a previously-simulated dataset comprised of cells from 3 subjects exhibi
 sim_data <- readRDS(url("https://zenodo.org/records/8433077/files/scLANE_sim_data.Rds"))
 ```
 
-The PCA embeddings show us a pretty simple trajectory that's strongly correlated with the first principal component. 
+The PCA embedding shows us a pretty simple trajectory that's strongly correlated with the first principal component. 
 
 ```{r plot-sims-pt, results='hold', message=FALSE}
 data.frame(sim_data@int_colData$reducedDims@listData$PCA[, 1:2]) %>% 
@@ -94,7 +95,7 @@ data.frame(sim_data@int_colData$reducedDims@listData$PCA[, 1:2]) %>%
 
 ## Trajectory DE testing
 
-Since we have multi-subject data, we can use any of the three model modes to run our DE testing. We'll start with the simplest model, the GLM, then work our way through the other options in order of increasing complexity. We first prepare our inputs - a dataframe containing our cell ordering, a set of genes to build models for, and a vector of per-cell size factors to be used as offsets during estimation. In reality, it's usually unnecessary to fit a model for every single gene in a dataset, as trajectories are usually estimated using a subset of the entire set of genes (usually a few thousand most highly variable genes). For the purpose of demonstration, we'll select 50 genes each from the dynamic and non-dynamic populations. 
+Since we have multi-subject data, we can use any of the three model modes to run our DE testing. We'll start with the simplest model, the GLM, then work our way through the other options in order of increasing complexity. We first prepare our inputs - a dataframe containing our pseudotime / latent time cellular ordering, a set of genes to build models for, and a vector of per-cell size factors to be used as offsets during estimation. In reality, it's usually unnecessary to fit a model for every single gene in a dataset, as trajectories are usually estimated using a subset of the entire set of genes (usually a few thousand most highly variable genes). For the purpose of demonstration, we'll select 50 genes each from the dynamic and non-dynamic populations. 
 
 **Note:** In this case we're working with a single pseudotime lineage, though in real datasets several lineages often exist; in order to fit models for a subset of lineages simply remove the corresponding columns from the cell ordering dataframe passed as input to `testDynamic()`. 
 
@@ -102,20 +103,20 @@ Since we have multi-subject data, we can use any of the three model modes to run
 set.seed(312)
 gene_sample <- c(sample(rownames(sim_data)[rowData(sim_data)$geneStatus_overall == "Dynamic"], size = 50), 
                  sample(rownames(sim_data)[rowData(sim_data)$geneStatus_overall == "NotDynamic"], size = 50))
-order_df <- data.frame(X = sim_data$cell_time_normed)
+pt_df <- data.frame(PT = sim_data$cell_time_normed)
 cell_offset <- createCellOffset(sim_data)
 ```
 
 ### GLM mode
 
-Running `testDynamic()` provides us with a nested list containing model output & DE test results for each gene over each pseudotime / latent time lineage. In this case, since we have a true cell ordering we only have one lineage. Parallel processing is turned on by default, and we use 4 cores here to speed up runtime. 
+Running `testDynamic()` provides us with a nested list containing model output & DE test results for each gene over each pseudotime / latent time lineage. In this case, since we have a true cell ordering we only have one lineage. Parallel processing is turned on by default, and we use 6 cores here to speed up runtime. 
 
 ```{r glm-models}
 scLANE_models_glm <- testDynamic(sim_data, 
-                                 pt = order_df, 
+                                 pt = pt_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
-                                 n.cores = 4L, 
+                                 n.cores = 6L, 
                                  verbose = FALSE)
 ```
 
@@ -136,13 +137,13 @@ The function call is essentially the same when using the GLM mode, with the exce
 
 ```{r gee-models}
 scLANE_models_gee <- testDynamic(sim_data, 
-                                 pt = order_df, 
+                                 pt = pt_df, 
                                  genes = gene_sample, 
                                  size.factor.offset = cell_offset, 
                                  is.gee = TRUE, 
                                  id.vec = sim_data$subject, 
                                  cor.structure = "ar1", 
-                                 n.cores = 4L, 
+                                 n.cores = 6L, 
                                  verbose = FALSE)
 ```
 
@@ -163,13 +164,13 @@ We re-run the DE tests a final time using the GLMM mode. This is the most comple
 
 ```{r glmm-models}
 scLANE_models_glmm <- testDynamic(sim_data, 
-                                  pt = order_df, 
+                                  pt = pt_df, 
                                   genes = gene_sample, 
                                   size.factor.offset = cell_offset, 
                                   n.potential.basis.fns = 3, 
                                   is.glmm = TRUE, 
                                   id.vec = sim_data$subject, 
-                                  n.cores = 4L, 
+                                  n.cores = 6L, 
                                   verbose = FALSE)
 ```
 
@@ -195,7 +196,7 @@ We can use the `plotModels()` to visually compare different types of models. It 
 ```{r plot-models-glm}
 plotModels(scLANE_models_glm, 
            gene = scLANE_res_glm$Gene[1], 
-           pt = order_df, 
+           pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
            plot.null = TRUE, 
@@ -209,7 +210,7 @@ When plotting the models generated using the GLMM mode, we split by lineage & co
 ```{r plot-models-glmm, fig.width=9, fig.height=9}
 plotModels(scLANE_models_glmm, 
            gene = scLANE_res_glmm$Gene[1], 
-           pt = order_df, 
+           pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
            id.vec = sim_data$subject, 
@@ -235,7 +236,7 @@ Coefficients can also be plotted like so:
 ```{r plot-model-coefs}
 plotModelCoefs(scLANE_models_glm, 
                gene = "JARID2", 
-               pt = order_df, 
+               pt = pt_df, 
                expr.mat = sim_data,
                size.factor.offset = cell_offset)
 ```
@@ -244,7 +245,7 @@ plotModelCoefs(scLANE_models_glm,
 
 Lastly, we can pull the locations in pseudotime of all the knots fitted by `scLANE`. Visualizing this distribution gives us some idea of where transcriptional switches are occurring in the set of genes classified as dynamic. 
 
-```{r, plot-knot-dist}
+```{r, plot-knot-dist, message=FALSE, warning=FALSE}
 dyn_genes <- filter(scLANE_res_glm, Gene_Dynamic_Overall == 1) %>% 
              pull(Gene)
 knot_dist <- getKnotDist(scLANE_models_glm, dyn.genes = dyn_genes)
@@ -268,7 +269,7 @@ We can extract  matrix of the fitted values for each dynamic gene using the `smo
 ```{r}
 smoothed_dynamics <- smoothedCountsMatrix(scLANE_models_glm, 
                                           size.factor.offset = cell_offset, 
-                                          pt = order_df, 
+                                          pt = pt_df, 
                                           genes = dyn_genes)
 ```
 
@@ -278,7 +279,7 @@ The smoothed dynamics can then be used to generate expression cascade heatmaps, 
 
 In general, starting with the GLM mode is probably your best bet unless you have a strong prior belief that expression trends will differ significantly between subjects. If that is the case, you should use the GEE mode if you're interested in population-level estimates, but are worried about wrongly predicting differential expression when differences in expression are actually caused by inter-subject variation. If you're interested in generating subject-specific estimates then the GLMM mode should be used; take care when interpreting the fixed vs. random effects though, and consult a biostatistician if necessary. 
 
-If you have a large dataset (10,000+ cells), you should start with the GLM mode, since standard error estimates don't differ much between modeling methods given high enough *n*. In addition, running the tests on an HPC cluster with 4+ CPUs and 64+ GB of RAM will help your computations to complete swiftly. Datasets with smaller numbers of cells or fewer genes of interest may be easily analyzed in an R session on a local machine. 
+If you have a large dataset (10,000+ cells), you should start with the GLM mode, since standard error estimates don't differ much between modeling methods given high enough *n*. In addition, running the tests on an HPC cluster with 12+ CPUs and 64+ GB of RAM will help your computations to complete swiftly. Datasets with smaller numbers of cells or fewer genes of interest may be easily analyzed in an R session on a local machine. 
 
 # Contact information 
 

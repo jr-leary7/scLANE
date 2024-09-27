@@ -173,7 +173,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing completed for 100 genes across 1 lineage in 22.382 secs
+#> scLANE testing completed for 100 genes across 1 lineage in 22.317 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -220,7 +220,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 6L, 
                                  verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 1.411 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 1.02 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -266,7 +266,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 6L, 
                                   verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 3.385 mins
+#> scLANE testing completed for 100 genes across 1 lineage in 2.613 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -286,13 +286,13 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:--------|:--------|----------:|--------:|-------------:|-------------------------:|
-| DGUOK   | A       |   189.791 |   0.000 |            0 |                        1 |
-| MRPL42  | A       |   140.485 |   0.000 |            0 |                        1 |
-| MYOF    | A       |     5.036 |   0.998 |            1 |                        0 |
-| FOXD3   | A       |     2.589 |   1.000 |            1 |                        0 |
-| KLHDC10 | A       |   108.050 |   0.000 |            0 |                        1 |
+| Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
+| DGUOK  | A       |   189.791 |   0.000 |            0 |                        1 |
+| MRPL42 | A       |   140.485 |   0.000 |            0 |                        1 |
+| MYOF   | A       |     5.036 |   0.998 |            1 |                        0 |
+| FOXD3  | A       |     2.589 |   1.000 |            1 |                        0 |
+| TSPAN1 | A       |   101.660 |   0.000 |            0 |                        1 |
 
 ## Downstream analysis & visualization
 
@@ -313,7 +313,7 @@ more interpretable.
 
 ``` r
 plotModels(scLANE_models_glm, 
-           gene = scLANE_res_glm$Gene[1], 
+           gene = "MPG", 
            pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
@@ -332,7 +332,7 @@ dynamics differ significantly by subject.
 
 ``` r
 plotModels(scLANE_models_glmm, 
-           gene = scLANE_res_glmm$Gene[1], 
+           gene = "FLOT2", 
            pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 

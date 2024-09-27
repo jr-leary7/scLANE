@@ -25,7 +25,7 @@
 commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=darkgreen)
 [![codecov](https://codecov.io/gh/jr-leary7/scLANE/branch/main/graph/badge.svg?token=U2U5RTF2VW)](https://codecov.io/gh/jr-leary7/scLANE)
 [![CodeFactor](https://www.codefactor.io/repository/github/jr-leary7/sclane/badge)](https://www.codefactor.io/repository/github/jr-leary7/sclane)
-[![Preprint](https://img.shields.io/static/v1?label=DOI&message=10.1101/2023.12.19.572477&color=blue)](https://doi.org/10.1101/2023.12.19.572477)
+[![Preprint](https://img.shields.io/static/v1?label=Preprint&message=10.1101/2023.12.19.572477&color=blue)](https://doi.org/10.1101/2023.12.19.572477)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
@@ -173,7 +173,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing completed for 100 genes across 1 lineage in 22.317 secs
+#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 16.068 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -220,7 +220,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 6L, 
                                  verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 1.02 mins
+#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 46.169 secs
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -266,7 +266,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 6L, 
                                   verbose = FALSE)
-#> scLANE testing completed for 100 genes across 1 lineage in 2.613 mins
+#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 2.248 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -286,13 +286,13 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
                col.names = c("Gene", "Lineage", "LRT stat.", "P-value", "Adj. p-value", "Predicted dynamic status"))
 ```
 
-| Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
-|:-------|:--------|----------:|--------:|-------------:|-------------------------:|
-| DGUOK  | A       |   189.791 |   0.000 |            0 |                        1 |
-| MRPL42 | A       |   140.485 |   0.000 |            0 |                        1 |
-| MYOF   | A       |     5.036 |   0.998 |            1 |                        0 |
-| FOXD3  | A       |     2.589 |   1.000 |            1 |                        0 |
-| TSPAN1 | A       |   101.660 |   0.000 |            0 |                        1 |
+| Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
+|:--------|:--------|----------:|--------:|-------------:|-------------------------:|
+| VDAC1   | A       |   151.417 |       0 |            0 |                        1 |
+| KLHDC10 | A       |   122.491 |       0 |            0 |                        1 |
+| ZNF575  | A       |        NA |      NA |           NA |                        0 |
+| BCAT1   | A       |        NA |      NA |           NA |                        0 |
+| TSPAN1  | A       |    78.597 |       0 |            0 |                        1 |
 
 ## Downstream analysis & visualization
 

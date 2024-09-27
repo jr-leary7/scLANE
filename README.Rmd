@@ -195,7 +195,7 @@ We can use the `plotModels()` to visually compare different types of models. It 
 
 ```{r plot-models-glm}
 plotModels(scLANE_models_glm, 
-           gene = scLANE_res_glm$Gene[1], 
+           gene = "MPG", 
            pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
@@ -209,7 +209,7 @@ When plotting the models generated using the GLMM mode, we split by lineage & co
 
 ```{r plot-models-glmm, fig.width=9, fig.height=9}
 plotModels(scLANE_models_glmm, 
-           gene = scLANE_res_glmm$Gene[1], 
+           gene = "FLOT2", 
            pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 

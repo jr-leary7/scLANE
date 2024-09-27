@@ -35,7 +35,7 @@ withr::with_output_sink(tempfile(), {
                                 n.potential.basis.fns = 5,
                                 size.factor.offset = cell_offset,
                                 parallel.exec = FALSE)
-  gee_gene_stats <- testDynamic(expr.mat = sim_data,
+  gee_gene_stats <- testDynamic(sim_data,
                                 pt = pt_test,
                                 genes = genes_to_test,
                                 n.potential.basis.fns = 5,
@@ -43,7 +43,7 @@ withr::with_output_sink(tempfile(), {
                                 is.gee = TRUE,
                                 cor.structure = "ar1",
                                 id.vec = sim_data$subject,
-                                n.cores = 2)
+                                n.cores = 2L)
   glmm_gene_stats <- testDynamic(sim_data,
                                  pt = pt_test,
                                  genes = genes_to_test,
@@ -52,10 +52,10 @@ withr::with_output_sink(tempfile(), {
                                  is.glmm = TRUE,
                                  glmm.adaptive = TRUE,
                                  id.vec = sim_data$subject,
-                                 n.cores = 2,
+                                 n.cores = 2L,
                                  verbose = FALSE)
   # get results tables overall
-  glm_test_results <- getResultsDE(glm_gene_stats)
+  glm_test_results <- getResultsDE(glm_gene_stats, n.cores = 1L)
   gee_test_results <- getResultsDE(gee_gene_stats)
   glmm_test_results <- getResultsDE(glmm_gene_stats)
   # get results tables by interval

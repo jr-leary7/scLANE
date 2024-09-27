@@ -3,8 +3,6 @@
 #' @name chooseCandidateGenes
 #' @author Jack Leary
 #' @description This function identifies good gene candidates for trajectory differential expression modeling by ranking genes based on their mean expression, SD of expression, and sparsity across cells.
-#' @importFrom BiocGenerics counts
-#' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom purrr map reduce
 #' @importFrom Matrix Matrix rowMeans
 #' @importFrom dplyr with_groups summarise arrange desc mutate row_number rowwise c_across ungroup slice_head pull
@@ -26,14 +24,16 @@ chooseCandidateGenes <- function(obj = NULL,
   # check inputs
   if (is.null(obj) || !(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat"))) { stop("Please provide a SingleCellExperiment or Seurat object.") }
   if (group.by.subject && is.null(id.vec)) { stop("Grouping by subject requires a vector of subject IDs.") }
-  # extract counts matrix
+  # extract counts matrix from SingleCellExperiment, Seurat, or CellDataSet object 
   if (inherits(obj, "SingleCellExperiment")) {
     counts_matrix <- BiocGenerics::counts(obj)
   } else if (inherits(obj, "Seurat")) {
     counts_matrix <- Seurat::GetAssayData(obj,
                                           slot = "counts",
                                           assay = Seurat::DefaultAssay(obj))
-  } else if (inherits(obj, "dgCMatrix") || inherits(obj, "matrix")) {
+  } else if (inherits(expr.mat, "cell_data_set")) {
+    counts_matrix <- BiocGenerics::counts(slot)
+  } else if (inherits(obj, "dgCMatrix") || inherits(obj, "dgRMatrix") || inherits(obj, "matrix")) {
     counts_matrix <- obj
   }
   if (!inherits(counts_matrix, "dgCMatrix")) {

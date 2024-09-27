@@ -35,6 +35,7 @@ Imports:
     foreach,
     glmmTMB, 
     parallel,
+    RcppEigen, 
     bigstatsr,
     tidyselect,
     broom.mixed, 

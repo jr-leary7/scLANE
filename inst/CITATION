@@ -1,15 +1,11 @@
 citHeader("To cite scLANE in publications use:")
 
-citEntry(
-  entry    = "Manual",
-  title    = "Single Cell Linear Adaptive Expression Testing (scLANE)",
-  journal  = "Zenodo",
+bibentry(
+  bibtype  = "Article",
+  title    = "Interpretable trajectory inference with single-cell Linear Adaptive Negative-binomial Expression (scLANE) testing",
   author   = c(person(given = c("Jack", "R."), family = "Leary"),
                person(given = "Rhonda", family = "Bacher")),
+  journal  = "BioRxiv",
   year     = "2023",
-  note     = "R package version 0.7.7",
-  url      = "https://doi.org/10.5281/zenodo.10182497",
-  textVersion = paste(
-
-  )
+  doi      = "https://doi.org/10.1101/2023.12.19.572477"
 )

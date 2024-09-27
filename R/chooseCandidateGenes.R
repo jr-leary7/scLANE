@@ -3,13 +3,11 @@
 #' @name chooseCandidateGenes
 #' @author Jack Leary
 #' @description This function identifies good gene candidates for trajectory differential expression modeling by ranking genes based on their mean expression, SD of expression, and sparsity across cells.
-#' @importFrom BiocGenerics counts
-#' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom purrr map reduce
 #' @importFrom Matrix Matrix rowMeans
 #' @importFrom dplyr with_groups summarise arrange desc mutate row_number rowwise c_across ungroup slice_head pull
 #' @importFrom tidyselect starts_with
-#' @param obj An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}} or \code{\link[Seurat]{Seurat}}, or a gene-by-cell matrix. Defaults to NULL.
+#' @param obj An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}}, \code{\link[Seurat]{Seurat}}, or \code{CellDataSet}, or a gene-by-cell matrix. Defaults to NULL.
 #' @param group.by.subject Boolean specifying whether or not the summary statistics should be computed per-subject and then mean-aggregated. Defaults to TRUE.
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
 #' @param n.desired.genes An integer specifying the number of candidate genes to return. Defaults to 2000.
@@ -26,14 +24,16 @@ chooseCandidateGenes <- function(obj = NULL,
   # check inputs
   if (is.null(obj) || !(inherits(obj, "SingleCellExperiment") || inherits(obj, "Seurat"))) { stop("Please provide a SingleCellExperiment or Seurat object.") }
   if (group.by.subject && is.null(id.vec)) { stop("Grouping by subject requires a vector of subject IDs.") }
-  # extract counts matrix
+  # extract counts matrix from SingleCellExperiment, Seurat, or CellDataSet object 
   if (inherits(obj, "SingleCellExperiment")) {
     counts_matrix <- BiocGenerics::counts(obj)
   } else if (inherits(obj, "Seurat")) {
     counts_matrix <- Seurat::GetAssayData(obj,
                                           slot = "counts",
                                           assay = Seurat::DefaultAssay(obj))
-  } else if (inherits(obj, "dgCMatrix") || inherits(obj, "matrix")) {
+  } else if (inherits(expr.mat, "cell_data_set")) {
+    counts_matrix <- BiocGenerics::counts(slot)
+  } else if (inherits(obj, "dgCMatrix") || inherits(obj, "dgRMatrix") || inherits(obj, "matrix")) {
     counts_matrix <- obj
   }
   if (!inherits(counts_matrix, "dgCMatrix")) {

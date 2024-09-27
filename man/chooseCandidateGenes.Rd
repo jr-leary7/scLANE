@@ -12,7 +12,7 @@ chooseCandidateGenes(
 )
 }
 \arguments{
-\item{obj}{An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}} or \code{\link[Seurat]{Seurat}}, or a gene-by-cell matrix. Defaults to NULL.}
+\item{obj}{An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}}, \code{\link[Seurat]{Seurat}}, or \code{CellDataSet}, or a gene-by-cell matrix. Defaults to NULL.}
 
 \item{group.by.subject}{Boolean specifying whether or not the summary statistics should be computed per-subject and then mean-aggregated. Defaults to TRUE.}
 

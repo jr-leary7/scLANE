@@ -27,7 +27,8 @@ createSlopeTestData <- function(marge.model = NULL,
     p_vals <- NA_real_
     mod_notes <- "MARGE model error"
   } else {
-    if (!is.glmm && length(marge.model$marge_coef_names) == 1) {
+    # check to see if final marge model is intercept-only
+    if ((!is.gee && !is.glmm && length(marge.model$final_mod$coefficients) == 1) || (is.gee && length(marge.model$final_mod$beta) == 1) || (is.glmm && nrow(summary(glmm_mod$final_mod)$coefficients$cond) == 1)) {
       rounded_brkpts <- NA_real_
       brkpts <- NA_real_
       brkpt_dirs <- NA_character_
@@ -40,18 +41,19 @@ createSlopeTestData <- function(marge.model = NULL,
       brkpt_dirs <- model_breakpoints_rounded$Direction
       brkpts <- purrr::map_dbl(rounded_brkpts, \(x) pt[, 1][which.min(abs(pt[, 1] - x))])
       # extract p-values for coefficients other than intercept
+      model_sumy <- summary(marge.model$final_mod)
       if (is.gee) {
-        est_betas <- summary(marge.model$final_mod)$beta[-1]
-        test_stats <- summary(marge.model$final_mod)$wald.test[-1]
-        p_vals <- summary(marge.model$final_mod)$p[-1]
+        est_betas <- model_sumy$beta[-1]
+        test_stats <- model_sumy$wald.test[-1]
+        p_vals <- model_sumy$p[-1]
       } else if (is.glmm) {
-        est_betas <- unname(summary(marge.model$final_mod)$coefficients$cond[, "Estimate"][-1])
-        test_stats <- unname(summary(marge.model$final_mod)$coefficients$cond[, "z value"][-1])
-        p_vals <- unname(summary(marge.model$final_mod)$coefficients$cond[, "Pr(>|z|)"][-1])
+        est_betas <- unname(model_sumy$coefficients$cond[, "Estimate"][-1])
+        test_stats <- unname(model_sumy$coefficients$cond[, "z value"][-1])
+        p_vals <- unname(model_sumy$coefficients$cond[, "Pr(>|z|)"][-1])
       } else {
-        est_betas <- unname(summary(marge.model$final_mod)$coefficients[, "Estimate"][-1])
-        test_stats <- unname(summary(marge.model$final_mod)$coefficients[, "z value"][-1])
-        p_vals <- unname(summary(marge.model$final_mod)$coefficients[, "Pr(>|z|)"][-1])
+        est_betas <- unname(model_sumy$coefficients[, "Estimate"][-1])
+        test_stats <- unname(model_sumy$coefficients[, "z value"][-1])
+        p_vals <- unname(model_sumy$coefficients[, "Pr(>|z|)"][-1])
       }
       mod_notes <- rep(NA_character_, length(p_vals))
     }

@@ -64,14 +64,16 @@ plotModels <- function(test.dyn.res = NULL,
   # check inputs
   if (is.null(expr.mat) || is.null(pt) || is.null(gene) || is.null(test.dyn.res)) { stop("You forgot one or more of the arguments to plotModels().") }
   if ((is.gee || is.glmm) && is.null(id.vec)) { stop("id.vec must be provided to plotModels() when running in GEE or GLMM mode.") }
-  # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
+  # get raw counts from SingleCellExperiment, Seurat, or CellDataSets object
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)
   } else if (inherits(expr.mat, "Seurat")) {
     expr.mat <- Seurat::GetAssayData(expr.mat,
                                      slot = "counts",
                                      assay = Seurat::DefaultAssay(expr.mat))
-  }
+  } else if (inherits(expr.mat, "cell_data_set")) {
+    expr.mat <- BiocGenerics::counts(expr.mat)
+  } 
   if (!(inherits(expr.mat, "matrix") || inherits(expr.mat, "array") || inherits(expr.mat, "dgCMatrix"))) { stop("Input expr.mat must be coerceable to a matrix of integer counts.") }
   # generate parameters for CIs
   Z <- stats::qnorm(ci.alpha / 2, lower.tail = FALSE)

@@ -6,9 +6,11 @@
 #' @importFrom stats simulate update quantile
 #' @importFrom dplyr mutate with_groups summarise if_else
 #' @importFrom glmmTMB ranef
-#' @importFrom parallel makeCluster clusterSetRNGStream stopCluster
+#' @importFrom parallel makeCluster clusterSetRNGStream clusterEvalQ stopCluster
 #' @importFrom doSNOW registerDoSNOW
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom foreach foreach %dopar%
+#' @importFrom withr with_output_sink
 #' @importFrom tidyr pivot_longer
 #' @importFrom purrr reduce
 #' @param glmm.mod The output from \code{\link{fitGLMM}}. Defaults to NULL.
@@ -18,6 +20,7 @@
 #' @param alpha (Optional) The desired confidence level. Defaults to good old 0.05.
 #' @param n.cores (Optional) The number of threads to use in parallel processing of the bootstrap resampling procedure. Defaults to 4.
 #' @param random.seed (Optional) The seed used to control stochasticity during bootstrap resampling. Defaults to 312.
+#' @param verbose (Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.
 #' @return An object of class \code{data.frame} containing the upper and lower quantiles of the per-subject random effects.
 #' @seealso \code{\link{fitGLMM}}
 #' @seealso \code{\link[glmmTMB]{glmmTMB}}
@@ -33,7 +36,8 @@
 #'                     return.basis = TRUE)
 #' ranef_sumy <- bootstrapRandomEffects(glmm_mod,
 #'                                      id.vec = sim_counts$subject,
-#'                                      Y.offset = cell_offset)
+#'                                      Y.offset = cell_offset, 
+#'                                      n.cores = 1L)
 
 bootstrapRandomEffects <- function(glmm.mod = NULL,
                                    id.vec = NULL,
@@ -41,15 +45,16 @@ bootstrapRandomEffects <- function(glmm.mod = NULL,
                                    n.boot = 500L,
                                    alpha = 0.05,
                                    n.cores = 4L,
-                                   random.seed = 312) {
+                                   random.seed = 312, 
+                                   verbose = TRUE) {
   # check inputs
   if (is.null(glmm.mod) || is.null(id.vec) || is.null(Y.offset)) { stop("You forgot some arguments to bootstrapRandomEffects().") }
   if (is.null(glmm.mod$basis_mtx)) { stop("fitGLMM() must be run with return.basis = TRUE.") }
   # define simulation function
-  sim_function <- function(fitted.model = NULL,
-                           basis.mtx = NULL,
-                           id.vec = NULL,
-                           Y.offset = NULL) {
+  simFunction <- function(fitted.model = NULL,
+                          basis.mtx = NULL,
+                          id.vec = NULL,
+                          Y.offset = NULL) {
     sim_data <- stats::simulate(fitted.model$final_mod)
     sim_data <- dplyr::mutate(basis.mtx,
                               Y = sim_data$sim_1,
@@ -61,9 +66,23 @@ bootstrapRandomEffects <- function(glmm.mod = NULL,
     return(sim_ranef)
   }
   # setup parallelism
-  cl <- parallel::makeCluster(n.cores)
-  doSNOW::registerDoSNOW(cl)
-  parallel::clusterSetRNGStream(cl, iseed = random.seed)
+  if (n.cores > 1L) {
+    cl <- parallel::makeCluster(n.cores)
+    doSNOW::registerDoSNOW(cl)
+    parallel::clusterSetRNGStream(cl, iseed = random.seed)
+  } else {
+    cl <- foreach::registerDoSEQ()
+  }
+  # set up progress bar
+  if (verbose) {
+    withr::with_output_sink(tempfile(), {
+      pb <- utils::txtProgressBar(0, length(genes), style = 3)
+    })
+    progress_fun <- function(n) utils::setTxtProgressBar(pb, n)
+    snow_opts <- list(progress = progress_fun)
+  } else {
+    snow_opts <- list()
+  }
   # bootstrap random effects
   ranef_boot <- foreach::foreach(b = seq(n.boot),
                                  .combine = "list",
@@ -72,19 +91,27 @@ bootstrapRandomEffects <- function(glmm.mod = NULL,
                                  .packages = c("glmmTMB", "dplyr", "stats", "tidyr"),
                                  .errorhandling = "pass",
                                  .inorder = TRUE,
-                                 .verbose = FALSE) %dopar% {
-    ranef_iter_b <- sim_function(glmm.mod,
-                                 basis.mtx = glmm.mod$basis_mtx,
-                                 id.vec = id.vec,
-                                 Y.offset = Y.offset) %>%
+                                 .verbose = FALSE, 
+                                 .options.snow = snow_opts) %dopar% {
+    ranef_iter_b <- simFunction(glmm.mod,
+                                basis.mtx = glmm.mod$basis_mtx,
+                                id.vec = id.vec,
+                                Y.offset = Y.offset) %>%
                     tidyr::pivot_longer(cols = !subject,
                                         names_to = "term",
                                         values_to = "effect") %>%
                     dplyr::mutate(iter = b, .before = 1)
     return(ranef_iter_b)
   }
-  # stop parallel cluster
-  parallel::stopCluster(cl)
+  # end parallelization & clean up each worker node
+  withr::with_output_sink(tempfile(), {
+    if (n.cores > 1L) {
+      parallel::clusterEvalQ(cl, expr = {
+        gc(verbose = FALSE, full = TRUE)
+      })
+      parallel::stopCluster(cl)
+    }
+  })
   # summarize bootstrap resample
   lower_bound <- alpha / 2
   upper_bound <- 1 - alpha / 2

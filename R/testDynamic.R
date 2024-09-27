@@ -29,10 +29,9 @@
 #' @param gee.bias.correct Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to FALSE.
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
-#' @param parallel.exec A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 4L.
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
-#' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.
+#' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.
 #' @param verbose (Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.
 #' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
@@ -66,9 +65,8 @@ testDynamic <- function(expr.mat = NULL,
                         cor.structure = "ar1",
                         gee.bias.correct = FALSE,
                         is.glmm = FALSE,
-                        glmm.adaptive = FALSE,
+                        glmm.adaptive = TRUE,
                         id.vec = NULL,
-                        parallel.exec = TRUE,
                         n.cores = 4L,
                         approx.knot = TRUE,
                         verbose = TRUE,
@@ -131,7 +129,7 @@ testDynamic <- function(expr.mat = NULL,
   }
 
   # set up parallel processing
-  if (parallel.exec) {
+  if (n.cores > 1L) {
     cl <- parallel::makeCluster(n.cores)
     doSNOW::registerDoSNOW(cl)
     parallel::clusterSetRNGStream(cl, iseed = random.seed)
@@ -285,10 +283,19 @@ testDynamic <- function(expr.mat = NULL,
      marge_sumy <- pull.marge.sumy(marge_mod, is.gee, is.glmm)
 
      # perform slope test
-     marge_slope_df <- createSlopeTestData(marge.model = marge_mod,
-                                           pt = pt[lineage_cells, j, drop = FALSE],
-                                           is.gee = is.gee,
-                                           is.glmm = is.glmm)
+     marge_slope_df <- try({
+       marge_slope_df <- createSlopeTestData(marge.model = marge_mod,
+                                             pt = pt[lineage_cells, j, drop = FALSE],
+                                             is.gee = is.gee,
+                                             is.glmm = is.glmm)
+     }, silent = TRUE)
+     if (inherits(marge_slope_df, "try-error")) {
+       marge_slope_df <- data.frame(rounded_brkpts = NA_real_, 
+                                    brkpts = NA_real_, 
+                                    brkpt_dirs = NA_character_, 
+                                    p_vals = NA_real_, 
+                                    mod_notes = "createSlopeTestData() error")
+     }
      marge_slope_df <-  dplyr::mutate(marge_slope_df,
                                       Gene = genes[i],
                                       Lineage = LETTERS[j],
@@ -358,7 +365,7 @@ testDynamic <- function(expr.mat = NULL,
 
   # end parallelization & clean up each worker node
   withr::with_output_sink(tempfile(), {
-    if (parallel.exec) {
+    if (n.cores > 1L) {
       parallel::clusterEvalQ(cl, expr = {
         gc(verbose = FALSE, full = TRUE)
       })
@@ -380,7 +387,7 @@ testDynamic <- function(expr.mat = NULL,
              LogLik_Null = NA_real_,
              Dev_MARGE = NA_real_,
              Dev_Null = NA_real_,
-             Model_Status = "MARGE model error, null model error",
+             Model_Status = x[1],
              Gene_Time = NA_real_,
              MARGE_Fit_Notes = NA_character_,
              MARGE_Summary = NULL,
@@ -402,7 +409,10 @@ testDynamic <- function(expr.mat = NULL,
   total_time <- end_time - start_time
   total_time_units <- attributes(total_time)$units
   total_time_numeric <- as.numeric(total_time)
-  time_message <- paste0("scLANE testing completed for ",
+  scLANE_mode <- ifelse(is.glmm, "GLMM", ifelse(is.gee, "GEE", "GLM"))
+  time_message <- paste0("scLANE testing in ", 
+                         scLANE_mode, 
+                         " mode completed for ",
                          length(genes),
                          " genes across ",
                          n_lineages,

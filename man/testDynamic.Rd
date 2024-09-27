@@ -14,9 +14,8 @@ testDynamic(
   cor.structure = "ar1",
   gee.bias.correct = FALSE,
   is.glmm = FALSE,
-  glmm.adaptive = FALSE,
+  glmm.adaptive = TRUE,
   id.vec = NULL,
-  parallel.exec = TRUE,
   n.cores = 4L,
   approx.knot = TRUE,
   verbose = TRUE,
@@ -42,11 +41,9 @@ testDynamic(
 
 \item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
 
-\item{glmm.adaptive}{(Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to FALSE.}
+\item{glmm.adaptive}{(Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.}
 
 \item{id.vec}{If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
-
-\item{parallel.exec}{A boolean indicating whether a parallel \code{\link[foreach]{foreach}} loop should be used to generate results more quickly. Defaults to TRUE.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 4L.}
 

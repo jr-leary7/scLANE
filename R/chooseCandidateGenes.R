@@ -7,7 +7,7 @@
 #' @importFrom Matrix Matrix rowMeans
 #' @importFrom dplyr with_groups summarise arrange desc mutate row_number rowwise c_across ungroup slice_head pull
 #' @importFrom tidyselect starts_with
-#' @param obj An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}} or \code{\link[Seurat]{Seurat}}, or a gene-by-cell matrix. Defaults to NULL.
+#' @param obj An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}}, \code{\link[Seurat]{Seurat}}, or \code{CellDataSet}, or a gene-by-cell matrix. Defaults to NULL.
 #' @param group.by.subject Boolean specifying whether or not the summary statistics should be computed per-subject and then mean-aggregated. Defaults to TRUE.
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
 #' @param n.desired.genes An integer specifying the number of candidate genes to return. Defaults to 2000.

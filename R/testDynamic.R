@@ -409,7 +409,10 @@ testDynamic <- function(expr.mat = NULL,
   total_time <- end_time - start_time
   total_time_units <- attributes(total_time)$units
   total_time_numeric <- as.numeric(total_time)
-  time_message <- paste0("scLANE testing completed for ",
+  scLANE_mode <- ifelse(is.glmm, "GLMM", ifelse(is.gee, "GEE", "GLM"))
+  time_message <- paste0("scLANE testing in ", 
+                         scLANE_mode, 
+                         " mode completed for ",
                          length(genes),
                          " genes across ",
                          n_lineages,

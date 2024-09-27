@@ -4,8 +4,8 @@ Title: Model Gene Expression Dynamics with Spline-based NB GLMs, GEEs, & GLMMs
 Version: 0.8.2
 Authors@R: c(person(given = "Jack", family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre"), comment = c(ORCID = "0009-0004-8821-3269")), 
              person(given = "Rhonda", family = "Bacher", email = "rbacher@ufl.edu", role = c("ctb", "fnd"), comment = c(ORCID = "0000-0001-5787-476X")))
-Description: scLANE uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime or latent time. 
-             The modeling architectures currently supported are negative binomial GLMs, GEEs, & GLMMs. 
+Description: Our scLANE model uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime or latent time. 
+             The modeling architectures currently supported are negative-binomial GLMs, GEEs, & GLMMs. 
              Downstream analysis functionalities include model comparison, dynamic gene clustering, smoothed counts generation, gene set enrichment testing, & visualization. 
 License: MIT + file LICENSE
 Encoding: UTF-8

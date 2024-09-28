@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE, 
                       error = FALSE, 
                       fig.align = "center", 
-                      dpi = 300)
+                      dpi = 320)
 ```
 
 # Introduction
@@ -75,7 +75,7 @@ plotPCA(sim_data, colour_by = "subject") +
 The necessary inputs for `scLANE` are as follows: a dataframe containing $\ge 1$ pseudotime lineages, a sequencing depth-based offset, and a matrix of gene expression counts (this can be a `SingleCellExperiment` or `Seurat` object, or an actual dense or sparse counts matrix). In addition, we can optionally provide a subset of genes to test - here we identify the top 1,000 most highly-variable genes (HVGs), and test only those. 
 
 ```{r}
-order_df <- data.frame(PT = sim_data$cell_time_normed)
+pt_df <- data.frame(PT = sim_data$cell_time_normed)
 cell_offset <- createCellOffset(sim_data)
 top1k_hvgs <- getTopHVGs(modelGeneVar(sim_data), n = 1e3)
 ```
@@ -84,14 +84,14 @@ The default modeling framework is based on GLMs, which we use here. Parallel pro
 
 ```{r}
 scLANE_models <- testDynamic(sim_data, 
-                             pt = order_df, 
+                             pt = pt_df, 
                              genes = top1k_hvgs, 
                              size.factor.offset = cell_offset, 
-                             n.cores = 5, 
+                             n.cores = 6L, 
                              verbose = FALSE)
 ```
 
-After model fitting has completed, we generate a tidy table of DE test results and statistics using the `getResultsDE()` function. Each gene is given a binary dynamic vs. static classification (denoted as 1 or 0, respectively) over a given lineage / the trajectory as a whole if it's adjusted *p*-value is less than a specified threshold; the default is 0.01. 
+After model fitting has completed, we generate a tidy table of DE test results and statistics using the `getResultsDE()` function. Each gene is given a binary dynamic vs. static classification (denoted as 1 or 0, respectively) over a given lineage / the trajectory as a whole if it's adjusted *p*-value is less than a specified threshold; the default is $\alpha = 0.01$. 
 
 ```{r, }
 scLANE_de_res <- getResultsDE(scLANE_models)
@@ -99,7 +99,7 @@ select(scLANE_de_res, Gene, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_Overall) %
   slice_sample(n = 5) %>% 
   knitr::kable(digits = 3, 
                caption = "Sample of scLANE TDE statistics",
-               col.names = c("Gene", "LRT Stat.", "P-value", "Adj. p-value", "Pred. status"))
+               col.names = c("Gene", "LRT Stat.", "P-value", "Adj. P-value", "Pred. Status"))
 ```
 
 # Downstream analysis 
@@ -108,12 +108,12 @@ The package offers a variety of different downstream analysis functionalities, s
 
 ## Model comparison 
 
-The `plotModels()` function allows us to compare different modeling frameworks. Here we visualize the most significant gene and compare our model with a GLM and a GAM. The monotonic GLM fails to capture the inherent nonlinearity of the gene's dynamics over pseudotime, and while the GAM does capture that trend it lacks the interpretability of `scLANE`. 
+The `plotModels()` function allows us to compare different modeling frameworks. Here we visualize the most significant gene and compare our model with a GLM and a GAM. The monotonic GLM fails to capture the inherent nonlinearity of the gene's dynamics over pseudotime, and while the GAM does capture that trend it lacks the interpretability of the `scLANE` model. 
 
 ```{r, fig.cap="Modeling framework comparison"}
 plotModels(scLANE_models, 
            gene = scLANE_de_res$Gene[1], 
-           pt = order_df, 
+           pt = pt_df, 
            expr.mat = sim_data, 
            size.factor.offset = cell_offset, 
            plot.glm = TRUE, 
@@ -128,16 +128,6 @@ knitr::kable(scLANE_models[[scLANE_de_res$Gene[1]]]$Lineage_A$Gene_Dynamics,
              digits = 3)
 ```
 
-We can plot the dynamics of a gene of interest along with its coefficients like so:
-
-```{r}
-plotModelCoefs(scLANE_models, 
-               gene = scLANE_de_res$Gene[1], 
-               pt = order_df, 
-               expr.mat = sim_data, 
-               size.factor.offset = cell_offset)
-```
-
 ## Gene dynamics plots
 
 Using the `getFittedValues()` function we can generate a table of per-gene, per-cell expression estimations on a variety of scales (raw, depth-normalized, and log1p-normalized). Here we visualize the fitted dynamics for the top four most significantly TDE genes. 
@@ -145,7 +135,7 @@ Using the `getFittedValues()` function we can generate a table of per-gene, per-
 ```{r, fig.cap="Dynamics of the top 4 most TDE genes"}
 getFittedValues(scLANE_models, 
                 genes = scLANE_de_res$Gene[1:4], 
-                pt = order_df, 
+                pt = pt_df, 
                 expr.mat = sim_data, 
                 size.factor.offset = cell_offset, 
                 cell.meta.data = data.frame(cluster = sim_data$label)) %>% 
@@ -170,6 +160,7 @@ getFittedValues(scLANE_models,
   theme(strip.text.x = element_text(face = "italic")) + 
   guides(color = guide_legend(override.aes = list(alpha = 1, size = 2, stroke = 1)))
 ```
+
 ## Heatmaps 
 
 To generate a heatmap of expression cascades, we first pull a matrix of gene dynamics for all genes that are significantly TDE. 
@@ -179,7 +170,7 @@ dyn_genes <- filter(scLANE_de_res, Gene_Dynamic_Overall == 1) %>%
              pull(Gene)
 smoothed_counts <- smoothedCountsMatrix(scLANE_models, 
                                         size.factor.offset = cell_offset, 
-                                        pt = order_df, 
+                                        pt = pt_df, 
                                         genes = dyn_genes, 
                                         log1p.norm = TRUE)
 ```
@@ -208,7 +199,7 @@ col_anno <- HeatmapAnnotation(Leiden = col_anno_df$leiden,
 
 Now we can finally plot the heatmap:
 
-```{r, fig.cap="Expression cascade of dynamic genes across pseudotime"}
+```{r, fig.cap="Expression cascade of dynamic genes across pseudotime", message=FALSE, warning=FALSE}
 Heatmap(matrix = heatmap_mat, 
         name = "Scaled\nmRNA", 
         col = circlize::colorRamp2(colors = viridis::inferno(50), 
@@ -248,11 +239,10 @@ ggplot(gene_embedding, aes(x = umap1, y = umap2, color = leiden)) +
 
 We assume that each cluster of similarly-behaving genes represents a gene program i.e., a set of genes that work together to perform a shared task. Each program is defined by the set of genes unique to it, and module scoring allows us to assign a per-cell numeric score for each set of genes. The `geneProgramScoring()` function performs this task using the `r Biocpkg("UCell")` package under the hood. 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 sim_data <- geneProgramScoring(sim_data, 
                                genes = gene_embedding$gene, 
                                gene.clusters = gene_embedding$leiden)
-
 ```
 
 Plotting the program scores for gene cluster 1 shows that cells at the end of the trajectory have overall high expression of genes in that cluster. 
@@ -266,7 +256,7 @@ plotPCA(sim_data, colour_by = "cluster_1") +
 
 Lastly, we can perform pathway analysis on the set of dynamic genes using the `enrichDynamicGenes()` function. This is built off of the `r CRANpkg("gprofiler2")` package, which supports a wide variety of species and pathway databases. 
  
-```{r}
+```{r, message=FALSE, warning=FALSE}
 dyn_gene_enrichment <- enrichDynamicGenes(scLANE_de_res, species = "hsapiens")
 filter(dyn_gene_enrichment$result, source == "GO:BP") %>% 
   select(term_id, term_name, p_value, source) %>% 

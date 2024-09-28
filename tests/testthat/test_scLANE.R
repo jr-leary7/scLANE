@@ -26,7 +26,7 @@ null_stat_gee <- stat_out_score_gee_null(Y = Y_exp,
 tp1_res <- tp1(x = rnorm(30), t = 0)
 tp2_res <- tp2(x = rnorm(30), t = 0)
 
-# generate scLANE results w/ all three model architectures
+# generate scLANE results w/ all three modes
 withr::with_output_sink(tempfile(), {
   # run GLM, GEE, & GLMM tests
   glm_gene_stats <- testDynamic(sim_data,
@@ -34,7 +34,7 @@ withr::with_output_sink(tempfile(), {
                                 genes = genes_to_test,
                                 n.potential.basis.fns = 5,
                                 size.factor.offset = cell_offset,
-                                parallel.exec = FALSE)
+                                n.cores = 1L)
   gee_gene_stats <- testDynamic(sim_data,
                                 pt = pt_test,
                                 genes = genes_to_test,
@@ -188,17 +188,16 @@ withr::with_output_sink(tempfile(), {
                                        pt = pt_test,
                                        size.factor.offset = cell_offset,
                                        clust.algo = "hclust")
-  gene_clust_table <- plotClusteredGenes(glm_gene_stats,
+  gene_clust_table <- plotClusteredGenes(test.dyn.res = glm_gene_stats,
                                          gene.clusters = gene_clusters_leiden,
                                          size.factor.offset = cell_offset,
                                          pt = pt_test,
-                                         n.cores = 2)
+                                         n.cores = 2L)
   # smoothed dynamics
   smoothed_counts <- smoothedCountsMatrix(test.dyn.res = glm_gene_stats,
                                           pt = pt_test,
                                           size.factor.offset = cell_offset,
-                                          parallel.exec = TRUE,
-                                          n.cores = 2)
+                                          n.cores = 2L)
   sorted_genes <- sortGenesHeatmap(heatmap.mat = smoothed_counts$Lineage_A,
                                    pt.vec = pt_test$PT)
   fitted_values_table <- getFittedValues(test.dyn.res = glm_gene_stats,
@@ -243,6 +242,9 @@ withr::with_output_sink(tempfile(), {
   # coefficients
   coef_summary_glm <- summarizeModel(marge_mod_offset, pt = pt_test)
   coef_summary_gee <- summarizeModel(marge_mod_GEE_offset, pt = pt_test)
+  coef_summary_glmm <- summarizeModel(glmm_mod_offset, 
+                                      pt = pt_test, 
+                                      is.glmm = TRUE)
   # cutpoints
   knot_df <- getKnotDist(glm_gene_stats)
   # convolution

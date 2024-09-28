@@ -12,7 +12,6 @@
 #' @param gene.clusters The data.frame returned by \code{\link{clusterGenes}}. Defaults to NULL.
 #' @param pt A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.
 #' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
-#' @param parallel.exec Should \code{furrr} be used to speed up execution? Defaults to TRUE.
 #' @param n.cores If parallel execution is desired, how many cores should be utilized? Defaults to 2.
 #' @details
 #' \itemize{
@@ -36,12 +35,11 @@ plotClusteredGenes <- function(test.dyn.res = NULL,
                                gene.clusters = NULL,
                                pt = NULL,
                                size.factor.offset = NULL,
-                               parallel.exec = TRUE,
                                n.cores = 2L) {
   # check inputs
   if (is.null(test.dyn.res) || is.null(gene.clusters) || is.null(pt)) { stop("Arguments to plotClusteredGenes() are missing.") }
   colnames(pt) <- paste0("Lineage_", LETTERS[seq_len(ncol(pt))])
-  if (parallel.exec) {
+  if (n.cores > 1L) {
     future::plan(future::multisession, workers = n.cores)
   } else {
     future::plan(future::sequential)

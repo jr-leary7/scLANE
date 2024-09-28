@@ -41,11 +41,11 @@ score_fun_gee <- function(Y = NULL,
   # check inputs
   if (is.null(Y) || is.null(N) || is.null(n_vec) || is.null(VS.est_list) || is.null(AWA.est_list) || is.null(J2_list) || is.null(Sigma2_list) || is.null(J11.inv) || is.null(JSigma11) || is.null(mu.est) || is.null(V.est) || is.null(B1) || is.null(XA)) { stop("Some inputs to score_fun_gee() are missing.") }
   # generate score statistic
-  reg <- try(stats::lm.fit(B1, Y), silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
+  reg <- try({ stats::lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
   if (inherits(reg, "try-error")) {
-    score <- NA
+    score <- NA_real_
   } else if (any(is.na(reg$coef))) {
-    score <- NA
+    score <- NA_real_
   } else {
     p <- ncol(XA)
     p1 <- ncol(B1) - ncol(XA)

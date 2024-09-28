@@ -6,8 +6,8 @@
 #' @importFrom purrr map_dbl
 #' @param marge.model A \code{marge} model object, like those returned from \code{\link{marge2}}. Defaults to NULL.
 #' @param pt A data.frame containing pseudotime or latent time values. Defaults to NULL.
-#' @param is.gee Was the GEE framework used? Defaults to FALSE.
-#' @param is.glmm Was the GLMM framework used? Defaults to FALSE.
+#' @param is.gee Was the GEE mode used? Defaults to FALSE.
+#' @param is.glmm Was the GLMM mode used? Defaults to FALSE.
 #' @return A data.frame containing model data.
 #' @seealso \code{\link{marge2}}
 #' @seealso \code{\link{testSlope}}
@@ -24,14 +24,18 @@ createSlopeTestData <- function(marge.model = NULL,
     rounded_brkpts <- NA_real_
     brkpts <- NA_real_
     brkpt_dirs <- NA_character_
+    est_betas <- NA_real_
     p_vals <- NA_real_
+    test_stats <- NA_real_
     mod_notes <- "MARGE model error"
   } else {
     # check to see if final marge model is intercept-only
-    if ((!is.gee && !is.glmm && length(marge.model$final_mod$coefficients) == 1) || (is.gee && length(marge.model$final_mod$beta) == 1) || (is.glmm && nrow(summary(glmm_mod$final_mod)$coefficients$cond) == 1)) {
+    if ((!is.gee && !is.glmm && length(marge.model$final_mod$coefficients) == 1) || (is.gee && length(marge.model$final_mod$beta) == 1) || (is.glmm && nrow(summary(marge.model$final_mod)$coefficients$cond) == 1)) {
       rounded_brkpts <- NA_real_
       brkpts <- NA_real_
       brkpt_dirs <- NA_character_
+      est_betas <- NA_real_
+      test_stats <- NA_real_
       p_vals <- NA_real_
       mod_notes <- "No non-intercept coefficients"
     } else {

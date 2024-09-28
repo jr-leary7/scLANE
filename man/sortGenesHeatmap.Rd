@@ -23,8 +23,7 @@ data(scLANE_models)
 smoothed_counts <- smoothedCountsMatrix(scLANE_models,
                                         pt = sim_pseudotime,
                                         n.cores = 1L)
-sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A,
-                                 pt.vec = sim_pseudotime$PT)
+sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A, pt.vec = sim_pseudotime$PT)
 }
 \seealso{
 \code{\link{smoothedCountsMatrix}}

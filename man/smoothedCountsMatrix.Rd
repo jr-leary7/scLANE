@@ -10,7 +10,6 @@ smoothedCountsMatrix(
   pt = NULL,
   genes = NULL,
   log1p.norm = FALSE,
-  parallel.exec = TRUE,
   n.cores = 2L
 )
 }
@@ -24,8 +23,6 @@ smoothedCountsMatrix(
 \item{genes}{(Optional) A character vector of genes with which to subset the results. Defaults to NULL.}
 
 \item{log1p.norm}{A boolean specifying whether the smoothed counts should be log1p-transformed after depth normalization. Defaults to FALSE.}
-
-\item{parallel.exec}{Should \code{furrr} be used to speed up execution? Defaults to TRUE.}
 
 \item{n.cores}{If parallel execution is desired, how many cores should be utilized? Defaults to 2.}
 }

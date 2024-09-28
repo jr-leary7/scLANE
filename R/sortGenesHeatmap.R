@@ -17,13 +17,12 @@
 #' smoothed_counts <- smoothedCountsMatrix(scLANE_models,
 #'                                         pt = sim_pseudotime,
 #'                                         n.cores = 1L)
-#' sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A,
-#'                                  pt.vec = sim_pseudotime$PT)
+#' sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A, pt.vec = sim_pseudotime$PT)
 
 sortGenesHeatmap <- function(heatmap.mat = NULL, pt.vec = NULL) {
   # check inputs
   if (!inherits(heatmap.mat, "matrix")) {
-    heatmap.mat <- try(as.matrix(heatmap.mat), silent = TRUE)
+    heatmap.mat <- try({ as.matrix(heatmap.mat) }, silent = TRUE)
     if (inherits(heatmap.mat, "try-error")) {
       stop("heatmap.mat must be coerceable to a matrix.")
     }

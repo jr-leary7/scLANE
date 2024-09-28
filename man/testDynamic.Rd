@@ -8,7 +8,6 @@ testDynamic(
   expr.mat = NULL,
   pt = NULL,
   genes = NULL,
-  n.potential.basis.fns = 5,
   size.factor.offset = NULL,
   is.gee = FALSE,
   cor.structure = "ar1",
@@ -16,6 +15,7 @@ testDynamic(
   is.glmm = FALSE,
   glmm.adaptive = TRUE,
   id.vec = NULL,
+  n.potential.basis.fns = 5,
   n.cores = 4L,
   approx.knot = TRUE,
   verbose = TRUE,
@@ -28,8 +28,6 @@ testDynamic(
 \item{pt}{Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.}
 
 \item{genes}{A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.}
-
-\item{n.potential.basis.fns}{(Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
 
 \item{size.factor.offset}{(Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.}
 
@@ -44,6 +42,8 @@ testDynamic(
 \item{glmm.adaptive}{(Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.}
 
 \item{id.vec}{If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
+
+\item{n.potential.basis.fns}{(Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.}
 
 \item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 4L.}
 
@@ -72,7 +72,8 @@ data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 scLANE_models <- testDynamic(sim_counts,
                              pt = sim_pseudotime,
-                             size.factor.offset = cell_offset)
+                             size.factor.offset = cell_offset, 
+                             n.cores = 1L)
 }
 \seealso{
 \code{\link{getResultsDE}}

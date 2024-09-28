@@ -16,9 +16,9 @@ createSlopeTestData(
 
 \item{pt}{A data.frame containing pseudotime or latent time values. Defaults to NULL.}
 
-\item{is.gee}{Was the GEE framework used? Defaults to FALSE.}
+\item{is.gee}{Was the GEE mode used? Defaults to FALSE.}
 
-\item{is.glmm}{Was the GLMM framework used? Defaults to FALSE.}
+\item{is.glmm}{Was the GLMM mode used? Defaults to FALSE.}
 }
 \value{
 A data.frame containing model data.

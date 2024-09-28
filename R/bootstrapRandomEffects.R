@@ -76,7 +76,7 @@ bootstrapRandomEffects <- function(glmm.mod = NULL,
   # set up progress bar
   if (verbose) {
     withr::with_output_sink(tempfile(), {
-      pb <- utils::txtProgressBar(0, length(genes), style = 3)
+      pb <- utils::txtProgressBar(0, length(n.boot), style = 3)
     })
     progress_fun <- function(n) utils::setTxtProgressBar(pb, n)
     snow_opts <- list(progress = progress_fun)

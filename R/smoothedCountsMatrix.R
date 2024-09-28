@@ -13,7 +13,6 @@
 #' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param genes (Optional) A character vector of genes with which to subset the results. Defaults to NULL.
 #' @param log1p.norm A boolean specifying whether the smoothed counts should be log1p-transformed after depth normalization. Defaults to FALSE.
-#' @param parallel.exec Should \code{furrr} be used to speed up execution? Defaults to TRUE.
 #' @param n.cores If parallel execution is desired, how many cores should be utilized? Defaults to 2.
 #' @return A list of matrices of smoothed counts, with each element of the list being a single pseudotime lineage.
 #' @seealso \code{\link{testDynamic}}
@@ -30,12 +29,11 @@ smoothedCountsMatrix <- function(test.dyn.res = NULL,
                                  pt = NULL,
                                  genes = NULL,
                                  log1p.norm = FALSE,
-                                 parallel.exec = TRUE,
                                  n.cores = 2L) {
   # check inputs
   if (is.null(test.dyn.res) || is.null(pt)) { stop("Please provide the scLANE output from testDynamic().") }
   # set up parallel execution
-  if (parallel.exec) {
+  if (n.cores > 1L) {
     future::plan(future::multisession, workers = n.cores)
   } else {
     future::plan(future::sequential)

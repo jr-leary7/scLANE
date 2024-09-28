@@ -17,7 +17,7 @@ testSlope(test.dyn.res = NULL, p.adj.method = "holm", fdr.cutoff = 0.01)
 A dataframe containing the genes, breakpoints, and coefficient \emph{p}-values from each model.
 }
 \description{
-This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime interval using a Wald test.
+This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime intervals using a Wald test.
 }
 \examples{
 data(scLANE_models)

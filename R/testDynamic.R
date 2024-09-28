@@ -54,12 +54,12 @@
 #' cell_offset <- createCellOffset(sim_counts)
 #' scLANE_models <- testDynamic(sim_counts,
 #'                              pt = sim_pseudotime,
-#'                              size.factor.offset = cell_offset)
+#'                              size.factor.offset = cell_offset, 
+#'                              n.cores = 1L)
 
 testDynamic <- function(expr.mat = NULL,
                         pt = NULL,
                         genes = NULL,
-                        n.potential.basis.fns = 5,
                         size.factor.offset = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
@@ -67,6 +67,7 @@ testDynamic <- function(expr.mat = NULL,
                         is.glmm = FALSE,
                         glmm.adaptive = TRUE,
                         id.vec = NULL,
+                        n.potential.basis.fns = 5,
                         n.cores = 4L,
                         approx.knot = TRUE,
                         verbose = TRUE,
@@ -283,19 +284,11 @@ testDynamic <- function(expr.mat = NULL,
      marge_sumy <- pull.marge.sumy(marge_mod, is.gee, is.glmm)
 
      # perform slope test
-     marge_slope_df <- try({
-       marge_slope_df <- createSlopeTestData(marge.model = marge_mod,
-                                             pt = pt[lineage_cells, j, drop = FALSE],
-                                             is.gee = is.gee,
-                                             is.glmm = is.glmm)
-     }, silent = TRUE)
-     if (inherits(marge_slope_df, "try-error")) {
-       marge_slope_df <- data.frame(rounded_brkpts = NA_real_, 
-                                    brkpts = NA_real_, 
-                                    brkpt_dirs = NA_character_, 
-                                    p_vals = NA_real_, 
-                                    mod_notes = "createSlopeTestData() error")
-     }
+     marge_slope_df <- createSlopeTestData(marge_mod,
+                                           pt = pt[lineage_cells, j, drop = FALSE],
+                                           is.gee = is.gee,
+                                           is.glmm = is.glmm)
+     
      marge_slope_df <-  dplyr::mutate(marge_slope_df,
                                       Gene = genes[i],
                                       Lineage = LETTERS[j],

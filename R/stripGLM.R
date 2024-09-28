@@ -5,11 +5,11 @@
 #' @description This function removes a \emph{lot} of components from the default GLM object in order to make it take up less memory. It does however retain enough pieces for \code{predict()} to still work. No promises beyond that.
 #' @param glm.obj An object of class GLM from which you'd like to strip out unnecessary components. Defaults to NULL.
 #' @return A slimmed-down \code{glm} object.
-#' @seealso \code{\link{glm}}
+#' @seealso \code{\link[MASS]{glm.nb}}
 
 stripGLM <- function(glm.obj = NULL) {
   # check inputs
-  if (inherits(glm.obj, "try-error")) {return(glm.obj)}
+  if (inherits(glm.obj, "try-error")) { return(glm.obj) }
   if (is.null(glm.obj)) { stop("You forgot to supply inputs to stripGLM().") }
   if (!inherits(glm.obj, "glm")) { stop("Input to stripGLM() must be of class glm.") }
 

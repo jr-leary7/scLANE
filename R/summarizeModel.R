@@ -131,9 +131,9 @@ summarizeModel <- function(marge.model = NULL,
     }
     }  else {
     ## If intercept only model:
-    mod_summ <- list(Breakpoint = NA,
-                       Slope.Segment = 0,
-                       Trend.Segment = 0)
+    mod_summ <- list(Breakpoint = NA_real_,
+                     Slope.Segment = 0,
+                     Trend.Segment = 0)
     }
   }
   return(mod_summ)

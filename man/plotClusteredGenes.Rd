@@ -9,7 +9,6 @@ plotClusteredGenes(
   gene.clusters = NULL,
   pt = NULL,
   size.factor.offset = NULL,
-  parallel.exec = TRUE,
   n.cores = 2L
 )
 }
@@ -21,8 +20,6 @@ plotClusteredGenes(
 \item{pt}{A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.}
 
 \item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
-
-\item{parallel.exec}{Should \code{furrr} be used to speed up execution? Defaults to TRUE.}
 
 \item{n.cores}{If parallel execution is desired, how many cores should be utilized? Defaults to 2.}
 }

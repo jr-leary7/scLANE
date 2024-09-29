@@ -1,5 +1,5 @@
 <img src='man/figures/scLANE_logo.png' align='right' height='20%' width='20%'/>
-================
+
 
 - [Installation](#installation)
 - [Model structure](#model-structure)
@@ -28,7 +28,7 @@ commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=da
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-## Installation
+# Installation
 
 You can install the most recent version of `scLANE` using:
 
@@ -36,7 +36,7 @@ You can install the most recent version of `scLANE` using:
 remotes::install_github("jr-leary7/scLANE")
 ```
 
-## Model structure
+# Model structure
 
 The `scLANE` package enables users to accurately determine differential
 expression of genes over pseudotime or latent time, and to characterize
@@ -171,7 +171,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 26.604 secs
+#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 26.593 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -218,7 +218,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 6L, 
                                  verbose = FALSE)
-#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 1.499 mins
+#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 1.503 mins
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -264,7 +264,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 6L, 
                                   verbose = FALSE)
-#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 3.386 mins
+#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 3.314 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on

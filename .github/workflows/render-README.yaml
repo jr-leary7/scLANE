@@ -21,7 +21,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
       - uses: r-lib/actions/setup-pandoc@v2
       - name: install CRAN packages
-        run: Rscript -e 'install.packages(c("rmarkdown","ggplot2", "dplyr", "purrr", "remotes", "devtools", "BiocManager", "Seurat"), force = TRUE)'
+        run: Rscript -e 'install.packages(c("rmarkdown", "ggplot2", "dplyr", "purrr", "remotes", "devtools", "BiocManager", "Seurat"), force = TRUE)'
       - name: Extra dependencies
         id: extra-deps
         run: |
@@ -36,6 +36,8 @@ jobs:
         run: Rscript -e 'remotes::install_github("jr-leary7/scLANE")'
       - name: render README
         run: Rscript -e 'rmarkdown::render("README.Rmd", output_format = "github_document", output_file = "README.md")'
+      - name: clean up README.md 
+        run: Rscript -e 'lines <- readLines("README.md"); lines <- lines[!grepl("^====+$", lines)]; writeLines(lines, "README.md")'
       - name: commit rendered README
         run: |
           git config --local user.name "jr-leary7"

@@ -1,4 +1,8 @@
 <img src='man/figures/scLANE_logo.png' align='right' height='20%' width='20%'/>
+<<<<<<< HEAD
+=======
+
+>>>>>>> e061f2d (updated README rendering action)
 
 - [Installation](#installation)
 - [Model structure](#model-structure)

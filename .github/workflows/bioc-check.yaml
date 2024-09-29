@@ -34,7 +34,7 @@ jobs:
           n_errors <- length(bc_res$error) + length(bc_gc_res$error)
           if (n_errors > 0) {
             message("BiocCheck failed ...")
-            system("exit 1")
+            quit(status = 1)
           } else {
             message("BiocCheck passed !")
           }

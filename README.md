@@ -1,5 +1,4 @@
 <img src='man/figures/scLANE_logo.png' align='right' height='20%' width='20%'/>
-================
 
 - [Installation](#installation)
 - [Model structure](#model-structure)
@@ -28,7 +27,7 @@ commit](https://img.shields.io/github/last-commit/jr-leary7/scLANE/main?color=da
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-## Installation
+# Installation
 
 You can install the most recent version of `scLANE` using:
 
@@ -36,7 +35,7 @@ You can install the most recent version of `scLANE` using:
 remotes::install_github("jr-leary7/scLANE")
 ```
 
-## Model structure
+# Model structure
 
 The `scLANE` package enables users to accurately determine differential
 expression of genes over pseudotime or latent time, and to characterize

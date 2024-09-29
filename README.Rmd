@@ -34,7 +34,7 @@ knitr::opts_chunk$set(warning = FALSE,
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
 
-## Installation
+# Installation
 
 You can install the most recent version of `scLANE` using:
 
@@ -42,7 +42,7 @@ You can install the most recent version of `scLANE` using:
 remotes::install_github("jr-leary7/scLANE")
 ```
 
-## Model structure
+# Model structure
 
 The `scLANE` package enables users to accurately determine differential expression of genes over pseudotime or latent time, and to characterize gene's dynamics using interpretable model coefficients. `scLANE` builds upon the `marge` modeling framework([GitHub](https://github.com/JakubStats/marge), [paper](https://doi.org/10.1080/10618600.2017.1360780)), allowing users to characterize their trajectory's effects on gene expression using negative binomial GLMs, GEEs, or GLMMs depending on the experimental design & biological questions of interest. This modeling framework is an extension of the [Multivariate Adapative Regression Splines (MARS)](https://en.wikipedia.org/wiki/Multivariate_adaptive_regression_spline) method, which builds nonlinear models out of piecewise linear components. `scLANE` is agnostic with respect to the ordering estimation method used, and can be implemented downstream of any pseudotime or RNA velocity method. 
 

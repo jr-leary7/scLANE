@@ -1,6 +1,5 @@
 <img src='man/figures/scLANE_logo.png' align='right' height='20%' width='20%'/>
 
-
 - [Installation](#installation)
 - [Model structure](#model-structure)
 - [Usage](#usage)
@@ -171,7 +170,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 26.593 secs
+#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 16.304 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -192,10 +191,10 @@ select(scLANE_res_glm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | Gene   | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:-------|:--------|----------:|--------:|-------------:|-------------------------:|
 | MFSD2B | A       |   217.016 |   0.000 |        0.000 |                        1 |
-| NLGN4Y | A       |     6.471 |   0.039 |        1.000 |                        0 |
-| UAP1L1 | A       |     9.882 |   0.007 |        0.357 |                        0 |
+| LGR4   | A       |     6.685 |   0.035 |        1.000 |                        0 |
+| UAP1L1 | A       |     9.882 |   0.007 |        0.365 |                        0 |
 | TMCO3  | A       |   167.764 |   0.000 |        0.000 |                        1 |
-| ZBTB43 | A       |     4.538 |   0.103 |        1.000 |                        0 |
+| MRTO4  | A       |     4.771 |   0.092 |        1.000 |                        0 |
 
 ### GEE mode
 
@@ -218,7 +217,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 6L, 
                                  verbose = FALSE)
-#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 1.503 mins
+#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 45.024 secs
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -237,10 +236,10 @@ select(scLANE_res_gee, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic_
 | Gene  | Lineage | Wald stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:------|:--------|-----------:|--------:|-------------:|-------------------------:|
 | BAD   | A       | 159682.044 |       0 |            0 |                        1 |
-| TBCC  | A       |     31.307 |       0 |            0 |                        1 |
+| RPL29 | A       |     32.647 |       0 |            0 |                        1 |
 | HOXC8 | A       |         NA |      NA |           NA |                        0 |
-| NPC2  | A       |   3698.406 |       0 |            0 |                        1 |
-| MPG   | A       |   2270.035 |       0 |            0 |                        1 |
+| DDX41 | A       |   4216.586 |       0 |            0 |                        1 |
+| PFDN2 | A       |   2362.431 |       0 |            0 |                        1 |
 
 ### GLMM mode
 
@@ -264,7 +263,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 6L, 
                                   verbose = FALSE)
-#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 3.314 mins
+#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 2.235 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on
@@ -287,8 +286,8 @@ select(scLANE_res_glmm, Gene, Lineage, Test_Stat, P_Val, P_Val_Adj, Gene_Dynamic
 | Gene    | Lineage | LRT stat. | P-value | Adj. p-value | Predicted dynamic status |
 |:--------|:--------|----------:|--------:|-------------:|-------------------------:|
 | VDAC1   | A       |   151.417 |       0 |            0 |                        1 |
-| KLHDC10 | A       |   121.011 |       0 |            0 |                        1 |
-| NOP14   | A       |        NA |      NA |           NA |                        0 |
+| KLHDC10 | A       |   122.491 |       0 |            0 |                        1 |
+| ZNF575  | A       |        NA |      NA |           NA |                        0 |
 | BCAT1   | A       |        NA |      NA |           NA |                        0 |
 | TSPAN1  | A       |    78.597 |       0 |            0 |                        1 |
 

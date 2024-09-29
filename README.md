@@ -1,7 +1,8 @@
+<img src='man/figures/scLANE_logo.png' align='right' height='20%' width='20%'/>
+================
 
-- [`scLANE`](#sclane)
-  - [Installation](#installation)
-  - [Model structure](#model-structure)
+- [Installation](#installation)
+- [Model structure](#model-structure)
 - [Usage](#usage)
   - [Libraries](#libraries)
   - [Input data](#input-data)
@@ -13,9 +14,6 @@
 - [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
-# `scLANE`
-
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)
@@ -173,7 +171,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 16.068 secs
+#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 16.048 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -220,7 +218,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 6L, 
                                  verbose = FALSE)
-#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 46.169 secs
+#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 44.965 secs
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -266,7 +264,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 6L, 
                                   verbose = FALSE)
-#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 2.248 mins
+#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 2.21 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on

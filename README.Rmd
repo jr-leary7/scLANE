@@ -1,4 +1,5 @@
 ---
+title: "<img src='man/figures/scLANE_logo.png' align='right' height='20%' width='20%'/>"
 output: 
   github_document:
     toc: true
@@ -21,8 +22,6 @@ knitr::opts_chunk$set(warning = FALSE,
                       fig.width = 6,
                       fig.height = 4)
 ```
-
-# `scLANE`
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jr-leary7/scLANE/actions/workflows/R-CMD-check.yaml)

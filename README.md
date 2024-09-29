@@ -1,8 +1,4 @@
 <img src='man/figures/scLANE_logo.png' align='right' height='20%' width='20%'/>
-<<<<<<< HEAD
-=======
-
->>>>>>> e061f2d (updated README rendering action)
 
 - [Installation](#installation)
 - [Model structure](#model-structure)
@@ -174,7 +170,7 @@ scLANE_models_glm <- testDynamic(sim_data,
 #> Registered S3 method overwritten by 'bit':
 #>   method   from  
 #>   print.ri gamlss
-#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 16.304 secs
+#> scLANE testing in GLM mode completed for 100 genes across 1 lineage in 16.048 secs
 ```
 
 After the function finishes running, we use `getResultsDE()` to generate
@@ -221,7 +217,7 @@ scLANE_models_gee <- testDynamic(sim_data,
                                  cor.structure = "ar1", 
                                  n.cores = 6L, 
                                  verbose = FALSE)
-#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 45.024 secs
+#> scLANE testing in GEE mode completed for 100 genes across 1 lineage in 44.965 secs
 ```
 
 We again generate the table of DE test results. The variance of the
@@ -267,7 +263,7 @@ scLANE_models_glmm <- testDynamic(sim_data,
                                   id.vec = sim_data$subject, 
                                   n.cores = 6L, 
                                   verbose = FALSE)
-#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 2.235 mins
+#> scLANE testing in GLMM mode completed for 100 genes across 1 lineage in 2.21 mins
 ```
 
 **Note:** The GLMM mode is still under development, as we are working on

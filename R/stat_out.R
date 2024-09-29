@@ -30,7 +30,7 @@ stat_out <- function(Y = NULL,
   N <- length(Y)
   reg <- stats::lm.fit(B1, Y)
   if (any(is.na(reg$coef))) {
-    RSS1 <- RSSq1 <- GCV1 <- GCVq1 <- NA
+    RSS1 <- RSSq1 <- GCV1 <- GCVq1 <- NA_real_
   } else {
     df1a <- ncol(B1) + pen * (ncol(B1) - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
     RSS1 <- sum((Y - stats::fitted(reg))^2)

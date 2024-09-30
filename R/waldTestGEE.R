@@ -59,7 +59,7 @@ waldTestGEE <- function(mod.1 = NULL,
       coef_idx[i] <- which(coef_diff[i] == coef_alt_mod)
     }
     coef_vals <- as.matrix(coef(mod.1)[coef_idx])
-    vcov_mat <- as.matrix(mod.1$var)
+    vcov_mat <- as.matrix(mod.1$naiv.var)
     if (bias.correct) {
       vcov_mat <- biasCorrectGEE(mod.1,
                                  correction.method = correction.method,

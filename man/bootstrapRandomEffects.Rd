@@ -50,6 +50,7 @@ glmm_mod <- fitGLMM(X_pred = sim_pseudotime,
 ranef_sumy <- bootstrapRandomEffects(glmm_mod,
                                      id.vec = sim_counts$subject,
                                      Y.offset = cell_offset, 
+                                     n.boot = 100L, 
                                      n.cores = 1L)
 }
 \seealso{

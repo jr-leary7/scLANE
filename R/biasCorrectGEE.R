@@ -1,38 +1,38 @@
-#' Bias-correct the GEE sandwich variance-covariance matrix. 
-#' 
+#' Bias-correct the GEE sandwich variance-covariance matrix.
+#'
 #' @name biasCorrectGEE
 #' @author Jack Leary
-#' @description This functions implements several bias-correction methods for the GEE sandwich variance-covariance matrix; they are to be used when the number of subjects is small or the numer of timepoints per-subject is very large. 
-#' @importFrom stats fitted.values cor 
+#' @description This functions implements several bias-correction methods for the GEE sandwich variance-covariance matrix; they are to be used when the number of subjects is small or the numer of timepoints per-subject is very large.
+#' @importFrom stats fitted.values cor
 #' @importFrom dplyr with_groups summarise
 #' @importFrom MASS ginv
 #' @importFrom Matrix bdiag
 #' @param fitted.model The fitted model of class \code{geem} returned by \code{\link{marge2}}. Defaults to NULL.
 #' @param correction.method A string specifying the correction method to be used. Currently supported options are "df" and "kc". Defaults to "kc".
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
-#' @param cor.structure A string specifying the correlation structure used in fitting the model. Defaults to "ar1".  
-#' @param verbose (Optional) A Boolean specifying whether or not verbose output should be printed to the console. Occasionally useful for debugging. Defaults to FALSE. 
-#' @return An object of class \code{matrix} containing the bias-corrected variance-covariance estimates. 
+#' @param cor.structure A string specifying the correlation structure used in fitting the model. Defaults to "ar1".
+#' @param verbose (Optional) A Boolean specifying whether or not verbose output should be printed to the console. Occasionally useful for debugging. Defaults to FALSE.
+#' @return An object of class \code{matrix} containing the bias-corrected variance-covariance estimates.
 #' @seealso \code{\link{waldTestGEE}}
 
 biasCorrectGEE <- function(fitted.model = NULL,
-                           correction.method = "kc", 
-                           id.vec = NULL, 
-                           cor.structure = "ar1", 
+                           correction.method = "kc",
+                           id.vec = NULL,
+                           cor.structure = "ar1",
                            verbose = FALSE) {
-  # check inputs 
+  # check inputs
   if (is.null(fitted.model)) { stop("Arguments to biasCorrectGEE() are missing.") }
   if (!inherits(fitted.model, "geem")) { stop("The fitted model must be of class 'geem'.") }
   correction.method <- tolower(correction.method)
   if (!correction.method %in% c("df", "kc")) { stop("Unsupported bias correction method in waldTestGEE().") }
-  if (correction.method == "kc" && is.null(id.vec)) { stop("Kauermann and Carroll requires the provision of a vector of subject IDs and a vector of raw gene counts.") }
-  cor.structure <- tolower(cor.structure) 
+  if (correction.method == "kc" && is.null(id.vec)) { stop("Kauermann and Carroll requires the provision of a vector of subject IDs.") }
+  cor.structure <- tolower(cor.structure)
   if (!cor.structure %in% c("exchangeable", "ar1")) { stop("Unrecognized correlation structure in biasCorrectGEE().") }
-  # extract sandwich variance-covariance matrix 
+  # extract sandwich variance-covariance matrix
   V_sandwich <- as.matrix(fitted.model$var)
   n_s <- length(fitted.model$clusz)
   if (correction.method == "df") {
-    # compute degrees-of-freedom bias-corrected variance-covariance matrix 
+    # compute degrees-of-freedom bias-corrected variance-covariance matrix
     p <- ncol(fitted.model$X)
     if (p >= n_s) {
       warning("Cannot perform DF bias correction on sandwich variance-covariance matrix as the number of subjects is less than or equal to the number of covariates.")
@@ -64,9 +64,9 @@ biasCorrectGEE <- function(fitted.model = NULL,
         }
         return(res)
       }
-      rho_estimates <- dplyr::with_groups(resid_df, 
-                                          subject, 
-                                          dplyr::summarise, 
+      rho_estimates <- dplyr::with_groups(resid_df,
+                                          subject,
+                                          dplyr::summarise,
                                           rho = rhoExchangeable(r_hat))
       rho_avg <- mean(rho_estimates$rho, na.rm = TRUE)
       if (verbose) {
@@ -78,15 +78,15 @@ biasCorrectGEE <- function(fitted.model = NULL,
         if (n_i < 2) {
           res <- NA_real_
         } else {
-          res <- stats::cor(residuals[-n_i], 
-                            residuals[-1], 
+          res <- stats::cor(residuals[-n_i],
+                            residuals[-1],
                             use = "complete.obs")
         }
         return(res)
       }
-      rho_estimates <- dplyr::with_groups(resid_df, 
-                                          subject, 
-                                          dplyr::summarise, 
+      rho_estimates <- dplyr::with_groups(resid_df,
+                                          subject,
+                                          dplyr::summarise,
                                           rho = rhoAR1(r_hat))
       rho_avg <- mean(rho_estimates$rho, na.rm = TRUE)
       if (verbose) {
@@ -126,8 +126,8 @@ biasCorrectGEE <- function(fitted.model = NULL,
       }, silent = TRUE)
       if (inherits(Var_Yi_inv, "try-error")) {
         if (verbose) {
-          warning(paste0("Covariance matrix inversion failed for subject ",  
-                         subjects[s], 
+          warning(paste0("Covariance matrix inversion failed for subject ",
+                         subjects[s],
                          ", applying diagonal matrix as fallback in biasCorrectGEE()."))
         }
         Var_Yi_inv <- diag(1, n_i, n_i)

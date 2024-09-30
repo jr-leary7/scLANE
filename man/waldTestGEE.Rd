@@ -8,7 +8,7 @@ waldTestGEE(
   mod.1 = NULL,
   mod.0 = NULL,
   bias.correct = FALSE,
-  correction.method = "df",
+  correction.method = "kc",
   id.vec = NULL,
   verbose = FALSE
 )

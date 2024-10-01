@@ -72,7 +72,7 @@ data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 scLANE_models <- testDynamic(sim_counts,
                              pt = sim_pseudotime,
-                             size.factor.offset = cell_offset, 
+                             size.factor.offset = cell_offset,
                              n.cores = 1L)
 }
 \seealso{

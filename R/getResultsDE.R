@@ -9,7 +9,7 @@
 #' @importFrom tidyselect everything
 #' @importFrom stats p.adjust p.adjust.methods
 #' @param test.dyn.res The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.
-#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".
+#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "fdr".
 #' @param fdr.cutoff (Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 2L.
 #' @return A data.frame containing differential expression results & test statistics for each gene.
@@ -21,13 +21,13 @@
 #' scLANE_de_res <- getResultsDE(scLANE_models)
 
 getResultsDE <- function(test.dyn.res = NULL,
-                         p.adj.method = "holm",
-                         fdr.cutoff = 0.01, 
+                         p.adj.method = "fdr",
+                         fdr.cutoff = 0.01,
                          n.cores = 2L) {
   # check inputs
   if (is.null(test.dyn.res)) { stop("Please provide a result list.") }
   if (!p.adj.method %in% stats::p.adjust.methods) { stop("Please choose a valid p-value adjustment method.") }
-  # set up parallel processing 
+  # set up parallel processing
   future::plan(future::multisession, workers = n.cores)
   # iterates first over genes, then over lineages per-gene & coerces to final data.frame after unlisting everything
   result_df <- furrr::future_map_dfr(test.dyn.res,
@@ -48,7 +48,7 @@ getResultsDE <- function(test.dyn.res = NULL,
                                Lineage,
                                Test_Stat,
                                P_Val)
-  # shut down parallel processing 
+  # shut down parallel processing
   future::plan(future::sequential)
   return(result_df)
 }

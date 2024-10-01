@@ -51,15 +51,14 @@ waldTestGEE <- function(mod.1 = NULL,
   } else {
     # compute test statistic & asymptotic p-value
     coef_alt_mod <- names(coef(mod.1))
-    coef_null_mod <- c("Intercept")
+    coef_null_mod <- names(coef(mod.1))
     coef_diff <- setdiff(coef_alt_mod, coef_null_mod)
     coef_idx <- rep(0, length(coef_diff))
     for (i in seq_len(length(coef_diff))) {
       coef_idx[i] <- which(coef_diff[i] == coef_alt_mod)
     }
     coef_vals <- as.matrix(coef(mod.1)[coef_idx])
-    
-    if (!is.null(correction.method)) { # correct the bias in robust var est.
+    if (!is.null(correction.method)) {
       vcov_mat <- as.matrix(mod.1$var)
       vcov_mat <- biasCorrectGEE(mod.1,
                                  correction.method = correction.method,
@@ -67,7 +66,7 @@ waldTestGEE <- function(mod.1 = NULL,
                                  cor.structure = mod.1$corr,
                                  verbose = verbose)
     } else {
-      vcov_mat <- as.matrix(mod.1$naiv.var) # model-based var ok if cor. struc. ok
+      vcov_mat <- as.matrix(mod.1$naiv.var)
     }
     vcov_mat <- vcov_mat[coef_idx, coef_idx]
     wald_test_stat <- try({

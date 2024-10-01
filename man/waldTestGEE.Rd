@@ -7,8 +7,7 @@
 waldTestGEE(
   mod.1 = NULL,
   mod.0 = NULL,
-  bias.correct = FALSE,
-  correction.method = "kc",
+  correction.method = NULL,
   id.vec = NULL,
   verbose = FALSE
 )
@@ -18,9 +17,7 @@ waldTestGEE(
 
 \item{mod.0}{The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.}
 
-\item{bias.correct}{Boolean specifying whether a small-sample bias correction should be applied to the estimated sandwich variance-covariance matrix. Useful when the number of subjects is small. Defaults to FALSE.}
-
-\item{correction.method}{A string specifying the correction method to be used. Currently supported options are "df" and "kc". Defaults to "kc".}
+\item{correction.method}{A string specifying the correction method to be used. Currently supported options are "df", "kc", and NULL. Defaults to NULL.}
 
 \item{id.vec}{A vector of subject IDs. Required when \code{correction.method} is "kc". Defaults to NULL.}
 

@@ -11,7 +11,7 @@ testDynamic(
   size.factor.offset = NULL,
   is.gee = FALSE,
   cor.structure = "ar1",
-  gee.bias.correct = FALSE,
+  gee.bias.correction.method = NULL,
   is.glmm = FALSE,
   glmm.adaptive = TRUE,
   id.vec = NULL,
@@ -35,7 +35,7 @@ testDynamic(
 
 \item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".}
 
-\item{gee.bias.correct}{Should a small-sample bias correction be use on the sandwich variance-covariance matrix prior to test statistic estimation? Defaults to FALSE.}
+\item{gee.bias.correction.method}{Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.}
 
 \item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
 
@@ -63,7 +63,7 @@ This function tests whether a NB \code{marge} model is better than a null (inter
 \itemize{
 \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} or \code{CellDataSet} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
 \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
-\item If \code{gee.bias.correct} is set to TRUE, a degrees-of-freedom correct will be used to inflate the variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will lead to shrunken test statistics and thus more conservative test results.
+\item If \code{gee.bias.correction.method} is set to "kc" or "df", a bias adjustment will be used to inflate the robust variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will remove the bias in the sandwhich estimator in small-sample cases. Currently, we suggest keeping this NULL and using the model-based variance estimates and specifying the "ar1" correlation structure.
 }
 }
 \examples{

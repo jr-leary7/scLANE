@@ -35,8 +35,8 @@ waldTestGEE <- function(mod.1 = NULL,
                 Notes = "No test performed due to model failure.")
     return(res)
   }
-  if(!is.null(correction.method)) correction.method <- tolower(correction.method)
-  if (!correction.method %in% c("df", "kc")) { stop("Unsupported bias correction method in waldTestGEE().") }
+  if (!is.null(correction.method)) correction.method <- tolower(correction.method)
+  if (!is.null(correction.method)) if (!(correction.method %in% c("df", "kc"))) { stop("Unsupported bias correction method in waldTestGEE().") }
   if (correction.method == "kc" && is.null(id.vec)) { stop("The Kauermann and Carroll bias correction method requires a vector of subject IDs.") }
 
   mod.1 <- mod.1$final_mod

@@ -54,7 +54,7 @@
 #' cell_offset <- createCellOffset(sim_counts)
 #' scLANE_models <- testDynamic(sim_counts,
 #'                              pt = sim_pseudotime,
-#'                              size.factor.offset = cell_offset, 
+#'                              size.factor.offset = cell_offset,
 #'                              n.cores = 1L)
 
 testDynamic <- function(expr.mat = NULL,
@@ -187,6 +187,7 @@ testDynamic <- function(expr.mat = NULL,
                  is.gee = is.gee,
                  id.vec = id.vec[lineage_cells],
                  cor.structure = cor.structure,
+                 sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE),
                  M = n.potential.basis.fns,
                  approx.knot = approx.knot,
                  return.basis = TRUE)
@@ -238,7 +239,9 @@ testDynamic <- function(expr.mat = NULL,
                      id = null_mod_df$subject,
                      data = null_mod_df,
                      family = MASS::negative.binomial(theta_hat),
-                     corstr = cor.structure)
+                     corstr = cor.structure,
+                     scale.fix = FALSE,
+                     sandwich = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
         }, silent = TRUE)
       } else if (is.glmm) {
         null_mod <- try({
@@ -288,7 +291,7 @@ testDynamic <- function(expr.mat = NULL,
                                            pt = pt[lineage_cells, j, drop = FALSE],
                                            is.gee = is.gee,
                                            is.glmm = is.glmm)
-     
+
      marge_slope_df <-  dplyr::mutate(marge_slope_df,
                                       Gene = genes[i],
                                       Lineage = LETTERS[j],
@@ -402,8 +405,8 @@ testDynamic <- function(expr.mat = NULL,
   total_time_units <- attributes(total_time)$units
   total_time_numeric <- as.numeric(total_time)
   scLANE_mode <- ifelse(is.glmm, "GLMM", ifelse(is.gee, "GEE", "GLM"))
-  time_message <- paste0("scLANE testing in ", 
-                         scLANE_mode, 
+  time_message <- paste0("scLANE testing in ",
+                         scLANE_mode,
                          " mode completed for ",
                          length(genes),
                          " genes across ",

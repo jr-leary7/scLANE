@@ -12,6 +12,7 @@ marge2(
   is.gee = FALSE,
   id.vec = NULL,
   cor.structure = "ar1",
+  sandwich.var = FALSE,
   approx.knot = TRUE,
   n.knot.max = 50,
   tols_score = 1e-05,
@@ -35,6 +36,8 @@ marge2(
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
 
 \item{cor.structure}{If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".}
+
+\item{sandwich.var}{(Optional) Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.}
 
 \item{approx.knot}{(Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.}
 

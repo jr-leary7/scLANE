@@ -20,6 +20,7 @@
 #' @param is.gee Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
 #' @param cor.structure If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
+#' @param sandwich.var (Optional) Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.
 #' @param approx.knot (Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.
 #' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses random sampling (don't worry, a random seed is set internally) to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
@@ -56,6 +57,7 @@ marge2 <- function(X_pred = NULL,
                    is.gee = FALSE,
                    id.vec = NULL,
                    cor.structure = "ar1",
+                   sandwich.var = FALSE,
                    approx.knot = TRUE,
                    n.knot.max = 50,
                    tols_score = 1e-5,
@@ -68,7 +70,7 @@ marge2 <- function(X_pred = NULL,
   if (is.gee & is.null(id.vec)) { stop("id.vec in marge2() must be non-null if is.gee = TRUE.") }
   if (is.gee & (!cor.structure %in% c("independence", "exchangeable", "ar1"))) { stop("cor.structure in marge2() must be a known type if is.gee = TRUE.") }
   if (is.gee & is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running marge2() with is.gee = TRUE.") }
-  
+
   # Algorithm 2 (forward pass) as in Friedman (1991). Uses score statistics instead of RSS, etc.
   NN <- length(Y)  # Total sample size
   if (is.gee) {
@@ -83,7 +85,7 @@ marge2 <- function(X_pred = NULL,
                                 mu = mean(Y),
                                 dfr = NN - 1)
   }
-  
+
   pen <- 2  # penalty for GCV criterion -- could also switch to log(N) later
   colnames(B) <- "Intercept"
   var_name_vec <- "Intercept"
@@ -97,18 +99,18 @@ marge2 <- function(X_pred = NULL,
   score_term <- 0
   TSS <- sum((Y - mean(Y))^2)
   GCV.null <- TSS / (NN * (1 - (1 / NN))^2)
-  
+
   # Null model setup.
   m <- k <- 1
   breakFlag <- FALSE
   ok <- TRUE
   int.count <- 0
-  
+
   while (ok) {  # this is such egregiously bad code lol
     if (breakFlag) {
       break
     }
-    
+
     var.mod_temp <- NULL
     score_term_temp <- NULL
     min_knot_vec_temp <- NULL
@@ -120,7 +122,7 @@ marge2 <- function(X_pred = NULL,
     B_names_temp <- vector("list")
     X_red_temp <- vector("list")
     B_temp_list <- vector("list")
-    
+
     # Obtain/calculate the null stats here (speeds things up).
     if (is.gee) {
       B_null_stats <- stat_out_score_gee_null(Y = Y,
@@ -144,7 +146,7 @@ marge2 <- function(X_pred = NULL,
       mu.est <- B_null_stats$mu.est
       V.est <- B_null_stats$V.est
     }
-    
+
     for (v in seq(q)) {
       var_name <- colnames(X_pred)[v]
       if (approx.knot) {
@@ -168,30 +170,30 @@ marge2 <- function(X_pred = NULL,
         X_red2 <- max_span(X_red = X, q = q)
         X_red <- intersect(X_red1, X_red2)
       }
-      
+
       score_knot_both_int_mat <- NULL
       score_knot_both_add_mat <- NULL
       score_knot_one_int_mat <- NULL
       score_knot_one_add_mat <- NULL
-      
+
       int.count1 <- 0
-      
+
       in.set <- ifelse(ncol(B) > 1, sum(!var_name_vec %in% var_name), 0)
-      
+
       for (t in seq_along(X_red)) {
         # pairs of truncated functions
         b1_new <- matrix(tp1(x = X,  t = X_red[t]), ncol = 1)
         b2_new <- matrix(tp2(x = X, t = X_red[t]), ncol = 1)
-        
+
         score_knot_both_int <- NULL
         score_knot_both_add <- NULL
         score_knot_one_int <- NULL
         score_knot_one_add <- NULL
-        
+
         if (in.set == 0) {
           B_new_both_add <- cbind(B, b1_new, b2_new)  # Additive model with both truncated functions.
           B_new_one_add <- cbind(B, b1_new)  # Additive model with one truncated function (positive part).
-          
+
           if (is.gee) {
             meas_model_both_add <- score_fun_gee(Y = Y,
                                                  N = N,
@@ -237,11 +239,11 @@ marge2 <- function(X_pred = NULL,
                                                 B1 = B_new_one_add,
                                                 XA = b1_new)
           }
-          
+
           score_knot_both_add <- c(score_knot_both_add, meas_model_both_add$score)
           score_knot_one_add <- c(score_knot_one_add, meas_model_one_add$score)
           score_knot_both_int <- score_knot_one_int <- -1e5  # Interaction set is impossible since there is nothing to interact with, so let the LOF measure be a huge negative number.
-          
+
         } else {
           var_name_struct <- which(((var_name != var_name_vec) * mod_struct) == 1)
           colnames(B)[1] <- ""
@@ -249,13 +251,13 @@ marge2 <- function(X_pred = NULL,
           if (k != 1 & any(!var_name_vec[-1] %in% var_name)) {
             B2 <- as.matrix(B2[, -1, drop = FALSE])
           }
-          
+
           for (nn in seq_len(ncol(B2))) {
             B2a <- matrix(rep(B2[, nn], 2), ncol = 2)
             B2b <- matrix(B2[, nn], ncol = 1)
             B_new_both_int <- cbind(B, B2a * cbind(b1_new, b2_new))
             B_new_one_int <- cbind(B, B2b * b1_new)  # Interaction model with one truncated function (i.e., the positive part).
-            
+
             if (is.gee) {
               meas_model_both_int <- score_fun_gee(Y = Y,
                                                    N = N,
@@ -304,10 +306,10 @@ marge2 <- function(X_pred = NULL,
             score_knot_both_int <- c(score_knot_both_int, meas_model_both_int$score)
             score_knot_one_int <- c(score_knot_one_int, meas_model_one_int$score)
           }
-          
+
           B_new_both_add <- cbind(B, b1_new, b2_new)
           B_new_one_add <- cbind(B, b1_new)
-          
+
           if (is.gee) {
             meas_model_both_add <- score_fun_gee(Y = Y,
                                                  N = N,
@@ -361,9 +363,9 @@ marge2 <- function(X_pred = NULL,
         score_knot_one_int_mat <- rbind(score_knot_one_int_mat, score_knot_one_int)
         score_knot_one_add_mat <- rbind(score_knot_one_add_mat, score_knot_one_add)
       }
-      
+
       # See the LM code above in regards to what the conditions below actually do.
-      
+
       if (all((apply(score_knot_both_int_mat, 1, is.na))) && all((apply(score_knot_one_int_mat, 1, is.na)))) {
         int <- FALSE
         if (any(!is.na(score_knot_both_add_mat)) && any(!is.na(score_knot_one_add_mat))) {
@@ -584,14 +586,14 @@ marge2 <- function(X_pred = NULL,
           }
         }
       }
-      
+
       b1_new <- matrix(tp1(x = X, t = X_red[min_knot1]), ncol = 1)
       b2_new <- matrix(tp2(x = X, t = X_red[min_knot1]), ncol = 1)
       colnames(b1_new) <- colnames(b2_new) <- var_name
-      
+
       B_name1 <- paste("(", var_name, "-", signif(X_red[min_knot1], 4), ")", sep = "")
       B_name2 <- paste("(", signif(X_red[min_knot1], 4), "-", var_name, ")", sep = "")
-      
+
       if (int) {
         mod_struct1 <- which(mod_struct == 1)
         colnames(B)[1] <- ""
@@ -603,7 +605,7 @@ marge2 <- function(X_pred = NULL,
         var_name_struct <- mod_struct1[mod_struct1 %in% var_name1]
         B2 <- as.matrix(B[, var_name_struct, drop = FALSE])
         B3_names <- B_names_vec[var_name_struct][-1]
-        
+
         if (trunc.type == 2) {
           B2a <- matrix(rep(B2[, best.var], 2), ncol = 2)
           B_temp <- cbind(B, B2a*cbind(b1_new, b2_new))
@@ -618,12 +620,12 @@ marge2 <- function(X_pred = NULL,
           var_name3 <- var_name2[best.var]
           colnames(B_new) <- rep(var_name3, 1)
         }
-        
+
         B_names <- paste(B3_names[best.var], B_name1, sep = "*")
         B_names <- ifelse(trunc.type == 2,
                           c(B_names, paste(B3_names[best.var], B_name2, sep = "*")),
                           B_names)
-        
+
         var_name_list1 <- vector("list")
         for (ll in seq_len(ncol(B_new))) {
           colnames(B_new)[ll] <- paste(var_name, colnames(B_new)[ll], sep = ":")
@@ -645,7 +647,7 @@ marge2 <- function(X_pred = NULL,
           var_name_list1 <- c(var_name_list1, list(var_name))
         }
       }
-      
+
       if (is.gee) {
         meas_model <- score_fun_gee(Y = Y,
                                     N = N,
@@ -670,7 +672,7 @@ marge2 <- function(X_pred = NULL,
                                     B1 = B_temp,
                                     XA = B_new)
       }
-      
+
       score2 <- meas_model$score
       meas_model0 <- stat_out(Y = Y,
                               B1 = B_temp,
@@ -682,7 +684,7 @@ marge2 <- function(X_pred = NULL,
         min_knot_vec_temp <- c(min_knot_vec_temp, NA)
         int.count1_temp <- c(int.count1_temp, NA)
         is.int_temp <- c(is.int_temp, int)
-        
+
         trunc.type_temp <- c(trunc.type_temp, NA)
         X_red_temp <- c(X_red_temp, list(NA))
         B_new_list_temp <- c(B_new_list_temp, list(NA))
@@ -699,7 +701,7 @@ marge2 <- function(X_pred = NULL,
       } else if (meas_model0$GCVq1 >= -10 || round(score2, 4) > 0) {
         score_term_temp <- c(score_term_temp, score2)
       }
-      
+
       var.mod_temp <- c(var.mod_temp, var_name)
       min_knot_vec_temp <- c(min_knot_vec_temp, min_knot1)
       int.count1_temp <- c(int.count1_temp, int.count1)
@@ -711,11 +713,11 @@ marge2 <- function(X_pred = NULL,
       X_red_temp <- c(X_red_temp, list(X_red))
       B_temp_list <- c(B_temp_list, list(B_temp))
     }
-    
+
     if (breakFlag) {
       break
     }
-    
+
     best.mod <- which.max(score_term_temp)  # Finds the best model (i.e., the max LOF) from your candidate model/basis set. This becomes the new parent
     score2 <- score_term_temp[best.mod]
     min_knot_vec1 <- min_knot_vec_temp[best.mod]
@@ -732,7 +734,7 @@ marge2 <- function(X_pred = NULL,
     pred.name_vec <- c(pred.name_vec, colnames(B_new)[1])
     cut_vec <- c(cut_vec, X_red[min_knot_vec1])
     trunc.type_vec <- c(trunc.type_vec, trunc.type)
-    
+
     if (score_term[k + 1] < tols_score) {
       breakFlag <- TRUE
       break
@@ -750,33 +752,33 @@ marge2 <- function(X_pred = NULL,
       k <- k + 1
       m <- m + 2
     }
-    
+
     # terminate if high dimensionality occurs or maximum # of hinge functions is reached
     if (nrow(B) <= (ncol(B) + 2) || m >= M) {
       ok <- FALSE
     }
   }
-  
+
   # Algorithm 3 (backward pass) as in Friedman (1991) but for GLM/GEE use WIC.
-  
+
   colnames(B) <- B_names_vec
   WIC_vec_2 <- NA
   full.wic <- 0
   B_new <- B
   ncol_B <- ncol(B)
   cnames_2 <- list(colnames(B_new))
-  
+
   wic_mat_2 <- matrix(NA_real_, ncol = ncol_B , nrow = ncol_B)
   colnames(wic_mat_2) <- B_names_vec
   wic_mat_2 <- cbind(wic_mat_2, rep(NA_real_, ncol_B))
   colnames(wic_mat_2)[(ncol_B  + 1)] <- "Forward pass model"
-  
+
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
   wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
   WIC_2 <- sum(apply(wic_mat_2[seq(2), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new)
   WIC_vec_2 <- c(WIC_vec_2, WIC_2)
-  
+
   variable.lowest_2 <- as.numeric(which(wic1_2 == min(wic1_2, na.rm = TRUE))[1])
   var.low.vec_2 <- c(colnames(B_new)[variable.lowest_2 + 1])
   B_new_2 <- as.matrix(B_new[, -(variable.lowest_2 + 1)])
@@ -799,7 +801,7 @@ marge2 <- function(X_pred = NULL,
     }
     cnames_2 <- c(cnames_2, list(colnames(B_new_2)))
   }
-  
+
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
   model_df <- as.data.frame(B_final)
@@ -828,7 +830,7 @@ marge2 <- function(X_pred = NULL,
                             family = MASS::negative.binomial(theta_hat, link = log),
                             corstr = cor.structure,
                             scale.fix = FALSE,
-                            sandwich = TRUE)
+                            sandwich = sandwich.var)
   } else {
     final_mod <- MASS::glm.nb(model_formula,
                               data = model_df,

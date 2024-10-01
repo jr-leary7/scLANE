@@ -6,7 +6,7 @@
 \usage{
 getResultsDE(
   test.dyn.res = NULL,
-  p.adj.method = "holm",
+  p.adj.method = "fdr",
   fdr.cutoff = 0.01,
   n.cores = 2L
 )
@@ -14,7 +14,7 @@ getResultsDE(
 \arguments{
 \item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
 
-\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".}
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "fdr".}
 
 \item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
 

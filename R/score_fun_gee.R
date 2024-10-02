@@ -100,8 +100,9 @@ score_fun_gee <- function(Y = NULL,
                                    B = J21_transpose,
                                    n_cores = 1)
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
+    Sigma_inv <- eigenMapMatrixInvert(A = Sigma, n_cores = 1)
     temp_prod <- eigenMapMatMult(A = t(B.est),
-                                 B = Matrix::chol2inv(Matrix::chol(Sigma)),
+                                 B = Sigma_inv,
                                  n_cores = 1)
     score <- eigenMapMatMult(A = temp_prod,
                              B = B.est,

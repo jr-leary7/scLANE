@@ -137,7 +137,8 @@ biasCorrectGEE <- function(fitted.model = NULL,
     W <- as.matrix(Matrix::bdiag(cov_matrices))
     X <- fitted.model$X
     XWX <- t(X) %*% W %*% X
-    H <- X %*% MASS::ginv(XWX) %*% t(X) %*% W
+    XWX_inv <- eigenMapMatrixInvert(XWX, n_cores = 1)
+    H <- X %*% XWX_inv %*% t(X) %*% W
     tr_H <- sum(diag(H))
     if (verbose) {
       message(paste0("Trace of projection matrix H estimated at: ", round(tr_H, 5)))

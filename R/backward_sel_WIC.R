@@ -13,6 +13,8 @@
 #' @param is.gee Is the model a GEE? Defaults to FALSE.
 #' @param id.vec A vector of observation IDs that is necessary for fitting a GEE model. Defaults to NULL.
 #' @param cor.structure The specified working correlation structure of the GEE model. Must be one of "independence", "ar1", or "exchangeable". Defaults to NULL.
+#' @param sandwich.var Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.
+#' @param theta.hat An initial estimate of \eqn{\hat{\theta}} used to fit the negative-binomial model when GEE mode is being used. 
 #' @return \code{backward_sel_WIC} returns the Wald statistic from the fitted model (the penalty is applied later on).
 #' @references Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for Generalized Estimating Equations With a Large Number of Predictor Variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
@@ -21,18 +23,21 @@ backward_sel_WIC <- function(Y = NULL,
                              B_new = NULL,
                              is.gee = FALSE,
                              id.vec = NULL,
-                             cor.structure = NULL) {
+                             cor.structure = NULL, 
+                             theta.hat = NULL, 
+                             sandwich.var = FALSE) {
   # check inputs
   if (is.null(Y) || is.null(B_new)) { stop("Some inputs are missing from backward_sel_WIC().") }
   if (is.gee && is.null(id.vec)) { stop("GEEs require a vector of observation IDs in backward_sel_WIC().") }
   if (is.gee && is.null(cor.structure)) { stop("GEEs require a working correlation structure in backward_sel_WIC().") }
+  if (is.gee && is.null(theta.hat)) { stop("In GEE mode you must provide an estimated value of theta to backward_sel_WIC().") }
   cor.structure <- tolower(cor.structure)
   if (is.gee) {
     fit <- geeM::geem(Y ~ B_new - 1,
                       id = id.vec,
                       corstr = cor.structure,
-                      family = MASS::negative.binomial(1),
-                      sandwich = TRUE)
+                      family = MASS::negative.binomial(theta.hat, link = "log"),
+                      sandwich = sandwich.var)
     wald_stat <- (unname(summary(fit)$wald.test[-1]))^2
   } else {
     fit <- gamlss::gamlss(Y ~ B_new - 1,

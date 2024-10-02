@@ -14,7 +14,6 @@ codecov.yml
 /Meta/
 R/.DS_Store
 .Rproj
-src/RcppExports.o
-src/eigenMapMatMult.o
-src/scLANE.so
+src/*.o
+src/*.so
 .DS_Store

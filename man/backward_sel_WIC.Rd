@@ -9,7 +9,9 @@ backward_sel_WIC(
   B_new = NULL,
   is.gee = FALSE,
   id.vec = NULL,
-  cor.structure = NULL
+  cor.structure = NULL,
+  theta.hat = NULL,
+  sandwich.var = FALSE
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ backward_sel_WIC(
 \item{id.vec}{A vector of observation IDs that is necessary for fitting a GEE model. Defaults to NULL.}
 
 \item{cor.structure}{The specified working correlation structure of the GEE model. Must be one of "independence", "ar1", or "exchangeable". Defaults to NULL.}
+
+\item{theta.hat}{An initial estimate of \eqn{\hat{\theta}} used to fit the negative-binomial model when GEE mode is being used.}
+
+\item{sandwich.var}{Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.}
 }
 \value{
 \code{backward_sel_WIC} returns the Wald statistic from the fitted model (the penalty is applied later on).

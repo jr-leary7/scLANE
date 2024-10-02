@@ -71,7 +71,7 @@ stat_out_score_gee_null <- function(Y = NULL,
     V_est_i <- eigenMapMatMult(A = temp_prod,
                                B = diag_sqrt_V_est,
                                n_cores = 1)
-    V_est_i_inv <- Matrix::chol2inv(Matrix::chol(V_est_i))
+    V_est_i_inv <- eigenMapMatrixInvert(A = V_est_i, n_cores = 1)
     S_est_i <- t(Y)[temp_seq_n] - mu_est_sub
     temp_prod <- eigenMapMatMult(A = S_est_i,
                                  B = t(S_est_i),
@@ -116,7 +116,7 @@ stat_out_score_gee_null <- function(Y = NULL,
   if (nrow(J11) == 1 && ncol(J11) == 1) {
     J11_inv <- 1 / J11
   } else {
-    J11_inv <- Matrix::chol2inv(Matrix::chol(J11))
+    J11_inv <- eigenMapMatrixInvert(A = J11, n_cores = 1)
   }
   temp_prod <- eigenMapMatMult(A = J11_inv,
                                B = Sigma11,

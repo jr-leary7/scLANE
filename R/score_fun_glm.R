@@ -51,12 +51,13 @@ score_fun_glm <- function(Y = NULL,
     temp_prod <- eigenMapMatMult(A = temp_prod,
                                  B = B_list_i,
                                  n_cores = 1)
-    inv.XVX_22 <- (D_list_i - temp_prod)
+    inv.XVX_22 <- D_list_i - temp_prod
     B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i),
                              B = XA,
                              n_cores = 1)
+    XVX_22 <- eigenMapMatrixInvert(A = inv.XVX_22, n_cores = 1)
     temp_prod <- eigenMapMatMult(A = B.est,
-                                 B = Matrix::chol2inv(Matrix::chol(inv.XVX_22)),
+                                 B = XVX_22,
                                  n_cores = 1)
     score <- eigenMapMatMult(A = temp_prod,
                              B = t(B.est),

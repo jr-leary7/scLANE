@@ -12,7 +12,7 @@ pullMARGESummary(
 )
 }
 \arguments{
-\item{marge.model}{The \code{MARGE} model from \code{\link{testDynamic}}. Defaults to NULL.}
+\item{marge.model}{The \code{MARGE} model from \code{\link{marge2}}. Defaults to NULL.}
 
 \item{is.gee}{Boolean specifying whether GEE mode was used in fitting the null model. Defaults to FALSE.}
 
@@ -24,7 +24,10 @@ pullMARGESummary(
 A list containing a coefficient summary, fitted values and their standard errors, and the log-likelihood and deviance of the model.
 }
 \description{
-This function takes in the \code{MARGE} model fitted during the running of \code{\link{testDynamic}} and summarizes it.
+This function takes in the \code{MARGE} model fitted during the running of \code{\link{marge2}} and summarizes it.
+}
+\seealso{
+\code{\link{marge2}}
 }
 \author{
 Jack R. Leary

@@ -5,14 +5,14 @@
 \title{Generate a summary of the null model.}
 \usage{
 pullNullSummary(
-  null.model = FALSE,
+  null.model = NULL,
   is.gee = FALSE,
   sandwich.var = FALSE,
   is.glmm = FALSE
 )
 }
 \arguments{
-\item{null.model}{The null model from \code{\link{testDynamic}}. Defaults to NULL.}
+\item{null.model}{The null model from \code{\link{marge2}}. Defaults to NULL.}
 
 \item{is.gee}{Boolean specifying whether GEE mode was used in fitting the null model. Defaults to FALSE.}
 
@@ -24,7 +24,10 @@ pullNullSummary(
 A list containing a coefficient summary, fitted values and their standard errors, and the log-likelihood and deviance of the model.
 }
 \description{
-This function takes in the null model fitted during the running of \code{\link{testDynamic}} and summarizes it.
+This function takes in the null model fitted during the running of \code{\link{marge2}} and summarizes it.
+}
+\seealso{
+\code{\link{marge2}}
 }
 \author{
 Jack R. Leary

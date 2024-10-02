@@ -3,18 +3,19 @@
 #' @name pullNullSummary
 #' @author Jack R. Leary
 #' @author Rhonda Bacher
-#' @description This function takes in the null model fitted during the running of \code{\link{testDynamic}} and summarizes it.
+#' @description This function takes in the null model fitted during the running of \code{\link{marge2}} and summarizes it.
 #' @import magrittr
 #' @importFrom stats predict logLik deviance
 #' @importFrom broom.mixed tidy
 #' @importFrom dplyr rename
-#' @param null.model The null model from \code{\link{testDynamic}}. Defaults to NULL.
+#' @param null.model The null model from \code{\link{marge2}}. Defaults to NULL.
 #' @param is.gee Boolean specifying whether GEE mode was used in fitting the null model. Defaults to FALSE.
 #' @param sandwich.var Boolean specifying whether the robust sandwich variance-covariance matrix should be used. Defaults to FALSE.
 #' @param is.glmm Boolean specifying whether the GLMM mode was used in fitting the model. Defaults to FALSE.
 #' @return A list containing a coefficient summary, fitted values and their standard errors, and the log-likelihood and deviance of the model.
+#' @seealso \code{\link{marge2}}
 
-pullNullSummary <- function(null.model = FALSE,
+pullNullSummary <- function(null.model = NULL,
                             is.gee = FALSE,
                             sandwich.var = FALSE,
                             is.glmm = FALSE) {

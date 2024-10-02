@@ -3,23 +3,24 @@
 #' @name pullMARGESummary
 #' @author Jack R. Leary
 #' @author Rhonda Bacher
-#' @description This function takes in the \code{MARGE} model fitted during the running of \code{\link{testDynamic}} and summarizes it.
+#' @description This function takes in the \code{MARGE} model fitted during the running of \code{\link{marge2}} and summarizes it.
 #' @import magrittr
 #' @importFrom stats predict logLik deviance
 #' @importFrom broom.mixed tidy
 #' @importFrom dplyr rename
-#' @param marge.model The \code{MARGE} model from \code{\link{testDynamic}}. Defaults to NULL.
+#' @param marge.model The \code{MARGE} model from \code{\link{marge2}}. Defaults to NULL.
 #' @param is.gee Boolean specifying whether GEE mode was used in fitting the null model. Defaults to FALSE.
 #' @param sandwich.var Boolean specifying whether the robust sandwich variance-covariance matrix should be used. Defaults to FALSE.
 #' @param is.glmm Boolean specifying whether the GLMM mode was used in fitting the model. Defaults to FALSE.
 #' @return A list containing a coefficient summary, fitted values and their standard errors, and the log-likelihood and deviance of the model.
+#' @seealso \code{\link{marge2}}
 
 pullMARGESummary <- function(marge.model = NULL,
                              is.gee = FALSE,
                              sandwich.var = FALSE,
                              is.glmm = FALSE) {
   # check inputs
-  if (is.null(null.model)) { stop("A null model must be provided to pullMARGESummary") }
+  if (is.null(marge.model)) { stop("A null model must be provided to pullMARGESummary") }
   # handle the degenerate case
   if (inherits(marge.model, "try-error")) {
     res <- list(marge_pred_df = NULL,

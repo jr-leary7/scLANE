@@ -1,9 +1,14 @@
+# Changes in version 0.8.3
+
++ Sped up GLMM mode. 
++ Switched GEE mode to use model-based variance and made computation of sandwich variance-covariance matrix conditional to speed things up and reduce memory usage. 
+
 # Changes in version 0.8.2
 
 + Sped up the NB LASSSO implementation in `fitGLMM()`. 
 + Fixed some errors related to intercept-only `marge` models. 
 + Added DF and KC corrections to new function `biasCorrectGEE()`, usage of which is set to `FALSE` by default in `testDynamic()`. 
-+ Added support for `monocle3` objects of class `CellDataSet` throughout the package, notably in `testDynamic()`. 
++ Added support for `monocle3` objects of class `cell_data_set` throughout the package, notably in `testDynamic()`. 
 
 # Changes in version 0.8.1
 

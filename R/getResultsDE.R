@@ -28,7 +28,11 @@ getResultsDE <- function(test.dyn.res = NULL,
   if (is.null(test.dyn.res)) { stop("Please provide a result list.") }
   if (!p.adj.method %in% stats::p.adjust.methods) { stop("Please choose a valid p-value adjustment method.") }
   # set up parallel processing
-  future::plan(future::multisession, workers = n.cores)
+  if (n.cores > 1L) {
+    future::plan(future::multisession, workers = n.cores)
+  } else {
+    future::plan(future::sequential)
+  }
   # iterates first over genes, then over lineages per-gene & coerces to final data.frame after unlisting everything
   result_df <- furrr::future_map_dfr(test.dyn.res,
                                      function(x) {
@@ -49,6 +53,8 @@ getResultsDE <- function(test.dyn.res = NULL,
                                Test_Stat,
                                P_Val)
   # shut down parallel processing
-  future::plan(future::sequential)
+  if (n.cores > 1L) {
+    future::plan(future::sequential)
+  }
   return(result_df)
 }

@@ -10,6 +10,7 @@ marge2(
   Y.offset = NULL,
   M = 5,
   is.gee = FALSE,
+  is.glmm = FALSE,
   id.vec = NULL,
   cor.structure = "ar1",
   sandwich.var = FALSE,
@@ -32,6 +33,8 @@ marge2(
 \item{M}{A set threshold for the maximum number of basis functions to be chosen. Defaults to 5.}
 
 \item{is.gee}{Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.}
+
+\item{is.glmm}{Is the overall model to be fit a GLMM? Defaults to FALSE.}
 
 \item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
 

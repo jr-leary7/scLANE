@@ -18,6 +18,7 @@
 #' @param Y.offset (Optional) An vector of per-cell size factors to be included in the final model fit as an offset. Defaults to NULL.
 #' @param M A set threshold for the maximum number of basis functions to be chosen. Defaults to 5.
 #' @param is.gee Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.
+#' @param is.glmm Is the overall model to be fit a GLMM? Defaults to FALSE.
 #' @param id.vec If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.
 #' @param cor.structure If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
 #' @param sandwich.var (Optional) Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.
@@ -55,6 +56,7 @@ marge2 <- function(X_pred = NULL,
                    Y.offset = NULL,
                    M = 5,
                    is.gee = FALSE,
+                   is.glmm = FALSE,
                    id.vec = NULL,
                    cor.structure = "ar1",
                    sandwich.var = FALSE,
@@ -817,46 +819,57 @@ marge2 <- function(X_pred = NULL,
     model_formula <- paste(colnames(model_df), collapse = " + ")
     model_formula <- paste0("Y ~ -1 + ", model_formula)
   }
-  if (!is.null(Y.offset)) {
-    model_df <- dplyr::mutate(model_df,
-                              cell_offset = Y.offset)
-    model_formula <- paste0(model_formula, " + ", "offset(log(1 / cell_offset))")  # this is correct i promise
-  }
-  model_formula <- stats::as.formula(model_formula)
-  if (is.gee) {
-    final_mod <- geeM::geem(model_formula,
-                            data = model_df,
-                            id = id.vec,
-                            family = MASS::negative.binomial(theta_hat, link = log),
-                            corstr = cor.structure,
-                            scale.fix = FALSE,
-                            sandwich = sandwich.var)
-  } else {
-    final_mod <- MASS::glm.nb(model_formula,
+  if (!is.glmm) {
+    if (!is.null(Y.offset)) {
+      model_df <- dplyr::mutate(model_df,
+                                cell_offset = Y.offset)
+      model_formula <- paste0(model_formula, " + ", "offset(log(1 / cell_offset))")  # this is correct i promise
+    }
+    model_formula <- stats::as.formula(model_formula)
+    if (is.gee) {
+      final_mod <- geeM::geem(model_formula,
                               data = model_df,
-                              method = "glm.fit2",
-                              link = log,
-                              init.theta = 1,
-                              y = FALSE,
-                              model = FALSE)
+                              id = id.vec,
+                              family = MASS::negative.binomial(theta_hat, link = log),
+                              corstr = cor.structure,
+                              scale.fix = FALSE,
+                              sandwich = sandwich.var)
+    } else {
+      final_mod <- MASS::glm.nb(model_formula,
+                                data = model_df,
+                                method = "glm.fit2",
+                                link = log,
+                                init.theta = 1,
+                                y = FALSE,
+                                model = FALSE)
+    }
+    # format results
+    if (!is.gee) {
+      final_mod <- stripGLM(glm.obj = final_mod)
+    }
+    res <- list(final_mod = final_mod,
+                basis_mtx = NULL,
+                WIC_mtx = NULL,
+                GCV = NULL,
+                model_type = ifelse(is.gee, "GEE", "GLM"),
+                coef_names = names(stats::coef(final_mod)),
+                marge_coef_names = colnames(B_final))
+    if (return.GCV) {
+      df1a <- ncol(B_final) + pen * (ncol(B_final) - 1) / 2  # This matches the {earth} package, SAS and Friedman (1991) penalty
+      res$GCV <- sum((Y - stats::fitted(final_mod))^2) / (NN * (1 - df1a / NN)^2)
+    }
+  } else {
+    res <- list(final_mod = NULL,
+                basis_mtx = NULL,
+                WIC_mtx = NULL,
+                GCV = NULL,
+                model_type = ifelse(is.gee, "GEE", ifelse(is.glmm, "GLMM", "GLM")),
+                coef_names = NULL,
+                marge_coef_names = colnames(B_final))
   }
-  # format results
-  if (!is.gee) {
-    final_mod <- stripGLM(glm.obj = final_mod)
-  }
-  res <- list(final_mod = final_mod,
-              basis_mtx = NULL,
-              WIC_mtx = NULL,
-              GCV = NULL,
-              model_type = ifelse(is.gee, "GEE", "GLM"),
-              coef_names = names(stats::coef(final_mod)),
-              marge_coef_names = colnames(B_final))
+
   if (return.basis) {
     res$basis_mtx <- model_df
-  }
-  if (return.GCV) {
-    df1a <- ncol(B_final) + pen * (ncol(B_final) - 1) / 2  # This matches the {earth} package, SAS and Friedman (1991) penalty
-    res$GCV <- sum((Y - stats::fitted(final_mod))^2) / (NN * (1 - df1a / NN)^2)
   }
   if (return.WIC) {
     res$WIC_mtx <- wic_mat_2

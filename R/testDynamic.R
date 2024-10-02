@@ -38,7 +38,7 @@
 #' \itemize{
 #' \item If \code{expr.mat} is a \code{Seurat} object, counts will be extracted from the output of \code{\link[SeuratObject]{DefaultAssay}}. If using this functionality, check to ensure the specified assay is correct before running the function. If the input is a \code{SingleCellExperiment} or \code{CellDataSet} object, the raw counts will be extracted with \code{\link[BiocGenerics]{counts}}.
 #' \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
-#' \item If \code{gee.bias.correction.method} is set to "kc" or "df", a bias adjustment will be used to inflate the robust variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will remove the bias in the sandwhich estimator in small-sample cases. Currently, we suggest keeping this NULL and using the model-based variance estimates and specifying the "ar1" correlation structure.
+#' \item If \code{gee.bias.correction.method} is set to "kc" or "df", a bias adjustment will be used to inflate the robust variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will remove the bias in the sandwich estimator in small-sample cases. Currently, we suggest keeping this NULL and using the model-based variance estimates and specifying the "ar1" correlation structure.
 #' }
 #' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
@@ -154,11 +154,13 @@ testDynamic <- function(expr.mat = NULL,
                    ls()[-which(ls() %in% necessary_vars)])
   }
   no_export <- unique(no_export)
-  package_list <- c("glm2", "scLANE", "MASS",  "bigstatsr", "broom.mixed", "dplyr", "stats")
+  package_list <- c("scLANE", "MASS",  "bigstatsr", "broom.mixed", "dplyr", "stats")
   if (is.gee) {
     package_list <- c(package_list, "geeM")
   } else if (is.glmm) {
     package_list <- c(package_list, "glmmTMB")
+  } else {
+    package_list <- c(package_list, "glm2")
   }
 
   # build models per-lineage per-gene, parallelize over genes
@@ -283,8 +285,13 @@ testDynamic <- function(expr.mat = NULL,
       }
 
      # summarize hinge function coefficients
-     null_sumy <- pull.null.sumy(null_mod, is.gee, is.glmm)
-     marge_sumy <- pull.marge.sumy(marge_mod, is.gee, is.glmm)
+     null_sumy <- pullNullSummary(null_mod,
+                                  is.gee = is.gee,
+                                  is.glmm = is.glmm)
+     marge_sumy <- pullMARGESummary(marge_mod,
+                                    is.gee = is.gee,
+                                    sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE),
+                                    is.glmm = is.glmm)
 
      # perform slope test
      marge_slope_df <- createSlopeTestData(marge_mod,

@@ -35,9 +35,13 @@ waldTestGEE <- function(mod.1 = NULL,
                 Notes = "No test performed due to model failure.")
     return(res)
   }
-  if (!is.null(correction.method)) correction.method <- tolower(correction.method)
-  if (!is.null(correction.method)) if (!(correction.method %in% c("df", "kc"))) { stop("Unsupported bias correction method in waldTestGEE().") }
-  if (correction.method == "kc" && is.null(id.vec)) { stop("The Kauermann and Carroll bias correction method requires a vector of subject IDs.") }
+  if (!is.null(correction.method)) {
+    correction.method <- tolower(correction.method)
+  }
+  if (!is.null(correction.method)) {
+    if (!(correction.method %in% c("df", "kc"))) { stop("Unsupported bias correction method in waldTestGEE().") }
+    if (correction.method == "kc" && is.null(id.vec)) { stop("The Kauermann and Carroll bias correction method requires a vector of subject IDs.") }
+  }
 
   mod.1 <- mod.1$final_mod
   if (is.null(mod.1) || is.null(mod.0) || !(inherits(mod.1, "geem") && inherits(mod.0, "geem"))) { stop("You must provide two geeM models to waldTestGee().") }
@@ -51,7 +55,7 @@ waldTestGEE <- function(mod.1 = NULL,
   } else {
     # compute test statistic & asymptotic p-value
     coef_alt_mod <- names(coef(mod.1))
-    coef_null_mod <- names(coef(mod.1))
+    coef_null_mod <- names(coef(mod.0))
     coef_diff <- setdiff(coef_alt_mod, coef_null_mod)
     coef_idx <- rep(0, length(coef_diff))
     for (i in seq_len(length(coef_diff))) {

@@ -4,7 +4,7 @@
 #' @author Jakub Stoklosa
 #' @author David I. Warton
 #' @author Jack Leary
-#' @importFrom stats lm.fit
+#' @importFrom stats .lm.fit
 #' @importFrom Matrix chol chol2inv
 #' @description Calculate the score statistic for a GLM model.
 #' @param Y The response variable. Defaults to NULL.
@@ -30,7 +30,7 @@ score_fun_glm <- function(Y = NULL,
   # check inputs
   if (is.null(Y) || is.null(VS.est_list) || is.null(A_list) || is.null(B1_list) || is.null(mu.est) || is.null(V.est) || is.null(B1) || is.null(XA)) { stop("Some inputs to score_fun_glm() are missing.") }
   # generate score statistic
-  reg <- try({ stats::lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
+  reg <- try({ stats::.lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
   if (inherits(reg, "try-error")) {
     score <- NA_real_
   } else if (any(is.na(reg$coef))) {

@@ -119,6 +119,15 @@ withr::with_output_sink(tempfile(), {
                                  return.basis = TRUE,
                                  return.GCV = TRUE,
                                  return.WIC = TRUE)
+  # fit null GEE model
+  null_mod_GEE <- geeM::geem(Y ~ 1 + offset(log(cell_offset)),
+                             family = MASS::negative.binomial(1),
+                             data = data.frame(Y = counts_test[, 3]),
+                             corstr = "ar1",
+                             scale.fix = FALSE,
+                             sandwich = FALSE)
+  # run GEE Wald test
+  wald_test <- waldTestGEE(marge_mod_GEE_offset, mod.0 = null_mod_GEE)
   # run GLMM model -- no offset
   glmm_mod <- fitGLMM(X_pred = pt_test,
                       Y = counts_test[, 4],
@@ -136,6 +145,12 @@ withr::with_output_sink(tempfile(), {
                              M.glm = 3,
                              return.basis = TRUE,
                              return.GCV = TRUE)
+  # bootstrap GLMM random effects
+  re_sumy <- bootstrapRandomEffects(glmm_mod_offset,
+                                    id.vec = sim_data$subject,
+                                    Y.offset = cell_offset,
+                                    n.boot = 100L,
+                                    n.cores = 2L)
   # generate plots
   plot_glm <- plotModels(test.dyn.res = glm_gene_stats,
                          size.factor.offset = cell_offset,
@@ -225,7 +240,8 @@ withr::with_output_sink(tempfile(), {
                                  gene.clusters = gene_embedding$leiden)
   sim_data_seu <- geneProgramScoring(sim_data_seu,
                                      genes = gene_embedding$gene,
-                                     gene.clusters = gene_embedding$leiden)
+                                     gene.clusters = gene_embedding$leiden,
+                                     n.cores = 1L)
   # gene program significance
   program_significance <- geneProgramSignificance(list(sim_data$cluster_0),
                                                   pt = pt_test$PT,
@@ -242,8 +258,8 @@ withr::with_output_sink(tempfile(), {
   # coefficients
   coef_summary_glm <- summarizeModel(marge_mod_offset, pt = pt_test)
   coef_summary_gee <- summarizeModel(marge_mod_GEE_offset, pt = pt_test)
-  coef_summary_glmm <- summarizeModel(glmm_mod_offset, 
-                                      pt = pt_test, 
+  coef_summary_glmm <- summarizeModel(glmm_mod_offset,
+                                      pt = pt_test,
                                       is.glmm = TRUE)
   # cutpoints
   knot_df <- getKnotDist(glm_gene_stats)
@@ -335,10 +351,6 @@ test_that("marge2() output -- GLM backend", {
   expect_equal(marge_mod_offset$model_type, "GLM")
   expect_true(marge_mod$final_mod$converged)
   expect_true(marge_mod_offset$final_mod$converged)
-  expect_type(glm_lrt, "list")
-  expect_length(glm_lrt, 7)
-  expect_type(glm_lrt$P_Val, "double")
-  expect_true(is.na(glm_lrt$Notes))
 })
 
 test_that("marge2() output -- GEE backend", {
@@ -352,6 +364,17 @@ test_that("marge2() output -- GEE backend", {
   expect_true(marge_mod_GEE_offset$final_mod$converged)
 })
 
+test_that("Statistical testing output", {
+  expect_type(wald_test, "list")
+  expect_length(wald_test, 4)
+  expect_type(wald_test$P_Val, "double")
+  expect_true(is.na(wald_test$Notes))
+  expect_type(glm_lrt, "list")
+  expect_length(glm_lrt, 7)
+  expect_type(glm_lrt$P_Val, "double")
+  expect_true(is.na(glm_lrt$Notes))
+})
+
 test_that("fitGLMM() output", {
   expect_s3_class(glmm_mod$final_mod, "glmmTMB")
   expect_s3_class(glmm_mod_offset$final_mod, "glmmTMB")
@@ -363,6 +386,9 @@ test_that("fitGLMM() output", {
   expect_length(fitted(glmm_mod_offset$final_mod), 300)
   expect_equal(glmm_mod$model_type, "GLMM")
   expect_equal(glmm_mod_offset$model_type, "GLMM")
+  expect_s3_class(re_sumy, "data.frame")
+  expect_equal(nrow(re_sumy), 6)
+  expect_equal(ncol(re_sumy), 4)
 })
 
 test_that("plotModels() output", {

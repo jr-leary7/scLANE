@@ -6,7 +6,7 @@
 #' @author Jack Leary
 #' @importFrom gamlss gamlss
 #' @importFrom stats fitted.values
-#' @importFrom Matrix chol chol2inv
+#' @importFrom MASS ginv
 #' @description A function that calculates parts of the score statistic for GLMs only (it is used for the full path for forward selection).
 #' @param Y : The response variable Defaults to NULL.
 #' @param B_null : Design matrix under the null model. Defaults to NULL.
@@ -19,6 +19,7 @@
 stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   # check inputs
   if (is.null(Y) || is.null(B_null)) { stop("Some inputs to stat_out_score_glm_null() are missing.") }
+  # extract statistics
   ests <- gamlss::gamlss(Y ~ B_null - 1,
                          family = "NBI",
                          trace = FALSE,
@@ -37,7 +38,10 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   if (ncol(A_list_inv) == 1 && nrow(A_list_inv) == 1) {
     A_list <- 1 / A_list_inv
   } else {
-    A_list <- eigenMapMatrixInvert(A_list_inv, n_cores = 1)
+    A_list <- try({ eigenMapMatrixInvert(A_list_inv, n_cores = 1) }, silent = TRUE)
+    if (inherits(A_list, "try-error")) {
+      A_list <- MASS::ginv(A_list_inv)
+    }
   }
   B1_list <- eigenMapMatMult(A = t(B_null),
                              B = mu_V_diag,

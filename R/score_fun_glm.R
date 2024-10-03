@@ -4,8 +4,8 @@
 #' @author Jakub Stoklosa
 #' @author David I. Warton
 #' @author Jack Leary
-#' @importFrom stats .lm.fit
-#' @importFrom Matrix chol chol2inv
+#' @importFrom stats lm.fit
+#' @importFrom MASS ginv
 #' @description Calculate the score statistic for a GLM model.
 #' @param Y The response variable. Defaults to NULL.
 #' @param VS.est_list A product of matrices. Defaults to NULL.
@@ -30,10 +30,8 @@ score_fun_glm <- function(Y = NULL,
   # check inputs
   if (is.null(Y) || is.null(VS.est_list) || is.null(A_list) || is.null(B1_list) || is.null(mu.est) || is.null(V.est) || is.null(B1) || is.null(XA)) { stop("Some inputs to score_fun_glm() are missing.") }
   # generate score statistic
-  reg <- try({ stats::.lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
-  if (inherits(reg, "try-error")) {
-    score <- NA_real_
-  } else if (any(is.na(reg$coef))) {
+  reg <- try({ stats::lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
+  if (inherits(reg, "try-error") || any(is.na(reg$coefficients))) {
     score <- NA_real_
   } else {
     VS.est_i <- unlist(VS.est_list)
@@ -55,7 +53,10 @@ score_fun_glm <- function(Y = NULL,
     B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i),
                              B = XA,
                              n_cores = 1)
-    XVX_22 <- eigenMapMatrixInvert(A = inv.XVX_22, n_cores = 1)
+    XVX_22 <- try({ eigenMapMatrixInvert(inv.XVX_22, n_cores = 1) }, silent = TRUE)
+    if (inherits(XVX_22, "try-error")) {
+      XVX_22 <- MASS::ginv(inv.XVX_22)
+    }
     temp_prod <- eigenMapMatMult(A = B.est,
                                  B = XVX_22,
                                  n_cores = 1)

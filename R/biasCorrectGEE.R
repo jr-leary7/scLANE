@@ -137,7 +137,10 @@ biasCorrectGEE <- function(fitted.model = NULL,
     W <- as.matrix(Matrix::bdiag(cov_matrices))
     X <- fitted.model$X
     XWX <- t(X) %*% W %*% X
-    XWX_inv <- eigenMapMatrixInvert(XWX, n_cores = 1)
+    XWX_inv <- try({ eigenMapMatrixInvert(XWX, n_cores = 1) }, silent = TRUE)
+    if (inherits(XWX_inv, "try-error")) {
+      XWX_inv <- MASS::ginv(XWX)
+    }
     H <- X %*% XWX_inv %*% t(X) %*% W
     tr_H <- sum(diag(H))
     if (verbose) {

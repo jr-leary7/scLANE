@@ -5,9 +5,8 @@
 #' @author David I. Warton
 #' @author Jack Leary
 #' @importFrom geeM geem
-#' @importFrom MASS negative.binomial
+#' @importFrom MASS negative.binomial ginv
 #' @importFrom stats fitted.values
-#' @importFrom Matrix chol chol2inv
 #' @description A function that calculates parts of the score statistic for GEEs only (it is used for the full path for forward selection).
 #' @param Y The response variable Defaults to NULL.
 #' @param B_null The design matrix matrix under the null model Defaults to NULL.
@@ -37,7 +36,8 @@ stat_out_score_gee_null <- function(Y = NULL,
                      data = NULL,
                      corstr = cor.structure,
                      family = MASS::negative.binomial(theta.hat),
-                     sandwich = TRUE)
+                     scale.fix = FALSE,
+                     sandwich = FALSE)
   alpha_est <- ests$alpha
   sigma_est <- ests$phi
   mu_est <- as.matrix(stats::fitted.values(ests))
@@ -116,7 +116,10 @@ stat_out_score_gee_null <- function(Y = NULL,
   if (nrow(J11) == 1 && ncol(J11) == 1) {
     J11_inv <- 1 / J11
   } else {
-    J11_inv <- eigenMapMatrixInvert(A = J11, n_cores = 1)
+    J11_inv <- try({ eigenMapMatrixInvert(J11, n_cores = 1) }, silent = TRUE)
+    if (inherits(J11_inv, "try-error")) {
+      J11_inv <- MASS::ginv(J11)
+    }
   }
   temp_prod <- eigenMapMatMult(A = J11_inv,
                                B = Sigma11,

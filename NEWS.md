@@ -1,3 +1,8 @@
+# Changes in v0.8.4
+
++ Minor bug fixes. 
++ Improved matrix inversion through judicious usage of C++. 
+
 # Changes in version 0.8.3
 
 + Sped up GLMM mode. 

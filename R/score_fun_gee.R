@@ -4,7 +4,7 @@
 #' @author Jakub Stoklosa
 #' @author David I. Warton
 #' @author Jack Leary
-#' @importFrom stats lm.fit
+#' @importFrom stats .lm.fit
 #' @importFrom Matrix chol chol2inv
 #' @description Calculate the score statistic for a GEE model.
 #' @param Y The response variable. Defaults to NULL.
@@ -41,7 +41,7 @@ score_fun_gee <- function(Y = NULL,
   # check inputs
   if (is.null(Y) || is.null(N) || is.null(n_vec) || is.null(VS.est_list) || is.null(AWA.est_list) || is.null(J2_list) || is.null(Sigma2_list) || is.null(J11.inv) || is.null(JSigma11) || is.null(mu.est) || is.null(V.est) || is.null(B1) || is.null(XA)) { stop("Some inputs to score_fun_gee() are missing.") }
   # generate score statistic
-  reg <- try({ stats::lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
+  reg <- try({ stats::.lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
   if (inherits(reg, "try-error")) {
     score <- NA_real_
   } else if (any(is.na(reg$coef))) {
@@ -100,8 +100,9 @@ score_fun_gee <- function(Y = NULL,
                                    B = J21_transpose,
                                    n_cores = 1)
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
+    Sigma_inv <- eigenMapMatrixInvert(A = Sigma, n_cores = 1)
     temp_prod <- eigenMapMatMult(A = t(B.est),
-                                 B = Matrix::chol2inv(Matrix::chol(Sigma)),
+                                 B = Sigma_inv,
                                  n_cores = 1)
     score <- eigenMapMatMult(A = temp_prod,
                              B = B.est,

@@ -14,7 +14,7 @@
 #' @param id.vec A vector of observation IDs that is necessary for fitting a GEE model. Defaults to NULL.
 #' @param cor.structure The specified working correlation structure of the GEE model. Must be one of "independence", "ar1", or "exchangeable". Defaults to NULL.
 #' @param sandwich.var Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.
-#' @param theta.hat An initial estimate of \eqn{\hat{\theta}} used to fit the negative-binomial model when GEE mode is being used. 
+#' @param theta.hat An initial estimate of \eqn{\hat{\theta}} used to fit the negative-binomial model when GEE mode is being used.
 #' @return \code{backward_sel_WIC} returns the Wald statistic from the fitted model (the penalty is applied later on).
 #' @references Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for Generalized Estimating Equations With a Large Number of Predictor Variables. \emph{Biometrics}, \strong{70}, 110--120.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
@@ -23,8 +23,8 @@ backward_sel_WIC <- function(Y = NULL,
                              B_new = NULL,
                              is.gee = FALSE,
                              id.vec = NULL,
-                             cor.structure = NULL, 
-                             theta.hat = NULL, 
+                             cor.structure = NULL,
+                             theta.hat = NULL,
                              sandwich.var = FALSE) {
   # check inputs
   if (is.null(Y) || is.null(B_new)) { stop("Some inputs are missing from backward_sel_WIC().") }
@@ -38,7 +38,7 @@ backward_sel_WIC <- function(Y = NULL,
                       corstr = cor.structure,
                       family = MASS::negative.binomial(theta.hat, link = "log"),
                       sandwich = sandwich.var)
-    wald_stat <- (unname(summary(fit)$wald.test[-1]))^2
+    wald_stat <- unname(summary(fit)$wald.test[-1])^2
   } else {
     fit <- gamlss::gamlss(Y ~ B_new - 1,
                           family = "NBI",
@@ -46,7 +46,7 @@ backward_sel_WIC <- function(Y = NULL,
     withr::with_output_sink(tempfile(), {
       fit_sum_mat <- as.matrix(summary(fit))
     })
-    wald_stat <- ((fit_sum_mat[, 3])[-c(1, nrow(fit_sum_mat))])^2
+    wald_stat <- fit_sum_mat[, 3][-c(1, nrow(fit_sum_mat))]^2
   }
   return(wald_stat)
 }

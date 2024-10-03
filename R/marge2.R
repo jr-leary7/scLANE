@@ -700,7 +700,7 @@ marge2 <- function(X_pred = NULL,
         } else {
           next
         }
-      } else if (meas_model0$GCVq1 >= -10 || round(score2, 4) > 0) {
+      } else  {
         score_term_temp <- c(score_term_temp, score2)
       }
 
@@ -786,13 +786,8 @@ marge2 <- function(X_pred = NULL,
   B_new_2 <- as.matrix(B_new[, -(variable.lowest_2 + 1)])
   cnames_2 <- c(cnames_2, list(colnames(B_new_2)))
   for (i in 2:(ncol_B - 1)) {
-    wic1_2 <- backward_sel_WIC(Y = Y, 
-                               B_new = B_new_2, 
-                               is.gee = is.gee, 
-                               id.vec = id.vec, 
-                               cor.structure = cor.structure, 
-                               sandwich.var = sandwich.var, 
-                               theta.hat = theta_hat)
+    wic1_2 <- backward_sel_WIC(Y = Y,
+                               B_new = B_new_2)
     if (i != (ncol_B - 1)) {
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
       WIC_2 <- sum(apply(wic_mat_2[seq(i + 1), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)

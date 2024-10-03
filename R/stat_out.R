@@ -4,7 +4,7 @@
 #' @author Jakub Stoklosa
 #' @author David I. Warton
 #' @author Jack Leary
-#' @importFrom stats lm.fit fitted
+#' @importFrom stats .lm.fit fitted.values
 #' @description Calculate the final RSS / GCV for a fitted model.
 #' @param Y The response variable. Defaults to NULL.
 #' @param B1 The model matrix of predictor variables. Defaults to NULL.
@@ -28,12 +28,12 @@ stat_out <- function(Y = NULL,
   if (is.null(Y) || is.null(B1) || is.null(TSS) || is.null(GCV.null)) { stop("Some of the arguments to stat_out() are missing.") }
   if (GCV.null == 0) { stop("GCV.null argument to stat_out() cannot be 0.") }
   N <- length(Y)
-  reg <- stats::lm.fit(B1, Y)
+  reg <- stats::.lm.fit(B1, Y)
   if (any(is.na(reg$coef))) {
     RSS1 <- RSSq1 <- GCV1 <- GCVq1 <- NA_real_
   } else {
     df1a <- ncol(B1) + pen * (ncol(B1) - 1) / 2  # This matches the earth() package, SAS and Friedman (1991) penalty.
-    RSS1 <- sum((Y - stats::fitted(reg))^2)
+    RSS1 <- sum((Y - stats::fitted.values(reg))^2)
     RSSq1 <- 1 - RSS1 / TSS
     GCV1 <- RSS1 / (N * (1 - (df1a) / N)^2)
     GCVq1 <- 1 - GCV1 / GCV.null

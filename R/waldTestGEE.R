@@ -74,7 +74,8 @@ waldTestGEE <- function(mod.1 = NULL,
     }
     vcov_mat <- vcov_mat[coef_idx, coef_idx]
     wald_test_stat <- try({
-      as.numeric(crossprod(coef_vals, MASS::ginv(vcov_mat)) %*% coef_vals)
+      vcov_mat_inv <- eigenMapMatrixInvert(vcov_mat, n_cores = 1)
+      as.numeric(crossprod(coef_vals, vcov_mat_inv) %*% coef_vals)
     }, silent = TRUE)
     if (inherits(wald_test_stat, "try-error")) {
       wald_note <- wald_test_stat[1]  # this is the error message

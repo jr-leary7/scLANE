@@ -124,9 +124,9 @@ plotModels <- function(test.dyn.res = NULL,
                                                 corstr = cor.structure,
                                                 scale.fix = FALSE,
                                                 sandwich = TRUE)
-                          robust_vcov_mat <- as.matrix(glm_mod$var)
+                          vcov_mat <- as.matrix(glm_mod$naiv.var)
                           glm_preds <- data.frame(fit = predict(glm_mod),
-                                                  se.fit = sqrt(apply((tcrossprod(glm_mod$X, robust_vcov_mat)) * glm_mod$X, 1, sum)))
+                                                  se.fit = sqrt(apply((tcrossprod(glm_mod$X, vcov_mat)) * glm_mod$X, 1, sum)))
                         } else if (is.glmm) {
                           if (is.null(size.factor.offset)) {
                             glm_mod <- glmmTMB::glmmTMB(COUNT ~ PT + (1 + PT | ID),

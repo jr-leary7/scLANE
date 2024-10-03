@@ -37,7 +37,7 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   if (ncol(A_list_inv) == 1 && nrow(A_list_inv) == 1) {
     A_list <- 1 / A_list_inv
   } else {
-    A_list <- Matrix::chol2inv(Matrix::chol(A_list_inv))
+    A_list <- eigenMapMatrixInvert(A_list_inv, n_cores = 1)
   }
   B1_list <- eigenMapMatMult(A = t(B_null),
                              B = mu_V_diag,

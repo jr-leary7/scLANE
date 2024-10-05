@@ -54,6 +54,8 @@ withr::with_output_sink(tempfile(), {
                                  id.vec = sim_data$subject,
                                  n.cores = 2L,
                                  verbose = FALSE)
+  # S3 summary method
+  scLANE_summary <- summary(glm_gene_stats)
   # get results tables overall
   glm_test_results <- getResultsDE(glm_gene_stats, n.cores = 1L)
   gee_test_results <- getResultsDE(gee_gene_stats)
@@ -306,6 +308,11 @@ test_that("testDynamic() output", {
   expect_gt(sum(purrr::map_lgl(glm_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 0)
   expect_gt(sum(purrr::map_lgl(gee_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 0)
   expect_gt(sum(purrr::map_lgl(glmm_gene_stats, \(x) x$Lineage_A$Model_Status == "MARGE model OK, null model OK")), 0)
+})
+
+test_that("summary() output", {
+  expect_s3_class(scLANE_summary, "summary.scLANE")
+  expect_length(scLANE_summary, 5)
 })
 
 test_that("getResultsDE() output", {

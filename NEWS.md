@@ -2,6 +2,7 @@
 
 + Minor bug fixes. 
 + Improved matrix inversion through judicious usage of C++. 
++ Added S3 method `summary.scLANE()` to be used on output from `testDynamic()`. 
 
 # Changes in version 0.8.3
 

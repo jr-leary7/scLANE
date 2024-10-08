@@ -28,6 +28,11 @@ tp2_res <- tp2(x = rnorm(30), t = 0)
 
 # generate scLANE results w/ all three modes
 withr::with_output_sink(tempfile(), {
+  # choose candidate genes
+  candidate_genes <- chooseCandidateGenes(sim_data_seu,
+                                          group.by.subject = TRUE,
+                                          id.vec = sim_data_seu$subject,
+                                          n.desired.genes = 50L)
   # run GLM, GEE, & GLMM tests
   glm_gene_stats <- testDynamic(sim_data,
                                 pt = pt_test,
@@ -281,6 +286,11 @@ test_that("internal marge functions", {
   expect_length(null_stat_gee, 8)
   expect_type(tp1_res, "double")
   expect_type(tp2_res, "double")
+})
+
+test_that("chooseCandidateGenes() output", {
+  expect_type(candidate_genes, "character")
+  expect_length(candidate_genes, 50)
 })
 
 test_that("createCellOffset() output", {

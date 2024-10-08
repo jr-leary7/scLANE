@@ -4,6 +4,8 @@
 #' @author Jack Leary
 #' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame.
 #' @import magrittr
+#' @importFrom future plan multisession sequential 
+#' @importFrom furrr future_map_dfr
 #' @importFrom purrr map_dfr
 #' @importFrom dplyr arrange desc mutate across if_else with_groups relocate
 #' @importFrom tidyselect everything

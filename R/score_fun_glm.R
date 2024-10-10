@@ -5,6 +5,7 @@
 #' @author David I. Warton
 #' @author Jack Leary
 #' @importFrom stats lm.fit
+#' @importFrom Matrix t
 #' @importFrom MASS ginv
 #' @description Calculate the score statistic for a GLM model.
 #' @param Y The response variable. Defaults to NULL.
@@ -40,20 +41,20 @@ score_fun_glm <- function(Y = NULL,
     B_list_i <- eigenMapMatMult(A = B1_list_i,
                                 B = XA,
                                 n_cores = 1)
-    D_list_i <- eigenMapMatMult(A = t(XA),
+    D_list_i <- eigenMapMatMult(A = Matrix::t(XA),
                                 B = (XA * c(mu.est^2 / V.est)),
                                 n_cores = 1)
-    temp_prod <- eigenMapMatMult(A = t(B_list_i),
+    temp_prod <- eigenMapMatMult(A = Matrix::t(B_list_i),
                                  B = A_list_i,
                                  n_cores = 1)
     temp_prod <- eigenMapMatMult(A = temp_prod,
                                  B = B_list_i,
                                  n_cores = 1)
     inv.XVX_22 <- D_list_i - temp_prod
-    B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i),
+    B.est <- eigenMapMatMult(A = Matrix::t(mu.est * VS.est_i),
                              B = XA,
                              n_cores = 1)
-    XVX_22 <- try({ eigenMapMatrixInvert(inv.XVX_22, n_cores = 1) }, silent = TRUE)
+    XVX_22 <- try({ solve(inv.XVX_22) }, silent = TRUE)
     if (inherits(XVX_22, "try-error")) {
       XVX_22 <- MASS::ginv(inv.XVX_22)
     }
@@ -61,7 +62,7 @@ score_fun_glm <- function(Y = NULL,
                                  B = XVX_22,
                                  n_cores = 1)
     score <- eigenMapMatMult(A = temp_prod,
-                             B = t(B.est),
+                             B = Matrix::t(B.est),
                              n_cores = 1)
   }
   res <- list(score = score)

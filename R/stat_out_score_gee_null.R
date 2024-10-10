@@ -7,6 +7,7 @@
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial ginv
 #' @importFrom stats fitted.values
+#' @importFrom Matrix diag t solve
 #' @description A function that calculates parts of the score statistic for GEEs only (it is used for the full path for forward selection).
 #' @param Y The response variable Defaults to NULL.
 #' @param B_null The design matrix matrix under the null model Defaults to NULL.
@@ -50,10 +51,10 @@ stat_out_score_gee_null <- function(Y = NULL,
     k <- sum(n_vec[seq(i)])
     # set up working correlation matrix structure
     if (cor.structure == "independence") {
-      R_alpha <- diag(1, n_vec[i], n_vec[i])
+      R_alpha <- Matrix::diag(1, n_vec[i], n_vec[i])
     } else if (cor.structure == "exchangeable") {
       R_alpha <- matrix(alpha_est, nrow = n_vec[i], ncol = n_vec[i])
-      R_alpha <- R_alpha + diag(c(1 - alpha_est), nrow = n_vec[i], ncol = n_vec[i])
+      R_alpha <- R_alpha + Matrix::diag(c(1 - alpha_est), nrow = n_vec[i], ncol = n_vec[i])
     } else if (cor.structure == "ar1") {
       R_alpha <- alpha_est^outer(seq(n_vec[i]), seq(n_vec[i]), \(x, y) abs(x - y))
     } else {
@@ -62,9 +63,9 @@ stat_out_score_gee_null <- function(Y = NULL,
     # compute iteration values for each statistic
     temp_seq_n <- (sum(n_vec1[seq(i)]) + 1):k
     mu_est_sub <- mu_est[temp_seq_n]
-    diag_sqrt_V_est <- diag(sqrt(V_est[temp_seq_n]),
-                            nrow = n_vec[i],
-                            ncol = n_vec[i])
+    diag_sqrt_V_est <- Matrix::diag(sqrt(V_est[temp_seq_n]),
+                                    nrow = n_vec[i],
+                                    ncol = n_vec[i])
     temp_prod <- eigenMapMatMult(A = diag_sqrt_V_est,
                                  B = R_alpha,
                                  n_cores = 1)
@@ -72,9 +73,9 @@ stat_out_score_gee_null <- function(Y = NULL,
                                B = diag_sqrt_V_est,
                                n_cores = 1)
     V_est_i_inv <- eigenMapMatrixInvert(A = V_est_i, n_cores = 1)
-    S_est_i <- t(Y)[temp_seq_n] - mu_est_sub
+    S_est_i <- Matrix::t(Y)[temp_seq_n] - mu_est_sub
     temp_prod <- eigenMapMatMult(A = S_est_i,
-                                 B = t(S_est_i),
+                                 B = Matrix::t(S_est_i),
                                  n_cores = 1)
     temp_prod <- eigenMapMatMult(A = V_est_i_inv,
                                  B = temp_prod,
@@ -82,12 +83,12 @@ stat_out_score_gee_null <- function(Y = NULL,
     AWA_est_i <- eigenMapMatMult(A = temp_prod,
                                  B = V_est_i_inv,
                                  n_cores = 1)
-    D_est_i <- eigenMapMatMult(A = diag(mu_est_sub,
-                                        nrow = n_vec[i],
-                                        ncol = n_vec[i]),
+    D_est_i <- eigenMapMatMult(A = Matrix::diag(mu_est_sub,
+                                                nrow = n_vec[i],
+                                                ncol = n_vec[i]),
                                B = B_null[temp_seq_n, ],
                                n_cores = 1)
-    D_est_i_transpose <- t(D_est_i)
+    D_est_i_transpose <- Matrix::t(D_est_i)
     temp_prod <- eigenMapMatMult(A = D_est_i_transpose,
                                  B = V_est_i_inv,
                                  n_cores = 1)
@@ -116,7 +117,7 @@ stat_out_score_gee_null <- function(Y = NULL,
   if (nrow(J11) == 1 && ncol(J11) == 1) {
     J11_inv <- 1 / J11
   } else {
-    J11_inv <- try({ eigenMapMatrixInvert(J11, n_cores = 1) }, silent = TRUE)
+    J11_inv <- try({ Matrix::solve(J11) }, silent = TRUE)
     if (inherits(J11_inv, "try-error")) {
       J11_inv <- MASS::ginv(J11)
     }

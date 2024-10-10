@@ -7,7 +7,7 @@
 #' @importFrom gamlss gamlss
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial
-#' @importFrom withr with_output_sink
+#' @importFrom stats vcov
 #' @param Y The response variable. Defaults to NULL.
 #' @param B_new The model matrix. Defaults to NULL.
 #' @param is.gee Is the model a GEE? Defaults to FALSE.
@@ -43,10 +43,8 @@ backward_sel_WIC <- function(Y = NULL,
     fit <- gamlss::gamlss(Y ~ B_new - 1,
                           family = "NBI",
                           trace = FALSE)
-    withr::with_output_sink(tempfile(), {
-      fit_sum_mat <- as.matrix(summary(fit))
-    })
-    wald_stat <- fit_sum_mat[, 3][-c(1, nrow(fit_sum_mat))]^2
+    vcov_mat <- stats::vcov(fit, type = "all")
+    wald_stat <- unname((vcov_mat$coef / vcov_mat$se)[-c(1, length(vcov_mat$coef))]^2)
   }
   return(wald_stat)
 }

@@ -5,6 +5,7 @@
 #' @author David I. Warton
 #' @author Jack Leary
 #' @importFrom stats lm.fit
+#' @importFrom Matrix diag t solve
 #' @importFrom MASS ginv
 #' @description Calculate the score statistic for a GEE model.
 #' @param Y The response variable. Defaults to NULL.
@@ -51,22 +52,21 @@ score_fun_gee <- function(Y = NULL,
     B.est <- matrix(0, nrow = p, ncol = 1)
     Sigma22 <- matrix(0, nrow = p, ncol = p)
     J21 <- Sigma21 <- matrix(0, nrow = p, ncol = p1)
-
     for (i in seq(N)) {
       k <- sum(n_vec[seq(i)])
       VS.est_i <- VS.est_list[[i]]
       AWA.est_i <- AWA.est_list[[i]]
       J2_i <- J2_list[[i]]
       Sigma2_i <- Sigma2_list[[i]]
-      D.est_i <- eigenMapMatMult(A = diag((mu.est[(sum(n_vec1[seq(i)]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
+      D.est_i <- eigenMapMatMult(A = Matrix::diag((mu.est[(sum(n_vec1[seq(i)]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
                                  B = XA[(sum(n_vec1[seq(i)]) + 1):k, ],
                                  n_cores = 1)
-      D_est_i_transpose <- t(D.est_i)
+      D_est_i_transpose <- Matrix::t(D.est_i)
       J21 <- J21 + eigenMapMatMult(A = D_est_i_transpose,
-                                   B = t(J2_i),
+                                   B = Matrix::t(J2_i),
                                    n_cores = 1)
       Sigma21 <- Sigma21 + eigenMapMatMult(A = D_est_i_transpose,
-                                           B = t(Sigma2_i),
+                                           B = Matrix::t(Sigma2_i),
                                            n_cores = 1)
       B.est <- B.est + eigenMapMatMult(A = D_est_i_transpose,
                                        B = VS.est_i,
@@ -82,12 +82,12 @@ score_fun_gee <- function(Y = NULL,
                                    B = J11.inv,
                                    n_cores = 1)
     temp_prod_1 <- eigenMapMatMult(A = temp_prod_1,
-                                   B = t(Sigma21),
+                                   B = Matrix::t(Sigma21),
                                    n_cores = 1)
     temp_prod_2 <- eigenMapMatMult(A = Sigma21,
                                    B = J11.inv,
                                    n_cores = 1)
-    J21_transpose <- t(J21)
+    J21_transpose <- Matrix::t(J21)
     temp_prod_2 <- eigenMapMatMult(A = temp_prod_2,
                                    B = J21_transpose,
                                    n_cores = 1)
@@ -98,11 +98,11 @@ score_fun_gee <- function(Y = NULL,
                                    B = J21_transpose,
                                    n_cores = 1)
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
-    Sigma_inv <- try({ eigenMapMatrixInvert(Sigma, n_cores = 1) }, silent = TRUE)
+    Sigma_inv <- try({ Matrix::solve(Sigma) }, silent = TRUE)
     if (inherits(Sigma_inv, "try-error")) {
       Sigma_inv <- MASS::ginv(Sigma)
     }
-    temp_prod <- eigenMapMatMult(A = t(B.est),
+    temp_prod <- eigenMapMatMult(A = Matrix::t(B.est),
                                  B = Sigma_inv,
                                  n_cores = 1)
     score <- eigenMapMatMult(A = temp_prod,

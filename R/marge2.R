@@ -82,7 +82,7 @@ marge2 <- function(X_pred = NULL,
   q <- ncol(X_pred)  # Number of predictor variables
   B <- as.matrix(rep(1, NN))  # Start with the intercept model.
   # estimate "known" theta for GEE models
-  if (is.gee) {
+  if (is.gee || !is.glmm) {
     theta_hat <- MASS::theta.mm(y = Y,
                                 mu = mean(Y),
                                 dfr = NN - 1)
@@ -840,7 +840,7 @@ marge2 <- function(X_pred = NULL,
                                 data = model_df,
                                 method = "glm.fit2",
                                 link = log,
-                                init.theta = 1,
+                                init.theta = theta_hat,
                                 y = FALSE,
                                 model = FALSE)
     }

@@ -610,7 +610,7 @@ marge2 <- function(X_pred = NULL,
 
         if (trunc.type == 2) {
           B2a <- matrix(rep(B2[, best.var], 2), ncol = 2)
-          B_temp <- cbind(B, B2a*cbind(b1_new, b2_new))
+          B_temp <- cbind(B, B2a * cbind(b1_new, b2_new))
           B_new <- B2a * cbind(b1_new, b2_new)
           var_name3 <- var_name2[best.var]
           colnames(B_new) <- rep(var_name3, 2)

@@ -4,8 +4,8 @@
 #' @author Jakub Stoklosa
 #' @author David I. Warton
 #' @author Jack Leary
-#' @importFrom stats lm.fit
-#' @importFrom Matrix diag t solve
+#' @importFrom RcppEigen fastLmPure
+#' @importFrom Matrix solve
 #' @importFrom MASS ginv
 #' @description Calculate the score statistic for a GEE model.
 #' @param Y The response variable. Defaults to NULL.
@@ -42,7 +42,7 @@ score_fun_gee <- function(Y = NULL,
   # check inputs
   if (is.null(Y) || is.null(N) || is.null(n_vec) || is.null(VS.est_list) || is.null(AWA.est_list) || is.null(J2_list) || is.null(Sigma2_list) || is.null(J11.inv) || is.null(JSigma11) || is.null(mu.est) || is.null(V.est) || is.null(B1) || is.null(XA)) { stop("Some inputs to score_fun_gee() are missing.") }
   # generate score statistic
-  reg <- try({ stats::lm.fit(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
+  reg <- try({ RcppEigen::fastLmPure(B1, Y) }, silent = TRUE)  # This is not the model fit!! It just checks whether any issues occur for a simple linear regression model.
   if (inherits(reg, "try-error") || any(is.na(reg$coefficients))) {
     score <- NA_real_
   } else {
@@ -58,15 +58,15 @@ score_fun_gee <- function(Y = NULL,
       AWA.est_i <- AWA.est_list[[i]]
       J2_i <- J2_list[[i]]
       Sigma2_i <- Sigma2_list[[i]]
-      D.est_i <- eigenMapMatMult(A = Matrix::diag((mu.est[(sum(n_vec1[seq(i)]) + 1):k]), nrow = n_vec[i], ncol = n_vec[i]),
+      D.est_i <- eigenMapMatMult(A = diag(mu.est[(sum(n_vec1[seq(i)]) + 1):k], nrow = n_vec[i], ncol = n_vec[i]),
                                  B = XA[(sum(n_vec1[seq(i)]) + 1):k, ],
                                  n_cores = 1)
-      D_est_i_transpose <- Matrix::t(D.est_i)
+      D_est_i_transpose <- t(D.est_i)
       J21 <- J21 + eigenMapMatMult(A = D_est_i_transpose,
-                                   B = Matrix::t(J2_i),
+                                   B = t(J2_i),
                                    n_cores = 1)
       Sigma21 <- Sigma21 + eigenMapMatMult(A = D_est_i_transpose,
-                                           B = Matrix::t(Sigma2_i),
+                                           B = t(Sigma2_i),
                                            n_cores = 1)
       B.est <- B.est + eigenMapMatMult(A = D_est_i_transpose,
                                        B = VS.est_i,
@@ -82,12 +82,12 @@ score_fun_gee <- function(Y = NULL,
                                    B = J11.inv,
                                    n_cores = 1)
     temp_prod_1 <- eigenMapMatMult(A = temp_prod_1,
-                                   B = Matrix::t(Sigma21),
+                                   B = t(Sigma21),
                                    n_cores = 1)
     temp_prod_2 <- eigenMapMatMult(A = Sigma21,
                                    B = J11.inv,
                                    n_cores = 1)
-    J21_transpose <- Matrix::t(J21)
+    J21_transpose <- t(J21)
     temp_prod_2 <- eigenMapMatMult(A = temp_prod_2,
                                    B = J21_transpose,
                                    n_cores = 1)
@@ -102,7 +102,7 @@ score_fun_gee <- function(Y = NULL,
     if (inherits(Sigma_inv, "try-error")) {
       Sigma_inv <- MASS::ginv(Sigma)
     }
-    temp_prod <- eigenMapMatMult(A = Matrix::t(B.est),
+    temp_prod <- eigenMapMatMult(A = t(B.est),
                                  B = Sigma_inv,
                                  n_cores = 1)
     score <- eigenMapMatMult(A = temp_prod,

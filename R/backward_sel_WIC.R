@@ -43,8 +43,13 @@ backward_sel_WIC <- function(Y = NULL,
     fit <- gamlss::gamlss(Y ~ B_new - 1,
                           family = "NBI",
                           trace = FALSE)
-    vcov_mat <- stats::vcov(fit, type = "all")
-    wald_stat <- unname((vcov_mat$coef / vcov_mat$se)[-c(1, length(vcov_mat$coef))]^2)
+    vcov_mat <- try({ stats::vcov(fit, type = "all") }, silent = TRUE)
+    if (inherits(vcov_mat, "try-error")) {
+      covmat_unscaled <- chol2inv(fit$mu.qr$qr[1:(fit$mu.df - fit$mu.nl.df), 1:(fit$mu.df - fit$mu.nl.df), drop = FALSE])
+      wald_stat <- unname(coef(fit) / sqrt(diag(covmat_unscaled))^2)[-1]
+    } else {
+      wald_stat <- unname((vcov_mat$coef / vcov_mat$se)[-c(1, length(vcov_mat$coef))]^2)
+    }
   }
   return(wald_stat)
 }

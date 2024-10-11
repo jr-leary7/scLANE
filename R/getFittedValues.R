@@ -1,7 +1,7 @@
 #' Generate a table of fitted values and celltype metadata for genes of interest.
 #'
 #' @name getFittedValues
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @import magrittr
 #' @importFrom stats qnorm
 #' @importFrom purrr map map2 reduce

@@ -54,5 +54,5 @@ fitted_vals <- getFittedValues(scLANE_models,
                                expr.mat = sim_counts)
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

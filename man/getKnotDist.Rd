@@ -22,5 +22,5 @@ data(scLANE_models)
 knot_dist <- getKnotDist(scLANE_models)
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

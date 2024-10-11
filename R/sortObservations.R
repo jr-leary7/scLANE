@@ -1,7 +1,7 @@
 #' Sort observations by sample ID and pseudotime.
 #'
 #' @name sortObservations
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom dplyr arrange
 #' @description Since the GEE & GLMM modes require data to be sorted by sample ID and pseudotime, this function provides a simple way to do so for a range of inputs.
 #' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.

@@ -1,7 +1,7 @@
 #' Generate PCA & UMAP embeddings of fitted gene dynamics.
 #'
 #' @name embedGenes
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @import magrittr
 #' @importFrom purrr map map_dbl
 #' @importFrom dplyr bind_cols

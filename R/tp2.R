@@ -1,7 +1,8 @@
 #' Truncated p-th power function (negative part).
 #'
 #' @name tp2
-#' @author Jakub Stoklosa and David I. Warton
+#' @author Jakub Stoklosa
+#' @author David I. Warton
 #' @param x A predictor variable value. Defaults to NULL.
 #' @param t A specified knot value. Defaults to NULL.
 #' @param p The \eqn{p^{th}} degree of the polynomial considered. Defaults to 1.

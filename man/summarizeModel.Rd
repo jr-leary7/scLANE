@@ -32,7 +32,7 @@ model_summary <- summarizeModel(marge.model = marge_model, pt = sim_pseudotime)
 \code{\link{marge2}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 
 Rhonda Bacher
 }

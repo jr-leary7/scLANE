@@ -51,5 +51,5 @@ program_enrichment_stats <- geneProgramSignificance(list(sim_counts$cluster_0),
 \code{\link{geneProgramScoring}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

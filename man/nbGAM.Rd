@@ -54,5 +54,5 @@ gam_mod <- nbGAM(BiocGenerics::counts(sim_counts)[4, ],
 \code{\link[gamlss.dist]{NBI}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

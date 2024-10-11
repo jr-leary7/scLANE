@@ -39,5 +39,5 @@ model_plot <- plotModels(scLANE_models,
               theme_scLANE()
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

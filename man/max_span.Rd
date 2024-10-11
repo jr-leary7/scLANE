@@ -28,5 +28,7 @@ Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals 
 Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 }
 \author{
-Jakub Stoklosa and David I. Warton.
+Jakub Stoklosa
+
+David I. Warton.
 }

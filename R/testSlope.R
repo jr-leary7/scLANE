@@ -1,7 +1,7 @@
 #' Test whether a gene is dynamic over a pseudotime interval.
 #'
 #' @name testSlope
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function tests whether each gene's estimated \eqn{\beta} for pseudotime differs significantly from 0 over each empirically estimated sets of knots / pseudotime intervals using a Wald test.
 #' @import magrittr
 #' @importFrom purrr map_dfr

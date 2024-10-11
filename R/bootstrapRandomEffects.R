@@ -1,7 +1,7 @@
 #' Generate bootstrapped confidence intervals for random effects.
 #'
 #' @name bootstrapRandomEffects
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function leverages the parametric bootstrap to generate empirical confidence intervals for the random effects terms of a fitted model.
 #' @importFrom stats simulate update quantile
 #' @importFrom dplyr mutate with_groups summarise if_else

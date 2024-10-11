@@ -1,7 +1,7 @@
 #' Test significance of gene program enrichment across a trajectory.
 #'
 #' @name geneProgramSignificance
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @import magrittr
 #' @importFrom purrr map reduce
 #' @importFrom gamlss gamlss LR.test

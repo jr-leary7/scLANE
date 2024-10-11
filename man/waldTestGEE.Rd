@@ -47,5 +47,5 @@ Performs a basic Wald test to determine whether an alternate model is significan
 \code{\link{modelLRT}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

@@ -1,7 +1,7 @@
 #' Plot gene dynamics with estimated coefficients.
 #'
 #' @name plotModelCoefs
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @import magrittr
 #' @importFrom dplyr select mutate lag lead
 #' @importFrom tidyr pivot_longer

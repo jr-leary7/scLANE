@@ -1,7 +1,7 @@
 #' Bias-correct the GEE sandwich variance-covariance matrix.
 #'
 #' @name biasCorrectGEE
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This functions implements several bias-correction methods for the GEE sandwich variance-covariance matrix; they are to be used when the number of subjects is small or the numer of timepoints per-subject is very large.
 #' @importFrom stats fitted.values cor
 #' @importFrom dplyr with_groups summarise

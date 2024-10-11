@@ -49,5 +49,5 @@ plotClusteredGenes(test.dyn.res = gene_stats,
 \code{\link{clusterGenes}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

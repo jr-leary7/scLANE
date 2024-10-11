@@ -1,7 +1,7 @@
 #' Build an NB GLMM using truncated power basis functions.
 #'
 #' @name fitGLMM
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description Fits a negative binomial generalized linear mixed model using truncated power basis function splines as input. The basis matrix can be created adaptively using subject-specific estimation of optimal knots using \code{\link{marge2}}, or basis functions can be evenly space across quantiles. The resulting model can output subject-specific and population-level fitted values.
 #' @importFrom purrr map_dfr pmap_dfc
 #' @importFrom dplyr mutate select if_else

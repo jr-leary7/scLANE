@@ -32,5 +32,5 @@ Creates a data.frame of \code{marge} model breakpoints, \emph{p}-values, and oth
 \code{\link{testSlope}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

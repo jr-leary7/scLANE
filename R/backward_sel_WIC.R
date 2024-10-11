@@ -3,7 +3,7 @@
 #' @name backward_sel_WIC
 #' @author Jakub Stoklosa
 #' @author David I. Warton
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom gamlss gamlss
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial

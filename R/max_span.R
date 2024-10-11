@@ -6,7 +6,8 @@
 #' @param alpha See Friedman (1991) equation (45). Defaults to 0.05.
 #' @details Note that this equation comes from Friedman (1991) equation (45).
 #' @return \code{max_span} returns a vector of truncated predictor variable values.
-#' @author Jakub Stoklosa and David I. Warton.
+#' @author Jakub Stoklosa 
+#' @author David I. Warton.
 #' @references Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 #' @references Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
 

@@ -62,5 +62,5 @@ program_drivers <- geneProgramDrivers(sim_counts,
 \code{\link[stats]{cor.test}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

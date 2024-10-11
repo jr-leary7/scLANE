@@ -28,5 +28,5 @@ enr_res <- enrichDynamicGenes(scLANE_de_res)
 \code{\link[gprofiler2]{gost}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

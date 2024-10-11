@@ -30,5 +30,5 @@ convolved_vec <- npConvolve(x = rnorm(20), conv.kernel = rep(1/5, 5))
 \code{\link[stats]{convolve}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

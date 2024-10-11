@@ -1,7 +1,7 @@
 #' Represent a \code{marge} model as a series of piecewise equations.
 #'
 #' @name summarizeModel
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @author Rhonda Bacher
 #' @import magrittr
 #' @importFrom stats vcov

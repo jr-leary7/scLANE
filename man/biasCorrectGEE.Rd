@@ -33,5 +33,5 @@ This functions implements several bias-correction methods for the GEE sandwich v
 \code{\link{waldTestGEE}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

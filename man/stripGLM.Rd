@@ -19,5 +19,5 @@ This function removes a \emph{lot} of components from the default GLM object in 
 \code{\link[MASS]{glm.nb}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

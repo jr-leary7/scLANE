@@ -77,5 +77,5 @@ model_plot <- plotModels(scLANE_models,
                          size.factor.offset = cell_offset)
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

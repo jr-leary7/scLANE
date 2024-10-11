@@ -3,7 +3,7 @@
 #' @name score_fun_gee
 #' @author Jakub Stoklosa
 #' @author David I. Warton
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom RcppEigen fastLmPure
 #' @importFrom Matrix solve
 #' @importFrom MASS ginv

@@ -1,7 +1,7 @@
 #' Plot results of \code{marge} and other models using \code{ggplot2}.
 #'
 #' @name plotModels
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @import magrittr
 #' @import glm2
 #' @importFrom stats qnorm predict as.formula

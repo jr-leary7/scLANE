@@ -2,7 +2,8 @@
 #'
 #' @name tp1
 #' @param x A predictor variable value. Defaults to NULL.
-#' @author Jakub Stoklosa and David I. Warton
+#' @author Jakub Stoklosa
+#' @author David I. Warton
 #' @param t A specified knot value. Defaults to NULL.
 #' @param p The \eqn{p^{th}} degree of the polynomial considered. Defaults to 1.
 #' @return A vector of values that have been transformed using a truncated \eqn{p^{th}} power function (positive part) for a specified knot value.

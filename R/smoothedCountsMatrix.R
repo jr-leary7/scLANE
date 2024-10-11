@@ -1,7 +1,7 @@
 #' Generate a smoothed matrix of gene expression using \code{scLANE} models.
 #'
 #' @name smoothedCountsMatrix
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function takes as input the output from \code{\link{testDynamic}} and returns the fitted values from each model in a wide format, with one column per-gene and one row-per cell. This matrix can be use as input to cell or gene clustering and / or visualizations such as heatmaps.
 #' @import magrittr
 #' @importFrom future plan multisession sequential

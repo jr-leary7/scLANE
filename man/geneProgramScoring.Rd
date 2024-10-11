@@ -54,5 +54,5 @@ sim_counts <- geneProgramScoring(sim_counts,
 \code{\link{geneProgramDrivers}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

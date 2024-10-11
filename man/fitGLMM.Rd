@@ -61,5 +61,5 @@ glmm_mod <- fitGLMM(X_pred = sim_pseudotime,
 \code{\link{modelLRT}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

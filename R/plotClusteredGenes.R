@@ -1,7 +1,7 @@
 #' Generate tidy results from \code{\link{clusterGenes}} to use in plotting.
 #'
 #' @name plotClusteredGenes
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description Generate a table of per-lineage, per-cluster fitted values from \code{scLANE} to be used in visualizations.
 #' @import magrittr
 #' @importFrom future plan multisession sequential

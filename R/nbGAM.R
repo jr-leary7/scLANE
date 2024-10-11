@@ -1,7 +1,7 @@
 #' Fit a negative-binomial GAM.
 #'
 #' @name nbGAM
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description Fits a negative-binomial family GAM using a cubic basis spline on pseudotime. If data are multi-subject in nature, a random intercept is included for each subject.
 #' @importFrom dplyr mutate
 #' @importFrom stats offset

@@ -48,5 +48,5 @@ Jakub Stoklosa
 
 David I. Warton
 
-Jack Leary
+Jack R. Leary
 }

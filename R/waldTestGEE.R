@@ -1,7 +1,7 @@
 #' Use a Wald test to compare nested GEE models.
 #'
 #' @name waldTestGEE
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description Performs a basic Wald test to determine whether an alternate model is significantly better than a nested null model. This is the GEE equivalent (kind of) of \code{\link{modelLRT}}. Be careful with small sample sizes.
 #' @importFrom MASS ginv
 #' @importFrom stats pchisq

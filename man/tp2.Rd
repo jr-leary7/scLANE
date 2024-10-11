@@ -28,5 +28,7 @@ Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach
 \code{\link{tp1}}
 }
 \author{
-Jakub Stoklosa and David I. Warton
+Jakub Stoklosa
+
+David I. Warton
 }

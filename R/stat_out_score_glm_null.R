@@ -3,7 +3,7 @@
 #' @name stat_out_score_glm_null
 #' @author Jakub Stoklosa
 #' @author David I. Warton
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom gamlss gamlss
 #' @importFrom stats fitted.values
 #' @importFrom Matrix diag t

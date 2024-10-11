@@ -1,7 +1,7 @@
 #' Pull the set of knots for dynamic genes across each lineage.
 #'
 #' @name getKnotDist
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @import magrittr
 #' @importFrom purrr imap reduce
 #' @importFrom dplyr filter

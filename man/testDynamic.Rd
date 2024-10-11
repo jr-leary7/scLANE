@@ -89,5 +89,5 @@ scLANE_models <- testDynamic(sim_counts,
 \code{\link[glmmTMB]{glmmTMB}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

@@ -56,5 +56,5 @@ smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
 gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

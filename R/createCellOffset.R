@@ -1,7 +1,7 @@
 #' Create an offset vector before modeling.
 #'
 #' @name createCellOffset
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom Matrix colSums
 #' @description Creates a vector of per-cell size factors to be used as input to \code{\link{testDynamic}} as a model offset given a variety of inputs.
 #' @param expr.mat Either a (sparse or dense) matrix of raw integer counts (cells as columns), a \code{Seurat} object, or a \code{SingleCellExperiment} object. Defaults to NULL.

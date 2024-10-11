@@ -1,8 +1,9 @@
 #' Add per-cell module scores for gene programs.
 #'
 #' @name geneProgramScoring
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom Matrix Matrix
+#' @importFrom purrr map reduce 
 #' @description This function uses \code{\link[UCell]{ScoreSignatures_UCell}} to create a per-cell module score for each of the provided gene clusters. If the input matrix is a \code{Seurat} or \code{SingleCellExperiment} object, then the resulting scores will be added to the \code{meta.data} or the \code{colData} slot, respectively. Otherwise, a data.frame of the per-program scores is returned.
 #' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param genes A character vector of gene IDs. Defaults to NULL.

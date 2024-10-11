@@ -40,7 +40,7 @@
 #' \item If using the GEE or GLMM model architectures, ensure that the observations are sorted by subject ID (this is assumed by the underlying fit implementations). If they are not, the models will error out.
 #' \item If \code{gee.bias.correction.method} is set to "kc" or "df", a bias adjustment will be used to inflate the robust variance-covariance matrix prior to estimating the Wald test statistic. This is useful when the number of subjects is small and / or the number of per-subject observations is very large. Doing so will remove the bias in the sandwich estimator in small-sample cases. Currently, we suggest keeping this NULL and using the model-based variance estimates and specifying the "ar1" correlation structure.
 #' }
-#' @return A list of lists, where each element is a gene and each gene contains sublists for each element. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
+#' @return A list of lists, where each element is a gene and each gene contains sublists for each lineage. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.
 #' @seealso \code{\link{getResultsDE}}
 #' @seealso \code{\link{testSlope}}
 #' @seealso \code{\link{marge2}}

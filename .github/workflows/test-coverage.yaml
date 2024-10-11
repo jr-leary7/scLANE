@@ -43,8 +43,8 @@ jobs:
         shell: bash
 
       - name: Upload test results
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-test-failures
+          name: coverage-test-upload
           path: ${{ runner.temp }}/package

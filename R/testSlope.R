@@ -8,7 +8,7 @@
 #' @importFrom dplyr arrange desc mutate if_else with_groups
 #' @importFrom stats p.adjust
 #' @param test.dyn.res The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.
-#' @param p.adj.method The method used to adjust the \emph{p}-values for each coefficient. Defaults to "holm".
+#' @param p.adj.method The method used to adjust the \emph{p}-values for each coefficient. Defaults to "fdr".
 #' @param fdr.cutoff The FDR threshold for determining statistical significance. Defaults to 0.01.
 #' @return A dataframe containing the genes, breakpoints, and coefficient \emph{p}-values from each model.
 #' @seealso \code{\link{testDynamic}}
@@ -19,7 +19,7 @@
 #' slope_test_res <- testSlope(scLANE_models)
 
 testSlope <- function(test.dyn.res = NULL,
-                      p.adj.method = "holm",
+                      p.adj.method = "fdr",
                       fdr.cutoff = 0.01) {
   # check inputs
   if (is.null(test.dyn.res)) { stop("You forgot to provide results from testDynamic() to testSlope().") }

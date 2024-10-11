@@ -29,5 +29,5 @@ sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A, pt.vec = sim_pseudot
 \code{\link{smoothedCountsMatrix}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

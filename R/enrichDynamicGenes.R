@@ -1,7 +1,7 @@
 #' Perform GSEA on dynamic genes identified by \code{scLANE}.
 #'
 #' @name enrichDynamicGenes
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function uses the \code{gprofiler2} package to perform pathway analysis on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
 #' @import magrittr
 #' @importFrom dplyr filter arrange desc distinct pull

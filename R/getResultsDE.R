@@ -1,7 +1,7 @@
 #' Tidy the results of \code{\link{testDynamic}}.
 #'
 #' @name getResultsDE
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame.
 #' @import magrittr
 #' @importFrom future plan multisession sequential 

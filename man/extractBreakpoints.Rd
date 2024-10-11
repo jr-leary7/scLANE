@@ -27,5 +27,5 @@ marge_model <- marge2(sim_pseudotime,
 breakpoint_df <- extractBreakpoints(model = marge_model)
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

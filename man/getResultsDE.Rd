@@ -36,5 +36,5 @@ scLANE_de_res <- getResultsDE(scLANE_models)
 \code{\link[stats]{p.adjust}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

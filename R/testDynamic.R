@@ -1,7 +1,7 @@
 #' Test whether a gene is dynamic over pseudotime.
 #'
 #' @name testDynamic
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function tests whether a NB \code{marge} model is better than a null (intercept-only) model using the Likelihood Ratio Test. In effect, the test tells us whether a gene's expression changes (in any way) over pseudotime.
 #' @import glm2
 #' @import magrittr

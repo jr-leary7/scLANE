@@ -1,7 +1,7 @@
 #' Identify driver genes for a given gene program.
 #'
 #' @name geneProgramDrivers
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom Matrix Matrix
 #' @importFrom purrr map reduce
 #' @importFrom foreach foreach registerDoSEQ

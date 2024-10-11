@@ -1,7 +1,7 @@
 #' Perform a likelihood ratio test for one model against another.
 #'
 #' @name modelLRT
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function compares two models using a likelihood ratio test (LRT) under the assumption that the test statistic is asymptotically Chi-squared with degrees freedom equal to the difference in the number of parameters between the larger and smaller model.
 #' @importFrom stats logLik pchisq
 #' @param mod.1 The model corresponding to the alternative hypothesis. Defaults to NULL.

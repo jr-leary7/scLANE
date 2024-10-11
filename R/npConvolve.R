@@ -1,7 +1,7 @@
 #' Convolution that matches \code{np.convolve}.
 #'
 #' @name npConvolve
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom stats convolve
 #' @description Convolve a vector with a user-specified kernel. Can be useful for heatmap smoothing, weighted moving means, etc.
 #' @param x The vector to be convolved. Defaults to NULL.

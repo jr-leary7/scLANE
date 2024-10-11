@@ -1,7 +1,7 @@
 #' Choose candidate genes for trajectory DE analysis.
 #'
 #' @name chooseCandidateGenes
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description This function identifies good gene candidates for trajectory differential expression modeling by ranking genes based on their mean expression, SD of expression, and sparsity across cells.
 #' @importFrom purrr map reduce
 #' @importFrom Matrix Matrix rowMeans

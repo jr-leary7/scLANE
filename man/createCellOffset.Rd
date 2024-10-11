@@ -31,5 +31,5 @@ cell_offset <- createCellOffset(sim_counts)
 \code{\link[scuttle]{computeLibraryFactors}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

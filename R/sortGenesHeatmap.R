@@ -1,7 +1,7 @@
 #' Sort genes by where their peak expression occurs across pseudotime.
 #'
 #' @name sortGenesHeatmap
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @import magrittr
 #' @importFrom purrr map reduce
 #' @importFrom dplyr filter distinct select with_groups summarise arrange pull

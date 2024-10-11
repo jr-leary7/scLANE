@@ -33,5 +33,5 @@ sorted_counts <- sortObservations(sim_counts,
                                   id.vec = sim_counts$subject)
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

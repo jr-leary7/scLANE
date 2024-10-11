@@ -29,5 +29,5 @@ slope_test_res <- testSlope(scLANE_models)
 \code{\link[stats]{p.adjust}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

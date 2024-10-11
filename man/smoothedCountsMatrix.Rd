@@ -43,5 +43,5 @@ smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
 \code{\link{testDynamic}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

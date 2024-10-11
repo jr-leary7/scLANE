@@ -3,7 +3,7 @@
 #' @name stat_out_score_gee_null
 #' @author Jakub Stoklosa
 #' @author David I. Warton
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial ginv
 #' @importFrom stats fitted.values

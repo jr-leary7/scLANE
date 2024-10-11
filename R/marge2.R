@@ -3,7 +3,8 @@
 #' @name marge2
 #' @author Jakub Stoklosa
 #' @author David I. Warton.
-#' @author Jack Leary
+#' @author Jack R. Leary
+#' @author Rhonda Bacher
 #' @description MARS fitting function for negative binomial generalized linear models (GLMs) & generalized estimating equations (GEEs).
 #' @import glm2
 #' @import magrittr

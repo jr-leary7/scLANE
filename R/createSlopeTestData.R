@@ -1,7 +1,7 @@
 #' A helper function to create a dataframe of breakpoints and associated \emph{p}-values from a \code{marge} model.
 #'
 #' @name createSlopeTestData
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @description Creates a data.frame of \code{marge} model breakpoints, \emph{p}-values, and other info.
 #' @importFrom purrr map_dbl
 #' @param marge.model A \code{marge} model object, like those returned from \code{\link{marge2}}. Defaults to NULL.

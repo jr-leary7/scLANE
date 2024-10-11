@@ -20,5 +20,5 @@ A list containing the LRT test statistic, degrees freedom, and the \emph{p}-valu
 This function compares two models using a likelihood ratio test (LRT) under the assumption that the test statistic is asymptotically Chi-squared with degrees freedom equal to the difference in the number of parameters between the larger and smaller model.
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

@@ -1,7 +1,7 @@
 #' A \code{ggplot2} theme for \code{scLANE}.
 #'
 #' @name theme_scLANE
-#' @author Jack Leary
+#' @author Jack R. Leary
 #' @importFrom ggplot2 theme_classic theme element_rect
 #' @description A publication-ready theme for creating gene dynamics plots, embedding plots, etc.
 #' @param base.size The base font size. Defaults to 12.

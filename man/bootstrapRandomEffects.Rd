@@ -59,5 +59,5 @@ ranef_sumy <- bootstrapRandomEffects(glmm_mod,
 \code{\link[glmmTMB]{glmmTMB}}
 }
 \author{
-Jack Leary
+Jack R. Leary
 }

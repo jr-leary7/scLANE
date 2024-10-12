@@ -254,7 +254,7 @@ testDynamic <- function(expr.mat = NULL,
       } else {
         theta_hat <- MASS::theta.mm(y = null_mod_df$Y_null,
                                     mu = mean(null_mod_df$Y_null),
-                                    dfr = length(null_mod_df$subject) - 1)
+                                    dfr = length(null_mod_df$Y_null) - 1)
         null_mod <- try({
           MASS::glm.nb(null_mod_formula,
                        data = null_mod_df,

@@ -52,6 +52,8 @@ testDynamic(
 \item{verbose}{(Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.}
 
 \item{random.seed}{(Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.}
+
+\item{glm.backend}{(Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".}
 }
 \value{
 A list of lists, where each element is a gene and each gene contains sublists for each lineage. Each gene-lineage sublist contains a gene name, lineage number, default \code{marge} vs. null model test results, model statistics, and fitted values. Use \code{\link{getResultsDE}} to tidy the results.

@@ -14,7 +14,6 @@
 #' @importFrom withr with_output_sink
 #' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom dplyr rename mutate relocate
-#' @importFrom broom.mixed tidy
 #' @importFrom purrr imap reduce
 #' @importFrom stats predict logLik deviance offset
 #' @importFrom geeM geem
@@ -22,16 +21,16 @@
 #' @param expr.mat Either a \code{SingleCellExperiment}, \code{Seurat}, or \code{CellDataSet} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param pt Either the output from \code{\link[slingshot]{SlingshotDataSet}} object from which pseudotime can be generated, or a data.frame containing the pseudotime or latent time estimates for each cell (can be multiple columns / lineages). Defaults to NULL.
 #' @param genes A character vector of genes to model. If not provided, defaults to all genes in \code{expr.mat}. Defaults to NULL.
-#' @param n.potential.basis.fns (Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
 #' @param size.factor.offset (Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
 #' @param gee.bias.correction.method Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.
-#' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
-#' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 4L.
-#' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
+#' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.
+#' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
+#' @param n.potential.basis.fns (Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
+#' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 4L.
 #' @param verbose (Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.
 #' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
@@ -74,7 +73,7 @@ testDynamic <- function(expr.mat = NULL,
                         random.seed = 312) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
-
+  
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (is.null(genes)) {
     genes <- rownames(expr.mat)
@@ -191,7 +190,7 @@ testDynamic <- function(expr.mat = NULL,
                  cor.structure = cor.structure,
                  sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE),
                  M = n.potential.basis.fns,
-                 approx.knot = approx.knot,
+                 approx.knot = approx.knot, 
                  return.basis = TRUE)
         }, silent = TRUE)
       } else if (is.glmm) {
@@ -253,20 +252,19 @@ testDynamic <- function(expr.mat = NULL,
                            se = TRUE)
         }, silent = TRUE)
       } else {
+        theta_hat <- MASS::theta.mm(y = null_mod_df$Y_null,
+                                    mu = mean(null_mod_df$Y_null),
+                                    dfr = length(null_mod_df$Y_null) - 1)
         null_mod <- try({
           MASS::glm.nb(null_mod_formula,
                        data = null_mod_df,
                        method = "glm.fit2",
                        y = FALSE,
                        model = FALSE,
-                       init.theta = 1,
+                       init.theta = theta_hat,
                        link = log)
         }, silent = TRUE)
-      }
-
-      # slim down GLM object if not a GEE / GLMM model (which are much smaller for some reason)
-      if (!(is.gee || is.glmm)) {
-        null_mod <- stripGLM(glm.obj = null_mod)
+        null_mod <- stripGLM(null_mod)
       }
 
       # record model fit status

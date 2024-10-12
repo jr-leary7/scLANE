@@ -31,7 +31,6 @@
 #' @param approx.knot (Optional) Should the knot space be reduced in order to improve computation time? Defaults to TRUE.
 #' @param n.potential.basis.fns (Optional) The maximum number of possible basis functions. See the parameter \code{M} in \code{\link{marge2}}. Defaults to 5.
 #' @param n.cores (Optional) If running in parallel, how many cores should be used? Defaults to 4L.
-#' @param glm.backend (Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS". 
 #' @param verbose (Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.
 #' @param random.seed (Optional) The random seed used to initialize RNG streams in parallel. Defaults to 312.
 #' @details
@@ -74,7 +73,6 @@ testDynamic <- function(expr.mat = NULL,
                         random.seed = 312) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
-  if (!glm.backend %in% c("MASS", "speedglm")) { stop("Please choose a valid GLM backend for model fitting.") }
   
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (is.null(genes)) {
@@ -192,8 +190,7 @@ testDynamic <- function(expr.mat = NULL,
                  cor.structure = cor.structure,
                  sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE),
                  M = n.potential.basis.fns,
-                 approx.knot = approx.knot,
-                 glm.backend = glm.backend, 
+                 approx.knot = approx.knot, 
                  return.basis = TRUE)
         }, silent = TRUE)
       } else if (is.glmm) {

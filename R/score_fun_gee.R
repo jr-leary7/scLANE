@@ -5,7 +5,6 @@
 #' @author David I. Warton
 #' @author Jack R. Leary
 #' @importFrom RcppEigen fastLmPure
-#' @importFrom Matrix solve
 #' @importFrom MASS ginv
 #' @description Calculate the score statistic for a GEE model.
 #' @param Y The response variable. Defaults to NULL.
@@ -98,7 +97,7 @@ score_fun_gee <- function(Y = NULL,
                                    B = J21_transpose,
                                    n_cores = 1)
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
-    Sigma_inv <- try({ Matrix::solve(Sigma) }, silent = TRUE)
+    Sigma_inv <- try({ eigenMapMatrixInvert(Sigma, n_cores = 1L) }, silent = TRUE)
     if (inherits(Sigma_inv, "try-error")) {
       Sigma_inv <- MASS::ginv(Sigma)
     }

@@ -3,7 +3,6 @@
 #' @name waldTestGEE
 #' @author Jack R. Leary
 #' @description Performs a basic Wald test to determine whether an alternate model is significantly better than a nested null model. This is the GEE equivalent (kind of) of \code{\link{modelLRT}}. Be careful with small sample sizes.
-#' @importFrom MASS ginv
 #' @importFrom stats pchisq
 #' @param mod.1 The model under the alternative hypothesis. Must be of class \code{geem}. Defaults to NULL.
 #' @param mod.0 The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.
@@ -74,7 +73,10 @@ waldTestGEE <- function(mod.1 = NULL,
     }
     vcov_mat <- vcov_mat[coef_idx, coef_idx]
     wald_test_stat <- try({
-      vcov_mat_inv <- eigenMapMatrixInvert(vcov_mat, n_cores = 1)
+      vcov_mat_inv <- eigenMapMatrixInvert(vcov_mat, n_cores = 1L)
+      if (inherits(vcov_mat_inv, "try-error")) {
+        vcov_mat_inv <- eigenMapPseudoInverse(vcov_mat, n_cores = 1L)
+      }
       as.numeric(crossprod(coef_vals, vcov_mat_inv) %*% coef_vals)
     }, silent = TRUE)
     if (inherits(wald_test_stat, "try-error")) {

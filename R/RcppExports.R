@@ -9,3 +9,7 @@ eigenMapMatMult <- function(A, B, n_cores = 1L) {
     .Call(`_scLANE_eigenMapMatMult`, A, B, n_cores)
 }
 
+eigenMapPseudoInverse <- function(A, tolerance = 1e-6, n_cores = 1L) {
+    .Call(`_scLANE_eigenMapPseudoInverse`, A, tolerance, n_cores)
+}
+

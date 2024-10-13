@@ -853,7 +853,7 @@ marge2 <- function(X_pred = NULL,
                                         data = model_df, 
                                         family = MASS::negative.binomial(theta_hat, link = "log"), 
                                         trace = FALSE, 
-                                        model = TRUE, 
+                                        model = FALSE, 
                                         y = FALSE, 
                                         fitted = TRUE)
       }

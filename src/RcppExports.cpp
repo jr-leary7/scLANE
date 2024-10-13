@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // eigenMapMatrixInvert
-SEXP eigenMapMatrixInvert(const Eigen::Map<Eigen::MatrixXd> A, int n_cores);
+Eigen::MatrixXd eigenMapMatrixInvert(const Eigen::Map<Eigen::MatrixXd> A, int n_cores);
 RcppExport SEXP _scLANE_eigenMapMatrixInvert(SEXP ASEXP, SEXP n_coresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -24,7 +24,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // eigenMapMatMult
-SEXP eigenMapMatMult(const Eigen::Map<Eigen::MatrixXd> A, const Eigen::Map<Eigen::MatrixXd> B, int n_cores);
+Eigen::MatrixXd eigenMapMatMult(const Eigen::Map<Eigen::MatrixXd> A, const Eigen::Map<Eigen::MatrixXd> B, int n_cores);
 RcppExport SEXP _scLANE_eigenMapMatMult(SEXP ASEXP, SEXP BSEXP, SEXP n_coresSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -36,10 +36,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// eigenMapPseudoInverse
+Eigen::MatrixXd eigenMapPseudoInverse(const Eigen::Map<Eigen::MatrixXd> A, double tolerance, int n_cores);
+RcppExport SEXP _scLANE_eigenMapPseudoInverse(SEXP ASEXP, SEXP toleranceSEXP, SEXP n_coresSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type A(ASEXP);
+    Rcpp::traits::input_parameter< double >::type tolerance(toleranceSEXP);
+    Rcpp::traits::input_parameter< int >::type n_cores(n_coresSEXP);
+    rcpp_result_gen = Rcpp::wrap(eigenMapPseudoInverse(A, tolerance, n_cores));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_scLANE_eigenMapMatrixInvert", (DL_FUNC) &_scLANE_eigenMapMatrixInvert, 2},
     {"_scLANE_eigenMapMatMult", (DL_FUNC) &_scLANE_eigenMapMatMult, 3},
+    {"_scLANE_eigenMapPseudoInverse", (DL_FUNC) &_scLANE_eigenMapPseudoInverse, 3},
     {NULL, NULL, 0}
 };
 

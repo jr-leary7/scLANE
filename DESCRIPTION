@@ -58,6 +58,7 @@ Suggests:
     Seurat, 
     bluster, 
     cluster, 
+    speedglm, 
     rmarkdown,
     gridExtra, 
     BiocStyle, 

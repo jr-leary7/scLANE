@@ -5,7 +5,6 @@
 #' @description This functions implements several bias-correction methods for the GEE sandwich variance-covariance matrix; they are to be used when the number of subjects is small or the numer of timepoints per-subject is very large.
 #' @importFrom stats fitted.values cor
 #' @importFrom dplyr with_groups summarise
-#' @importFrom MASS ginv
 #' @importFrom Matrix bdiag
 #' @param fitted.model The fitted model of class \code{geem} returned by \code{\link{marge2}}. Defaults to NULL.
 #' @param correction.method A string specifying the correction method to be used. Currently supported options are "df" and "kc". Defaults to "kc".
@@ -121,9 +120,10 @@ biasCorrectGEE <- function(fitted.model = NULL,
       }
       sigma2 <- fitted.model$phi
       Var_Yi <- sigma2 * R_i
-      Var_Yi_inv <- try({
-        MASS::ginv(Var_Yi)
-      }, silent = TRUE)
+      Var_Yi_inv <- try({ eigenMapMatrixInvert(Var_Yi, n_cores = 1L) }, silent = TRUE)
+      if (inherits(Var_Yi_inv, "try-error")) {
+        Var_Yi_inv <- try({ eigenMapPseudoInverse(Var_Yi, n_cores = 1L) }, silent = TRUE)
+      }
       if (inherits(Var_Yi_inv, "try-error")) {
         if (verbose) {
           warning(paste0("Covariance matrix inversion failed for subject ",
@@ -137,9 +137,9 @@ biasCorrectGEE <- function(fitted.model = NULL,
     W <- as.matrix(Matrix::bdiag(cov_matrices))
     X <- fitted.model$X
     XWX <- t(X) %*% W %*% X
-    XWX_inv <- try({ eigenMapMatrixInvert(XWX, n_cores = 1) }, silent = TRUE)
+    XWX_inv <- try({ eigenMapMatrixInvert(XWX, n_cores = 1L) }, silent = TRUE)
     if (inherits(XWX_inv, "try-error")) {
-      XWX_inv <- MASS::ginv(XWX)
+      XWX_inv <- eigenMapPseudoInverse(XWX, n_cores = 1L)
     }
     H <- X %*% XWX_inv %*% t(X) %*% W
     tr_H <- sum(diag(H))

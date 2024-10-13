@@ -64,6 +64,8 @@ plotModels <- function(test.dyn.res = NULL,
   # check inputs
   if (is.null(expr.mat) || is.null(pt) || is.null(gene) || is.null(test.dyn.res)) { stop("You forgot one or more of the arguments to plotModels().") }
   if ((is.gee || is.glmm) && is.null(id.vec)) { stop("id.vec must be provided to plotModels() when running in GEE or GLMM mode.") }
+  cor.structure <- tolower(cor.structure)
+  if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a specified correlation structure.") }
   # get raw counts from SingleCellExperiment, Seurat, or CellDataSets object
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)

@@ -6,8 +6,6 @@
 #' @author Jack R. Leary
 #' @importFrom gamlss gamlss
 #' @importFrom stats fitted.values
-#' @importFrom Matrix diag t
-#' @importFrom MASS ginv
 #' @description A function that calculates parts of the score statistic for GLMs only (it is used for the full path for forward selection).
 #' @param Y : The response variable Defaults to NULL.
 #' @param B_null : Design matrix under the null model. Defaults to NULL.
@@ -29,8 +27,8 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   mu_est <- as.matrix(stats::fitted.values(ests))
   V_est <- mu_est * (1 + mu_est * sigma_est)  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
   VS_est_list <- (Y - mu_est) / V_est
-  mu_V_diag <- Matrix::diag(c(mu_est^2 / V_est))
-  temp_prod <- eigenMapMatMult(A = Matrix::t(B_null),
+  mu_V_diag <- diag(c(mu_est^2 / V_est))
+  temp_prod <- eigenMapMatMult(A = t(B_null),
                                B = mu_V_diag,
                                n_cores = 1)
   A_list_inv <- eigenMapMatMult(A = temp_prod,
@@ -39,12 +37,12 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   if (ncol(A_list_inv) == 1 && nrow(A_list_inv) == 1) {
     A_list <- 1 / A_list_inv
   } else {
-    A_list <- try({ solve(A_list_inv) }, silent = TRUE)
+    A_list <- try({ eigenMapMatrixInvert(A_list_inv, n_cores = 1L) }, silent = TRUE)
     if (inherits(A_list, "try-error")) {
-      A_list <- MASS::ginv(A_list_inv)
+      A_list <- eigenMapPseudoInverse(A_list_inv, n_cores = 1L)
     }
   }
-  B1_list <- eigenMapMatMult(A = Matrix::t(B_null),
+  B1_list <- eigenMapMatMult(A = t(B_null),
                              B = mu_V_diag,
                              n_cores = 1)
   res <- list(VS.est_list = VS_est_list,

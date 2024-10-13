@@ -5,8 +5,6 @@
 #' @author David I. Warton
 #' @author Jack R. Leary
 #' @importFrom RcppEigen fastLmPure
-#' @importFrom Matrix solve
-#' @importFrom MASS ginv
 #' @description Calculate the score statistic for a GLM model.
 #' @param Y The response variable. Defaults to NULL.
 #' @param VS.est_list A product of matrices. Defaults to NULL.
@@ -54,9 +52,9 @@ score_fun_glm <- function(Y = NULL,
     B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i),
                              B = XA,
                              n_cores = 1)
-    XVX_22 <- try({ Matrix::solve(inv.XVX_22) }, silent = TRUE)
+    XVX_22 <- try({ eigenMapMatrixInvert(inv.XVX_22, n_cores = 1L) }, silent = TRUE)
     if (inherits(XVX_22, "try-error")) {
-      XVX_22 <- MASS::ginv(inv.XVX_22)
+      XVX_22 <- eigenMapPseudoInverse(inv.XVX_22, n_cores = 1L)
     }
     temp_prod <- eigenMapMatMult(A = B.est,
                                  B = XVX_22,

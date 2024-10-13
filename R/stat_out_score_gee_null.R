@@ -5,9 +5,8 @@
 #' @author David I. Warton
 #' @author Jack R. Leary
 #' @importFrom geeM geem
-#' @importFrom MASS negative.binomial ginv
+#' @importFrom MASS negative.binomial
 #' @importFrom stats fitted.values
-#' @importFrom Matrix solve
 #' @description A function that calculates parts of the score statistic for GEEs only (it is used for the full path for forward selection).
 #' @param Y The response variable Defaults to NULL.
 #' @param B_null The design matrix matrix under the null model Defaults to NULL.
@@ -73,9 +72,9 @@ stat_out_score_gee_null <- function(Y = NULL,
     V_est_i <- eigenMapMatMult(A = temp_prod,
                                B = diag_sqrt_V_est,
                                n_cores = 1)
-    V_est_i_inv <- try({ Matrix::solve(V_est_i) }, silent = TRUE)
+    V_est_i_inv <- try({ eigenMapMatrixInvert(V_est_i, n_cores = 1L) }, silent = TRUE)
     if (inherits(V_est_i_inv, "try-error")) {
-      V_est_i_inv <- MASS::ginv(V_est_i)
+      V_est_i_inv <- eigenMapPseudoInverse(V_est_i, n_cores = 1L)
     }
     S_est_i <- t(Y)[temp_seq_n] - mu_est_sub
     temp_prod <- eigenMapMatMult(A = S_est_i,
@@ -121,9 +120,9 @@ stat_out_score_gee_null <- function(Y = NULL,
   if (nrow(J11) == 1 && ncol(J11) == 1) {
     J11_inv <- 1 / J11
   } else {
-    J11_inv <- try({ Matrix::solve(J11) }, silent = TRUE)
+    J11_inv <- try({ eigenMapMatrixInvert(J11, n_cores = 1L) }, silent = TRUE)
     if (inherits(J11_inv, "try-error")) {
-      J11_inv <- MASS::ginv(J11)
+      J11_inv <- eigenMapPseudoInverse(J11, n_cores = 1L)
     }
   }
   temp_prod <- eigenMapMatMult(A = J11_inv,

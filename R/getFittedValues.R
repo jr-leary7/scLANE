@@ -44,6 +44,9 @@ getFittedValues <- function(test.dyn.res = NULL,
   if (inherits(expr.mat, "SingleCellExperiment")) {
     expr.mat <- BiocGenerics::counts(expr.mat)[genes, , drop = FALSE]
     expr.mat <- as.matrix(expr.mat)
+  } else if (inherits(expr.mat, "cell_data_set")) {
+    expr.mat <- BiocGenerics::counts(expr.mat)[genes, , drop = FALSE]
+    expr.mat <- as.matrix(expr.mat)
   } else if (inherits(expr.mat, "Seurat")) {
     expr.mat <- Seurat::GetAssayData(expr.mat,
                                      slot = "counts",
@@ -104,7 +107,7 @@ getFittedValues <- function(test.dyn.res = NULL,
                                                     scLANE_pred = exp(scLANE_pred_link),
                                                     scLANE_ci_ll = exp(scLANE_pred_link - Z * scLANE_se_link),
                                                     scLANE_ci_ul = exp(scLANE_pred_link + Z * scLANE_se_link))
-                           if (!is.null(size.factor.offset)) {
+                           if (!is.null(size.factor.offset) & !is.gee) {
                              gene_df <- dplyr::mutate(gene_df,
                                                       dplyr::across(c(rna, scLANE_pred, scLANE_ci_ll, scLANE_ci_ul), \(m) m * size_factor))
                            }

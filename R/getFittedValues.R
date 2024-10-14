@@ -14,6 +14,7 @@
 #' @param size.factor.offset (Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.
 #' @param log1p.norm (Optional) Should log1p-normalized versions of expression & model predictions be returned as well? Defaults to TRUE.
 #' @param cell.meta.data (Optional) A data.frame of metadata values for each cell (celltype label, subject characteristics, tissue type, etc.) that will be included in the result table. Defaults to NULL.
+#' @param is.gee Was the GEE mode used to fit the models? Defaults to FALSE. 
 #' @param id.vec (Optional) A vector of subject IDs used in fitting GEE or GLMM models. Defaults to NULL.
 #' @param ci.alpha (Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
 #' @param filter.lineage (Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.
@@ -35,6 +36,7 @@ getFittedValues <- function(test.dyn.res = NULL,
                             size.factor.offset = NULL,
                             log1p.norm = TRUE,
                             cell.meta.data = NULL,
+                            is.gee = FALSE, 
                             id.vec = NULL,
                             ci.alpha = 0.05,
                             filter.lineage = NULL) {

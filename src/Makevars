@@ -7,4 +7,5 @@
 CXX_STD = CXX11
 
 ## enable CPU speedups
-CXXFLAGS += -O3 -march=native
+PKG_CXXFLAGS += -O3 -march=native -mfma
+PKG_CXX11FLAGS += -O3 -march=native -mfma

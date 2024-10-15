@@ -1,3 +1,9 @@
+# Changes in v0.8.5
+
++ Minor bug fixes. 
++ More improved matrix operations using `RcppEigen`. 
++ Improved support for `cell_data_set` objects from `monocle3`. 
+
 # Changes in v0.8.4
 
 + Minor bug fixes. 

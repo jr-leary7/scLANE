@@ -4,14 +4,14 @@
 #' @author Jack R. Leary
 #' @importFrom dplyr arrange
 #' @description Since the GEE & GLMM modes require data to be sorted by sample ID and pseudotime, this function provides a simple way to do so for a range of inputs.
-#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
+#' @param expr.mat Either a \code{SingleCellExperiment}, \code{Seurat}, or \code{cell_data_set} object from which cell-level metadata can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.
 #' @param pt.vec A vector of pseudotime values used to sort the observations. May contain NA values. Defaults to NULL.
 #' @param id.vec A vector of subject IDs used to sort the observations. Defaults to NULL.
 #' @return An object of the same class as the input \code{expr.mat}, but sorted by sample ID & pseudotime.
 #' @details
 #' \itemize{
 #' \item If the input is a matrix, it is assumed that the columns are cells - and are named as such - and the rows are genes.
-#' \item If the input is a Seurat object, sorting requires converting to \code{SingleCellExperiment} object first, then ordering, then converting back toa \code{Seurat} object. Some information might be lost, so it is recommended not to overwrite your original \code{Seurat} object.
+#' \item If the input is a \code{Seurat} object, sorting requires converting to \code{SingleCellExperiment} object first, then ordering, then converting back to a \code{Seurat} object. Some information might be lost, so it is recommended not to overwrite your original \code{Seurat} object.
 #' }
 #' @export
 #' @examples
@@ -36,7 +36,7 @@ sortObservations <- function(expr.mat = NULL,
                             ID,
                             PT)
   # sort object by cells
-  if (inherits(expr.mat, "SingleCellExperiment") || inherits(expr.mat, "matrix") || inherits(expr.mat, "dgCMatrix")) {
+  if (inherits(expr.mat, "SingleCellExperiment") || inherits(expr.mat, "cell_data_set") || inherits(expr.mat, "matrix") || inherits(expr.mat, "dgCMatrix")) {
     expr.mat <- expr.mat[, subj_df$Cell]
   } else if (inherits(expr.mat, "Seurat")) {
     warning("Ordering a Seurat object requires conversion to SingleCellExperiment, and some information might be lost.")

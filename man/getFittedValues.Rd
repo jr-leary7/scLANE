@@ -12,6 +12,7 @@ getFittedValues(
   size.factor.offset = NULL,
   log1p.norm = TRUE,
   cell.meta.data = NULL,
+  is.gee = FALSE,
   id.vec = NULL,
   ci.alpha = 0.05,
   filter.lineage = NULL
@@ -31,6 +32,8 @@ getFittedValues(
 \item{log1p.norm}{(Optional) Should log1p-normalized versions of expression & model predictions be returned as well? Defaults to TRUE.}
 
 \item{cell.meta.data}{(Optional) A data.frame of metadata values for each cell (celltype label, subject characteristics, tissue type, etc.) that will be included in the result table. Defaults to NULL.}
+
+\item{is.gee}{Was the GEE mode used to fit the models? Defaults to FALSE.}
 
 \item{id.vec}{(Optional) A vector of subject IDs used in fitting GEE or GLMM models. Defaults to NULL.}
 

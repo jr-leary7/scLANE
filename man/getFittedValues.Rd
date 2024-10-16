@@ -25,7 +25,7 @@ getFittedValues(
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment}, \code{Seurat}, or \code{cell_data_set} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
 
 \item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
 
@@ -39,7 +39,7 @@ getFittedValues(
 
 \item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 
-\item{filter.lineage}{(Optional) A character vector of lineages to filter out before generating the final plot. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.}
+\item{filter.lineage}{(Optional) A character vector of lineages to filter out. Should be letters, i.e. lineage "A" or "B". Defaults to NULL.}
 }
 \value{
 A data.frame containing depth- and log1p-normalized expression, model predictions, and cell-level metadata.

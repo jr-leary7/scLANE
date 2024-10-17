@@ -24,7 +24,8 @@
 #' @param size.factor.offset (Optional) An offset to be included in the final model fit. Can be generated easily with \code{\link{createCellOffset}}. Defaults to NULL.
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
-#' @param gee.bias.correction.method Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.
+#' @param gee.bias.correction.method (Optional) Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.
+#' @param gee.scale.fix (Optional) Boolean specifying whether the dispersion should be estimated from the data or held fixed at 1 when fitting in GEE mode. Defaults to FALSE.
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.
@@ -63,6 +64,7 @@ testDynamic <- function(expr.mat = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
                         gee.bias.correction.method = NULL,
+                        gee.scale.fix = FALSE,
                         is.glmm = FALSE,
                         glmm.adaptive = TRUE,
                         id.vec = NULL,
@@ -73,7 +75,7 @@ testDynamic <- function(expr.mat = NULL,
                         random.seed = 312) {
   # check inputs
   if (is.null(expr.mat) || is.null(pt)) { stop("You forgot some inputs to testDynamic().") }
-  
+
   # get raw counts from SingleCellExperiment or Seurat object & transpose to cell x gene dense matrix
   if (is.null(genes)) {
     genes <- rownames(expr.mat)
@@ -144,7 +146,7 @@ testDynamic <- function(expr.mat = NULL,
 
   # build list of objects to prevent from being sent to parallel workers
   necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correction.method",
-                      "verbose", "n_lineages", "id.vec", "cor.structure", "is.gee", "glmm.adaptive", "size.factor.offset")
+                      "verbose", "n_lineages", "id.vec", "cor.structure", "is.gee", "gee.scale.fix", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
                    ls()[-which(ls() %in% necessary_vars)])
@@ -186,11 +188,12 @@ testDynamic <- function(expr.mat = NULL,
                  Y = expr.mat[lineage_cells, i],
                  Y.offset = size.factor.offset[lineage_cells],
                  is.gee = is.gee,
+                 gee.scale.fix = gee.scale.fix,
                  id.vec = id.vec[lineage_cells],
                  cor.structure = cor.structure,
                  sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE),
                  M = n.potential.basis.fns,
-                 approx.knot = approx.knot, 
+                 approx.knot = approx.knot,
                  return.basis = TRUE)
         }, silent = TRUE)
       } else if (is.glmm) {
@@ -241,7 +244,7 @@ testDynamic <- function(expr.mat = NULL,
                      data = null_mod_df,
                      family = MASS::negative.binomial(theta_hat),
                      corstr = cor.structure,
-                     scale.fix = FALSE,
+                     scale.fix = gee.scale.fix,
                      sandwich = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
         }, silent = TRUE)
       } else if (is.glmm) {

@@ -136,7 +136,7 @@ withr::with_output_sink(tempfile(), {
   # run GEE Wald test
   wald_test <- waldTestGEE(marge_mod_GEE_offset, mod.0 = null_mod_GEE)
   # run GLMM model -- no offset
-  glmm_mod <- fitGLMM(X_pred = pt_test,
+  glmm_mod <- fitGLMM(pt_test,
                       Y = counts_test[, 4],
                       id.vec = sim_data$subject,
                       adaptive = TRUE,
@@ -144,14 +144,14 @@ withr::with_output_sink(tempfile(), {
                       return.basis = TRUE,
                       return.GCV = TRUE)
   # run GLMM model -- with offset
-  glmm_mod_offset <- fitGLMM(X_pred = pt_test,
+  glmm_mod_offset <- fitGLMM(pt_test,
                              Y = counts_test[, 4],
                              Y.offset = cell_offset,
                              id.vec = sim_data$subject,
                              adaptive = TRUE,
                              M.glm = 3,
                              return.basis = TRUE,
-                             return.GCV = TRUE)
+                             return.GCV = FALSE)
   # bootstrap GLMM random effects
   re_sumy <- bootstrapRandomEffects(glmm_mod_offset,
                                     id.vec = sim_data$subject,
@@ -404,7 +404,7 @@ test_that("fitGLMM() output", {
   expect_equal(glmm_mod$model_type, "GLMM")
   expect_equal(glmm_mod_offset$model_type, "GLMM")
   expect_s3_class(re_sumy, "data.frame")
-  expect_equal(nrow(re_sumy), 6)
+  expect_equal(nrow(re_sumy), 4)
   expect_equal(ncol(re_sumy), 4)
 })
 

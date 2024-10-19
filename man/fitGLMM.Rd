@@ -12,6 +12,7 @@ fitGLMM(
   adaptive = TRUE,
   approx.knot = TRUE,
   M.glm = 3,
+  reg.penalty = "snet",
   return.basis = FALSE,
   return.GCV = FALSE,
   verbose = FALSE
@@ -31,6 +32,8 @@ fitGLMM(
 \item{approx.knot}{Should knot approximation be used in the calls to \code{\link{marge2}}? This speeds up computation somewhat. Defaults to TRUE.}
 
 \item{M.glm}{The number of possible basis functions to use in the calls to \code{\link{marge2}} when choosing basis functions adaptively.}
+
+\item{reg.penalty}{(Optional) String specifying the penalty type to be used when fitting a regularized negative-binomial model to select optimal basis functions. Defaults to "snet".}
 
 \item{return.basis}{(Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE.}
 
@@ -54,6 +57,8 @@ glmm_mod <- fitGLMM(X_pred = sim_pseudotime,
                     id.vec = sim_counts$subject)
 }
 \seealso{
+\code{\link[mpath]{glmregNB}}
+
 \code{\link[glmmTMB]{glmmTMB}}
 
 \code{\link{testDynamic}}

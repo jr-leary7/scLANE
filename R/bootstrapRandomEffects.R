@@ -113,10 +113,29 @@ bootstrapRandomEffects <- function(glmm.mod = NULL,
       parallel::stopCluster(cl)
     }
   })
+  # clean up potential errors with warning
+  error_count <- 0
+  ranef_boot <- purrr::map(ranef_boot, \(x) {
+    if (inherits(x, "simpleError")) {
+      error_df <- data.frame(iter = NA_real_, 
+                             subject = NA_character_, 
+                             term = NA_character_, 
+                             effect = NA_real_)
+      error_count <- error_count + 1
+      return(error_df)
+    } else {
+      return(x)
+    }
+  })
+  if (error_count > 0) {
+    warning(paste0(error_count, " bootstrap summaries failed, likely due to computationally singular effects matrices. Take caution."))
+  }
   # summarize bootstrap resample
   lower_bound <- alpha / 2
   upper_bound <- 1 - alpha / 2
   ranef_sumy <- purrr::reduce(ranef_boot, rbind) %>%
+                as.data.frame() %>% 
+                na.omit() %>% 
                 dplyr::with_groups(c(subject, term),
                                    dplyr::summarise,
                                    QL = stats::quantile(effect, probs = lower_bound),

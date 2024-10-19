@@ -878,7 +878,7 @@ marge2 <- function(X_pred = NULL,
                 WIC_mtx = NULL,
                 GCV = NULL,
                 model_type = "GLMM",
-                coef_names = NULL,
+                coef_names = colnames(model_df),
                 marge_coef_names = colnames(B_final))
   }
 

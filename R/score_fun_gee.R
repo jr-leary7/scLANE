@@ -99,7 +99,7 @@ score_fun_gee <- function(Y = NULL,
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
     Sigma_inv <- try({ eigenMapMatrixInvert(Sigma, n_cores = 1L) }, silent = TRUE)
     if (inherits(Sigma_inv, "try-error")) {
-      Sigma_inv <- MASS::ginv(Sigma)
+      Sigma_inv <- eigenMapPseudoInverse(Sigma, n_cores = 1L)
     }
     temp_prod <- eigenMapMatMult(A = t(B.est),
                                  B = Sigma_inv,

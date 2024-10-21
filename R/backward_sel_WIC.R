@@ -37,6 +37,7 @@ backward_sel_WIC <- function(Y = NULL,
                       id = id.vec,
                       corstr = cor.structure,
                       family = MASS::negative.binomial(theta.hat, link = "log"),
+                      scale.fix = TRUE,
                       sandwich = sandwich.var)
     wald_stat <- unname(summary(fit)$wald.test[-1])^2
   } else {

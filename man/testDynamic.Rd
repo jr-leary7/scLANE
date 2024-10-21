@@ -12,7 +12,6 @@ testDynamic(
   is.gee = FALSE,
   cor.structure = "ar1",
   gee.bias.correction.method = NULL,
-  gee.scale.fix = FALSE,
   is.glmm = FALSE,
   glmm.adaptive = TRUE,
   id.vec = NULL,
@@ -37,8 +36,6 @@ testDynamic(
 \item{cor.structure}{If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".}
 
 \item{gee.bias.correction.method}{(Optional) Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.}
-
-\item{gee.scale.fix}{(Optional) Boolean specifying whether the dispersion should be estimated from the data or held fixed at 1 when fitting in GEE mode. Defaults to FALSE.}
 
 \item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
 

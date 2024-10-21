@@ -26,7 +26,6 @@
 #' @param approx.knot (Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.
 #' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses random sampling (don't worry, a random seed is set internally) to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.
 #' @param glm.backend (Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".
-#' @param gee.scale.fix (Optional) Boolean specifying whether the dispersion should be estimated from the data or held fixed at 1 when fitting in GEE mode. Defaults to FALSE.
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
 #' @param minspan (Optional) A set minimum span value. Defaults to NULL.
 #' @param return.basis (Optional) Whether the basis model matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.
@@ -66,7 +65,6 @@ marge2 <- function(X_pred = NULL,
                    approx.knot = TRUE,
                    n.knot.max = 50,
                    glm.backend = "MASS",
-                   gee.scale.fix = FALSE,
                    tols_score = 1e-5,
                    minspan = NULL,
                    return.basis = FALSE,
@@ -838,7 +836,7 @@ marge2 <- function(X_pred = NULL,
                               id = id.vec,
                               family = MASS::negative.binomial(theta_hat, link = log),
                               corstr = cor.structure,
-                              scale.fix = gee.scale.fix,
+                              scale.fix = TRUE,
                               sandwich = sandwich.var)
     } else {
       if (glm.backend == "MASS") {

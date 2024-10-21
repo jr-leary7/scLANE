@@ -1,3 +1,7 @@
+# Changes in v0.8.6
+
++ Changed GEE fitting to use `scale.fix = TRUE` throughout the package, as it appears to be faster and more statistically efficient based on simulated data benchmarking. 
+
 # Changes in v0.8.5
 
 + Minor bug fixes. 

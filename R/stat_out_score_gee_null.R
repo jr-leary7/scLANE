@@ -36,8 +36,8 @@ stat_out_score_gee_null <- function(Y = NULL,
                      data = NULL,
                      corstr = cor.structure,
                      family = MASS::negative.binomial(theta.hat),
-                     scale.fix = FALSE,
-                     sandwich = FALSE, 
+                     scale.fix = TRUE,
+                     sandwich = FALSE,
                      maxit = 10)
   alpha_est <- ests$alpha
   sigma_est <- ests$phi

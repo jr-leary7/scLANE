@@ -7,6 +7,7 @@
 + Minor bug fixes. 
 + More improved matrix operations using `RcppEigen`. 
 + Improved support for `cell_data_set` objects from `monocle3`. 
++ Sped up GLMM mode. 
 
 # Changes in v0.8.4
 

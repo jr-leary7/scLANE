@@ -45,7 +45,7 @@ fitGLMM(
 An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
 }
 \description{
-Fits a negative binomial generalized linear mixed model using truncated power basis function splines as input. The basis matrix can be created adaptively using subject-specific estimation of optimal knots using \code{\link{marge2}}, or basis functions can be evenly space across quantiles. The resulting model can output subject-specific and population-level fitted values.
+Fits a negative-binomial generalized linear mixed model using truncated power basis function splines as input. The basis matrix can be created adaptively using subject-specific estimation of optimal knots using \code{\link{marge2}}, or basis functions can be evenly spaced across quantiles. The resulting model can output subject-specific and population-level fitted values.
 }
 \examples{
 data(sim_counts)

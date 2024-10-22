@@ -57,56 +57,28 @@ score_fun_gee <- function(Y = NULL,
       AWA.est_i <- AWA.est_list[[i]]
       J2_i <- J2_list[[i]]
       Sigma2_i <- Sigma2_list[[i]]
-      D.est_i <- eigenMapMatMult(A = diag(mu.est[(sum(n_vec1[seq(i)]) + 1):k], nrow = n_vec[i], ncol = n_vec[i]),
-                                 B = XA[(sum(n_vec1[seq(i)]) + 1):k, ],
-                                 n_cores = 1)
+      D.est_i <- eigenMapMatMult(A = diag(mu.est[(sum(n_vec1[seq(i)]) + 1):k], nrow = n_vec[i], ncol = n_vec[i]), B = XA[(sum(n_vec1[seq(i)]) + 1):k, ])
       D_est_i_transpose <- t(D.est_i)
-      J21 <- J21 + eigenMapMatMult(A = D_est_i_transpose,
-                                   B = t(J2_i),
-                                   n_cores = 1)
-      Sigma21 <- Sigma21 + eigenMapMatMult(A = D_est_i_transpose,
-                                           B = t(Sigma2_i),
-                                           n_cores = 1)
-      B.est <- B.est + eigenMapMatMult(A = D_est_i_transpose,
-                                       B = VS.est_i,
-                                       n_cores = 1)
-      temp_prod <- eigenMapMatMult(A = D_est_i_transpose,
-                                   B = AWA.est_i,
-                                   n_cores = 1)
-      Sigma22 <- Sigma22 + eigenMapMatMult(A = temp_prod,
-                                           B = D.est_i,
-                                           n_cores = 1)
+      J21 <- J21 + eigenMapMatMult(A = D_est_i_transpose, B = t(J2_i))
+      Sigma21 <- Sigma21 + eigenMapMatMult(A = D_est_i_transpose, B = t(Sigma2_i))
+      B.est <- B.est + eigenMapMatMult(A = D_est_i_transpose, B = VS.est_i)
+      temp_prod <- eigenMapMatMult(A = D_est_i_transpose, B = AWA.est_i)
+      Sigma22 <- Sigma22 + eigenMapMatMult(A = temp_prod, B = D.est_i)
     }
-    temp_prod_1 <- eigenMapMatMult(A = J21,
-                                   B = J11.inv,
-                                   n_cores = 1)
-    temp_prod_1 <- eigenMapMatMult(A = temp_prod_1,
-                                   B = t(Sigma21),
-                                   n_cores = 1)
-    temp_prod_2 <- eigenMapMatMult(A = Sigma21,
-                                   B = J11.inv,
-                                   n_cores = 1)
+    temp_prod_1 <- eigenMapMatMult(A = J21, B = J11.inv)
+    temp_prod_1 <- eigenMapMatMult(A = temp_prod_1, B = t(Sigma21))
+    temp_prod_2 <- eigenMapMatMult(A = Sigma21, B = J11.inv)
     J21_transpose <- t(J21)
-    temp_prod_2 <- eigenMapMatMult(A = temp_prod_2,
-                                   B = J21_transpose,
-                                   n_cores = 1)
-    temp_prod_3 <- eigenMapMatMult(A = J21,
-                                   B = JSigma11,
-                                   n_cores = 1)
-    temp_prod_3 <- eigenMapMatMult(A = temp_prod_3,
-                                   B = J21_transpose,
-                                   n_cores = 1)
+    temp_prod_2 <- eigenMapMatMult(A = temp_prod_2, B = J21_transpose)
+    temp_prod_3 <- eigenMapMatMult(A = J21, B = JSigma11)
+    temp_prod_3 <- eigenMapMatMult(A = temp_prod_3, B = J21_transpose)
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
-    Sigma_inv <- try({ eigenMapMatrixInvert(Sigma, n_cores = 1L) }, silent = TRUE)
+    Sigma_inv <- try({ eigenMapMatrixInvert(Sigma) }, silent = TRUE)
     if (inherits(Sigma_inv, "try-error")) {
-      Sigma_inv <- eigenMapPseudoInverse(Sigma, n_cores = 1L)
+      Sigma_inv <- eigenMapPseudoInverse(Sigma)
     }
-    temp_prod <- eigenMapMatMult(A = t(B.est),
-                                 B = Sigma_inv,
-                                 n_cores = 1)
-    score <- eigenMapMatMult(A = temp_prod,
-                             B = B.est,
-                             n_cores = 1)
+    temp_prod <- eigenMapMatMult(A = t(B.est), B = Sigma_inv)
+    score <- eigenMapMatMult(A = temp_prod, B = B.est)
   }
   res <- list(score = score)
   return(res)

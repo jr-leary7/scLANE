@@ -36,32 +36,18 @@ score_fun_glm <- function(Y = NULL,
     VS.est_i <- unlist(VS.est_list)
     A_list_i <- unlist(A_list)
     B1_list_i <- unlist(B1_list)
-    B_list_i <- eigenMapMatMult(A = B1_list_i,
-                                B = XA,
-                                n_cores = 1)
-    D_list_i <- eigenMapMatMult(A = t(XA),
-                                B = (XA * c(mu.est^2 / V.est)),
-                                n_cores = 1)
-    temp_prod <- eigenMapMatMult(A = t(B_list_i),
-                                 B = A_list_i,
-                                 n_cores = 1)
-    temp_prod <- eigenMapMatMult(A = temp_prod,
-                                 B = B_list_i,
-                                 n_cores = 1)
+    B_list_i <- eigenMapMatMult(A = B1_list_i, B = XA)
+    D_list_i <- eigenMapMatMult(A = t(XA), B = (XA * c(mu.est^2 / V.est)))
+    temp_prod <- eigenMapMatMult(A = t(B_list_i), B = A_list_i)
+    temp_prod <- eigenMapMatMult(A = temp_prod, B = B_list_i)
     inv.XVX_22 <- D_list_i - temp_prod
-    B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i),
-                             B = XA,
-                             n_cores = 1)
-    XVX_22 <- try({ eigenMapMatrixInvert(inv.XVX_22, n_cores = 1L) }, silent = TRUE)
+    B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i), B = XA)
+    XVX_22 <- try({ eigenMapMatrixInvert(inv.XVX_22) }, silent = TRUE)
     if (inherits(XVX_22, "try-error")) {
-      XVX_22 <- eigenMapPseudoInverse(inv.XVX_22, n_cores = 1L)
+      XVX_22 <- eigenMapPseudoInverse(inv.XVX_22)
     }
-    temp_prod <- eigenMapMatMult(A = B.est,
-                                 B = XVX_22,
-                                 n_cores = 1)
-    score <- eigenMapMatMult(A = temp_prod,
-                             B = t(B.est),
-                             n_cores = 1)
+    temp_prod <- eigenMapMatMult(A = B.est, B = XVX_22)
+    score <- eigenMapMatMult(A = temp_prod, B = t(B.est))
   }
   res <- list(score = score)
   return(res)

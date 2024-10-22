@@ -28,23 +28,17 @@ stat_out_score_glm_null <- function(Y = NULL, B_null = NULL) {
   V_est <- mu_est * (1 + mu_est * sigma_est)  # Type I NB variance = mu (1 + mu * sigma); sigma = 1 / theta
   VS_est_list <- (Y - mu_est) / V_est
   mu_V_diag <- diag(c(mu_est^2 / V_est))
-  temp_prod <- eigenMapMatMult(A = t(B_null),
-                               B = mu_V_diag,
-                               n_cores = 1)
-  A_list_inv <- eigenMapMatMult(A = temp_prod,
-                                B = B_null,
-                                n_cores = 1)
+  temp_prod <- eigenMapMatMult(A = t(B_null), B = mu_V_diag)
+  A_list_inv <- eigenMapMatMult(A = temp_prod, B = B_null)
   if (ncol(A_list_inv) == 1 && nrow(A_list_inv) == 1) {
     A_list <- 1 / A_list_inv
   } else {
-    A_list <- try({ eigenMapMatrixInvert(A_list_inv, n_cores = 1L) }, silent = TRUE)
+    A_list <- try({ eigenMapMatrixInvert(A_list_inv) }, silent = TRUE)
     if (inherits(A_list, "try-error")) {
-      A_list <- eigenMapPseudoInverse(A_list_inv, n_cores = 1L)
+      A_list <- eigenMapPseudoInverse(A_list_inv)
     }
   }
-  B1_list <- eigenMapMatMult(A = t(B_null),
-                             B = mu_V_diag,
-                             n_cores = 1)
+  B1_list <- eigenMapMatMult(A = t(B_null), B = mu_V_diag)
   res <- list(VS.est_list = VS_est_list,
               A_list = A_list,
               B1_list = B1_list,

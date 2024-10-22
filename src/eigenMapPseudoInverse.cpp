@@ -3,10 +3,12 @@
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::export]]
 
-Eigen::MatrixXd eigenMapPseudoInverse(const Eigen::Map<Eigen::MatrixXd> A, 
-                                      double tolerance = 1e-6, 
+Eigen::MatrixXd eigenMapPseudoInverse(const Eigen::Map<Eigen::MatrixXd> A,
+                                      double tolerance = 1e-6,
                                       int n_cores = 1) {
-  Eigen::setNbThreads(n_cores);
+  if (n_cores > 1) {
+    Eigen::setNbThreads(n_cores);
+  }
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::MatrixXd singularValues = svd.singularValues();
   Eigen::MatrixXd singularValuesInv(A.cols(), A.rows());

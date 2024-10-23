@@ -809,6 +809,12 @@ marge2 <- function(X_pred = NULL,
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
   model_df <- as.data.frame(B_final)
+  # remove duplicate hinge functions if present 
+  if (length(unique(colnames(model_df))) != ncol(model_df)) {
+    unique_cols <- which(!duplicated(as.list(model_df)))
+    B_final <- B_final[, unique_cols]
+    model_df <- model_df[, unique_cols]
+  }
   if (ncol(model_df) == 1) {
     colnames(model_df) <- c("Intercept")
     model_formula <- "Y ~ -1 + Intercept"
@@ -823,7 +829,7 @@ marge2 <- function(X_pred = NULL,
   }
   if (!is.glmm) {
     if (!is.null(Y.offset)) {
-      model_df <- dplyr::mutate(model_df, ßcell_offset = Y.offset)
+      model_df <- dplyr::mutate(model_df, cell_offset = Y.offset)
       model_formula <- paste0(model_formula, " + ", "offset(log(1 / cell_offset))")  # this is correct i promise
     }
     model_formula <- stats::as.formula(model_formula)

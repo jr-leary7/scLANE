@@ -8,7 +8,7 @@
 #' @description MARS fitting function for negative binomial generalized linear models (GLMs) & generalized estimating equations (GEEs).
 #' @import glm2
 #' @import magrittr
-#' @importFrom dplyr mutate ntile group_by sample_frac
+#' @importFrom dplyr mutate
 #' @importFrom geeM geem
 #' @importFrom MASS glm.nb negative.binomial theta.mm
 #' @importFrom utils tail
@@ -24,7 +24,7 @@
 #' @param cor.structure If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
 #' @param sandwich.var (Optional) Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.
 #' @param approx.knot (Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.
-#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses random sampling (don't worry, a random seed is set internally) to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.
+#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.
 #' @param glm.backend (Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
 #' @param minspan (Optional) A set minimum span value. Defaults to NULL.
@@ -180,9 +180,7 @@ marge2 <- function(X_pred = NULL,
       score_knot_both_add_mat <- NULL
       score_knot_one_int_mat <- NULL
       score_knot_one_add_mat <- NULL
-
       int.count1 <- 0
-
       in.set <- ifelse(ncol(B) > 1, sum(!var_name_vec %in% var_name), 0)
 
       for (t in seq_along(X_red)) {
@@ -811,6 +809,12 @@ marge2 <- function(X_pred = NULL,
   # Some final model output, WIC, GCV etc.
   B_final <- as.matrix(B[, colnames(B) %in% cnames_2[[which.min(WIC_vec_2)]]])
   model_df <- as.data.frame(B_final)
+  # remove duplicate hinge functions if present 
+  if (length(unique(colnames(model_df))) != ncol(model_df)) {
+    unique_cols <- which(!duplicated(as.list(model_df)))
+    B_final <- B_final[, unique_cols]
+    model_df <- model_df[, unique_cols]
+  }
   if (ncol(model_df) == 1) {
     colnames(model_df) <- c("Intercept")
     model_formula <- "Y ~ -1 + Intercept"
@@ -825,8 +829,7 @@ marge2 <- function(X_pred = NULL,
   }
   if (!is.glmm) {
     if (!is.null(Y.offset)) {
-      model_df <- dplyr::mutate(model_df,
-                                cell_offset = Y.offset)
+      model_df <- dplyr::mutate(model_df, cell_offset = Y.offset)
       model_formula <- paste0(model_formula, " + ", "offset(log(1 / cell_offset))")  # this is correct i promise
     }
     model_formula <- stats::as.formula(model_formula)

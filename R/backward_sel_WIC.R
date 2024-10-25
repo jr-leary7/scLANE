@@ -7,7 +7,7 @@
 #' @importFrom gamlss gamlss
 #' @importFrom geeM geem
 #' @importFrom MASS negative.binomial
-#' @importFrom stats vcov
+#' @importFrom stats vcov coef
 #' @param Y The response variable. Defaults to NULL.
 #' @param B_new The model matrix. Defaults to NULL.
 #' @param is.gee Is the model a GEE? Defaults to FALSE.
@@ -47,7 +47,7 @@ backward_sel_WIC <- function(Y = NULL,
     vcov_mat <- try({ stats::vcov(fit, type = "all") }, silent = TRUE)
     if (inherits(vcov_mat, "try-error")) {
       covmat_unscaled <- chol2inv(fit$mu.qr$qr[1:(fit$mu.df - fit$mu.nl.df), 1:(fit$mu.df - fit$mu.nl.df), drop = FALSE])
-      wald_stat <- unname(coef(fit) / sqrt(diag(covmat_unscaled))^2)[-1]
+      wald_stat <- unname(stats::coef(fit) / sqrt(diag(covmat_unscaled))^2)[-1]
     } else {
       wald_stat <- unname((vcov_mat$coef / vcov_mat$se)[-c(1, length(vcov_mat$coef))]^2)
     }

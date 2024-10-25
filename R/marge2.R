@@ -84,12 +84,10 @@ marge2 <- function(X_pred = NULL,
   }
   q <- ncol(X_pred)  # Number of predictor variables
   B <- as.matrix(rep(1, NN))  # Start with the intercept model.
-  # estimate "known" theta for GEE models
-  if (is.gee || !is.glmm) {
-    theta_hat <- MASS::theta.mm(y = Y,
-                                mu = mean(Y),
-                                dfr = NN - 1)
-  }
+  # estimate "known" theta for NB distribution
+  theta_hat <- MASS::theta.mm(y = Y,
+                              mu = mean(Y),
+                              dfr = NN - 1)
 
   pen <- 2  # penalty for GCV criterion -- could also switch to log(N) later
   colnames(B) <- "Intercept"
@@ -777,7 +775,13 @@ marge2 <- function(X_pred = NULL,
   colnames(wic_mat_2)[(ncol_B  + 1)] <- "Forward pass model"
 
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
-  wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
+  wic1_2 <- backward_sel_WIC(Y = Y, 
+                             B_new = B_new, 
+                             is.gee = is.gee, 
+                             id.vec = id.vec, 
+                             cor.structure = cor.structure, 
+                             theta.hat = theta_hat,
+                             sandwich.var = sandwich.var)
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
   WIC_2 <- sum(apply(wic_mat_2[seq(2), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new)
   WIC_vec_2 <- c(WIC_vec_2, WIC_2)
@@ -788,7 +792,12 @@ marge2 <- function(X_pred = NULL,
   cnames_2 <- c(cnames_2, list(colnames(B_new_2)))
   for (i in 2:(ncol_B - 1)) {
     wic1_2 <- backward_sel_WIC(Y = Y,
-                               B_new = B_new_2)
+                               B_new = B_new_2, 
+                               is.gee = is.gee, 
+                               id.vec = id.vec, 
+                               cor.structure = cor.structure, 
+                               theta.hat = theta_hat,
+                               sandwich.var = sandwich.var)
     if (i != (ncol_B - 1)) {
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
       WIC_2 <- sum(apply(wic_mat_2[seq(i + 1), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)

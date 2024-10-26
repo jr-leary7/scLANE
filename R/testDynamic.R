@@ -239,7 +239,7 @@ testDynamic <- function(expr.mat = NULL,
           geeM::geem(null_mod_formula,
                      id = null_mod_df$subject,
                      data = null_mod_df,
-                     family = MASS::negative.binomial(theta_hat),
+                     family = MASS::negative.binomial(50, link = "log"),
                      corstr = cor.structure,
                      scale.fix = TRUE,
                      sandwich = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
@@ -261,7 +261,7 @@ testDynamic <- function(expr.mat = NULL,
                        method = "glm.fit2",
                        y = FALSE,
                        model = FALSE,
-                       init.theta = theta_hat,
+                       init.theta = 1,
                        link = log)
         }, silent = TRUE)
         null_mod <- stripGLM(null_mod)

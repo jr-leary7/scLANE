@@ -63,7 +63,7 @@ marge2 <- function(X_pred = NULL,
                    cor.structure = "ar1",
                    sandwich.var = FALSE,
                    approx.knot = TRUE,
-                   n.knot.max = 50,
+                   n.knot.max = 25,
                    glm.backend = "MASS",
                    tols_score = 1e-5,
                    minspan = NULL,
@@ -84,10 +84,6 @@ marge2 <- function(X_pred = NULL,
   }
   q <- ncol(X_pred)  # Number of predictor variables
   B <- as.matrix(rep(1, NN))  # Start with the intercept model.
-  # estimate "known" theta for NB distribution
-  theta_hat <- MASS::theta.mm(y = Y,
-                              mu = mean(Y),
-                              dfr = NN - 1)
 
   pen <- 2  # penalty for GCV criterion -- could also switch to log(N) later
   colnames(B) <- "Intercept"
@@ -108,6 +104,7 @@ marge2 <- function(X_pred = NULL,
   breakFlag <- FALSE
   ok <- TRUE
   int.count <- 0
+  theta_hat <- 1
 
   while (ok) {  # this is such egregiously bad code lol
     if (breakFlag) {
@@ -165,6 +162,7 @@ marge2 <- function(X_pred = NULL,
           X_red <- seq(min(X_red),
                        max(X_red),
                        length.out = n.knot.max)
+          X_red <- round(X_red, 4)
         }
       } else {
         # original candidate knot selection from 2017 Stoklosa & Warton paper
@@ -775,13 +773,7 @@ marge2 <- function(X_pred = NULL,
   colnames(wic_mat_2)[(ncol_B  + 1)] <- "Forward pass model"
 
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
-  wic1_2 <- backward_sel_WIC(Y = Y, 
-                             B_new = B_new, 
-                             is.gee = is.gee, 
-                             id.vec = id.vec, 
-                             cor.structure = cor.structure, 
-                             theta.hat = theta_hat,
-                             sandwich.var = sandwich.var)
+  wic1_2 <- backward_sel_WIC(Y, B_new = B_new)
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
   WIC_2 <- sum(apply(wic_mat_2[seq(2), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new)
   WIC_vec_2 <- c(WIC_vec_2, WIC_2)
@@ -791,13 +783,7 @@ marge2 <- function(X_pred = NULL,
   B_new_2 <- as.matrix(B_new[, -(variable.lowest_2 + 1)])
   cnames_2 <- c(cnames_2, list(colnames(B_new_2)))
   for (i in 2:(ncol_B - 1)) {
-    wic1_2 <- backward_sel_WIC(Y = Y,
-                               B_new = B_new_2, 
-                               is.gee = is.gee, 
-                               id.vec = id.vec, 
-                               cor.structure = cor.structure, 
-                               theta.hat = theta_hat,
-                               sandwich.var = sandwich.var)
+    wic1_2 <- backward_sel_WIC(Y, B_new = B_new_2)
     if (i != (ncol_B - 1)) {
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
       WIC_2 <- sum(apply(wic_mat_2[seq(i + 1), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
@@ -846,9 +832,9 @@ marge2 <- function(X_pred = NULL,
       final_mod <- geeM::geem(model_formula,
                               data = model_df,
                               id = id.vec,
-                              family = MASS::negative.binomial(theta_hat, link = log),
+                              family = MASS::negative.binomial(50, link = log),
                               corstr = cor.structure,
-                              scale.fix = TRUE,
+                              scale.fix = FALSE,
                               sandwich = sandwich.var)
     } else {
       if (glm.backend == "MASS") {
@@ -856,14 +842,14 @@ marge2 <- function(X_pred = NULL,
                                   data = model_df,
                                   method = "glm.fit2",
                                   link = log,
-                                  init.theta = theta_hat,
+                                  init.theta = 1,
                                   y = FALSE,
                                   model = FALSE)
         final_mod <- stripGLM(glm.obj = final_mod)
       } else if (glm.backend == "speedglm") {
         final_mod <- speedglm::speedglm(model_formula,
                                         data = model_df,
-                                        family = MASS::negative.binomial(theta_hat, link = "log"),
+                                        family = MASS::negative.binomial(1, link = "log"),
                                         trace = FALSE,
                                         model = FALSE,
                                         y = FALSE,

@@ -35,10 +35,9 @@ stat_out_score_gee_null <- function(Y = NULL,
                      id = id.vec,
                      data = NULL,
                      corstr = cor.structure,
-                     family = MASS::negative.binomial(theta.hat),
-                     scale.fix = TRUE,
-                     sandwich = FALSE,
-                     maxit = 10)
+                     family = MASS::negative.binomial(50, link = "log"),
+                     scale.fix = FALSE,
+                     sandwich = FALSE)
   alpha_est <- ests$alpha
   sigma_est <- ests$phi
   mu_est <- as.matrix(stats::fitted.values(ests))

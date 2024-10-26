@@ -15,7 +15,7 @@ marge2(
   cor.structure = "ar1",
   sandwich.var = FALSE,
   approx.knot = TRUE,
-  n.knot.max = 50,
+  n.knot.max = 25,
   glm.backend = "MASS",
   tols_score = 1e-05,
   minspan = NULL,

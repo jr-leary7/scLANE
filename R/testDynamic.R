@@ -63,6 +63,7 @@ testDynamic <- function(expr.mat = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
                         gee.bias.correction.method = NULL,
+                        gee.test = "wald", 
                         is.glmm = FALSE,
                         glmm.adaptive = TRUE,
                         id.vec = NULL,
@@ -113,7 +114,9 @@ testDynamic <- function(expr.mat = NULL,
   if ((is.gee || is.glmm) && is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running testDynamic() with the GEE / GLMM backends.") }
   cor.structure <- tolower(cor.structure)
   if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a specified correlation structure.") }
-
+  # check GEE testing method
+  gee.test <- tolower(gee.test)
+  if (is.gee & !gee.test %in% c("wald", "score")) { stop("GEE testing method must be one of score or wald.") }
   # set up time tracking
   start_time <- Sys.time()
 
@@ -143,7 +146,7 @@ testDynamic <- function(expr.mat = NULL,
                                 is_read_only = TRUE)
 
   # build list of objects to prevent from being sent to parallel workers
-  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correction.method",
+  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correction.method", "gee.test", 
                       "verbose", "n_lineages", "id.vec", "cor.structure", "is.gee", "gee.scale.fix", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
@@ -325,7 +328,9 @@ testDynamic <- function(expr.mat = NULL,
      lineage_list[[j]] <- list(Gene = genes[i],
                                Lineage = LETTERS[j],
                                Test_Stat = NA_real_,
-                               Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+                               Test_Stat_Type = ifelse(is.gee, 
+                                                       ifelse(gee.test == "wald", "Wald", "Score"), 
+                                                       "LRT"),
                                Test_Stat_Note = NA_character_,
                                P_Val = NA_real_,
                                LogLik_MARGE = marge_sumy$ll_marge,
@@ -344,18 +349,28 @@ testDynamic <- function(expr.mat = NULL,
 
      # compute test stat using asymptotic Chi-squared approximation
      if (is.gee) {
-       test_res <- waldTestGEE(mod.1 = marge_mod,
-                               mod.0 = null_mod,
-                               correction.method = gee.bias.correction.method,
-                               id.vec = id.vec[lineage_cells],
-                               verbose = verbose)
+       if (gee.test == "wald") {
+         test_res <- waldTestGEE(mod.1 = marge_mod,
+                                 mod.0 = null_mod,
+                                 correction.method = gee.bias.correction.method,
+                                 id.vec = id.vec[lineage_cells],
+                                 verbose = verbose)
+       } else if (gee.test == "score") {
+         test_res <- scoreTestGEE(mod.1 = marge_mod, 
+                                  mod.0 = null_mod, 
+                                  alt.df = as.data.frame(marge_mod$basis_mtx), 
+                                  null.df = null_mod_df, 
+                                  sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
+       }
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,
                             mod.0 = null_mod,
                             is.glmm = is.glmm)
      }
      # add test stats to result list
-     lineage_list[[j]]$Test_Stat <- ifelse(is.gee, test_res$Wald_Stat, test_res$LRT_Stat)
+     lineage_list[[j]]$Test_Stat <- ifelse(is.gee, 
+                                           ifelse(gee.test == "wald", test_res$Wald_Stat, test_res$Score_Stat), 
+                                           test_res$LRT_Stat)
      lineage_list[[j]]$Test_Stat_Note <- test_res$Notes
      lineage_list[[j]]$P_Val <- test_res$P_Val
     }
@@ -380,7 +395,9 @@ testDynamic <- function(expr.mat = NULL,
         list(Gene = y,
              Lineage = LETTERS[z],
              Test_Stat = NA_real_,
-             Test_Stat_Type = ifelse(is.gee, "Wald", "LRT"),
+             Test_Stat_Type = ifelse(is.gee, 
+                                     ifelse(gee.test == "wald", "Wald", "Score"), 
+                                     "LRT"),
              Test_Stat_Note = NA_character_,
              P_Val = NA_real_,
              LogLik_MARGE = NA_real_,

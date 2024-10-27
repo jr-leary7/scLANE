@@ -12,6 +12,7 @@ testDynamic(
   is.gee = FALSE,
   cor.structure = "ar1",
   gee.bias.correction.method = NULL,
+  gee.test = "wald",
   is.glmm = FALSE,
   glmm.adaptive = TRUE,
   id.vec = NULL,

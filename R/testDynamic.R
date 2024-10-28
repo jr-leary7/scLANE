@@ -25,6 +25,7 @@
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
 #' @param gee.bias.correction.method (Optional) Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.
+#' @param gee.test A string specifying the type of test used to estimate the significance of the full model. Must be one of "wald" or "score". Defaults to "wald".
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.
@@ -215,11 +216,9 @@ testDynamic <- function(expr.mat = NULL,
       }
 
       # build formula for null model
-      null_mod_df <- data.frame(Y_null = expr.mat[lineage_cells, i],
-                                Intercept = 1)
+      null_mod_df <- data.frame(Y_null = expr.mat[lineage_cells, i], Intercept = 1)
       if (!is.null(id.vec)) {
-        null_mod_df <- dplyr::mutate(null_mod_df,
-                                     subject = id.vec[lineage_cells])
+        null_mod_df <- dplyr::mutate(null_mod_df, subject = id.vec[lineage_cells])
       }
       if (is.glmm) {
         null_mod_formula <- "Y_null ~ (1 | subject)"
@@ -227,13 +226,12 @@ testDynamic <- function(expr.mat = NULL,
         null_mod_formula <- "Y_null ~ -1 + Intercept"
       }
       if (!is.null(size.factor.offset)) {
-        null_mod_df <- dplyr::mutate(null_mod_df,
-                                     n_offset = size.factor.offset[lineage_cells])
+        null_mod_df <- dplyr::mutate(null_mod_df, n_offset = size.factor.offset[lineage_cells])
         null_mod_formula <- paste0(null_mod_formula, " + offset(log(1 / n_offset))")
       }
       null_mod_formula <- stats::as.formula(null_mod_formula)
 
-      # fit null model for comparison via Wald or LR test
+      # fit null model for comparison via Wald, Score, or LR test
       if (is.gee) {
         null_mod <- try({
           geeM::geem(null_mod_formula,
@@ -241,7 +239,7 @@ testDynamic <- function(expr.mat = NULL,
                      data = null_mod_df,
                      family = MASS::negative.binomial(50, link = log),
                      corstr = cor.structure,
-                     scale.fix = TRUE,
+                     scale.fix = FALSE,
                      sandwich = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
         }, silent = TRUE)
       } else if (is.glmm) {
@@ -264,7 +262,7 @@ testDynamic <- function(expr.mat = NULL,
         null_mod <- stripGLM(null_mod)
       }
 
-      # record model fit status
+      # record model fit status for both models
       if (inherits(marge_mod, "try-error")) {
         if (inherits(null_mod, "try-error")) {
           mod_status <- "MARGE model error, null model error"
@@ -288,7 +286,7 @@ testDynamic <- function(expr.mat = NULL,
                                     sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE),
                                     is.glmm = is.glmm)
 
-     # perform slope test
+     # generate data for slope test
      marge_slope_df <- createSlopeTestData(marge_mod,
                                            pt = pt[lineage_cells, j, drop = FALSE],
                                            is.gee = is.gee,

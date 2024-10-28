@@ -38,6 +38,8 @@ testDynamic(
 
 \item{gee.bias.correction.method}{(Optional) Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.}
 
+\item{gee.test}{A string specifying the type of test used to estimate the significance of the full model. Must be one of "wald" or "score". Defaults to "wald".}
+
 \item{is.glmm}{Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.}
 
 \item{glmm.adaptive}{(Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.}

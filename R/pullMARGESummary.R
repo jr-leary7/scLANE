@@ -20,7 +20,7 @@ pullMARGESummary <- function(marge.model = NULL,
                              sandwich.var = FALSE,
                              is.glmm = FALSE) {
   # check inputs
-  if (is.null(marge.model)) { stop("A null model must be provided to pullMARGESummary") }
+  if (is.null(marge.model)) { stop("A null model must be provided to pullMARGESummary().") }
   # handle the degenerate case
   if (inherits(marge.model, "try-error")) {
     res <- list(marge_pred_df = NULL,

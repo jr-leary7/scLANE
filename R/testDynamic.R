@@ -12,7 +12,7 @@
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom parallel makeCluster stopCluster clusterEvalQ clusterExport clusterSetRNGStream
 #' @importFrom withr with_output_sink
-#' @importFrom MASS glm.nb negative.binomial theta.mm
+#' @importFrom MASS glm.nb negative.binomial
 #' @importFrom dplyr rename mutate relocate
 #' @importFrom purrr imap reduce
 #' @importFrom stats predict logLik deviance offset
@@ -235,14 +235,11 @@ testDynamic <- function(expr.mat = NULL,
 
       # fit null model for comparison via Wald or LR test
       if (is.gee) {
-        theta_hat <- MASS::theta.mm(y = null_mod_df$Y_null,
-                                    mu = mean(null_mod_df$Y_null),
-                                    dfr = length(null_mod_df$subject) - 1)
         null_mod <- try({
           geeM::geem(null_mod_formula,
                      id = null_mod_df$subject,
                      data = null_mod_df,
-                     family = MASS::negative.binomial(50, link = "log"),
+                     family = MASS::negative.binomial(50, link = log),
                      corstr = cor.structure,
                      scale.fix = TRUE,
                      sandwich = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
@@ -255,9 +252,6 @@ testDynamic <- function(expr.mat = NULL,
                            se = TRUE)
         }, silent = TRUE)
       } else {
-        theta_hat <- MASS::theta.mm(y = null_mod_df$Y_null,
-                                    mu = mean(null_mod_df$Y_null),
-                                    dfr = length(null_mod_df$Y_null) - 1)
         null_mod <- try({
           MASS::glm.nb(null_mod_formula,
                        data = null_mod_df,
@@ -339,6 +333,7 @@ testDynamic <- function(expr.mat = NULL,
                                Dev_Null = null_sumy$null_dev,
                                Model_Status = mod_status,
                                MARGE_Fit_Notes = marge_sumy$marge_fit_notes,
+                               Null_Fit_Notes = null_sumy$null_fit_notes, 
                                Gene_Time = gene_time_end_numeric,
                                MARGE_Summary = marge_sumy$marge_sumy_df,
                                Null_Summary = null_sumy$null_sumy_df,
@@ -407,6 +402,7 @@ testDynamic <- function(expr.mat = NULL,
              Model_Status = x[1],
              Gene_Time = NA_real_,
              MARGE_Fit_Notes = NA_character_,
+             Null_Fit_Notes = NA_character_, 
              MARGE_Summary = NULL,
              Null_Summary = NULL,
              MARGE_Preds = NULL,

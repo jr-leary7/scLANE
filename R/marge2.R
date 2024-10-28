@@ -24,7 +24,7 @@
 #' @param cor.structure If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
 #' @param sandwich.var (Optional) Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.
 #' @param approx.knot (Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.
-#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.
+#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 25.
 #' @param glm.backend (Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
 #' @param minspan (Optional) A set minimum span value. Defaults to NULL.
@@ -634,13 +634,13 @@ marge2 <- function(X_pred = NULL,
       } else {
         var_name_list1 <- vector("list")
         if (trunc.type == 2) {
-          B_temp <- cbind(B, b1_new, b2_new) # Additive model with both truncated basis functions.
+          B_temp <- cbind(B, b1_new, b2_new)  # Additive model with both truncated basis functions.
           B_new <- cbind(b1_new, b2_new)
           B_names <- c(B_name1, B_name2)
           var_name_list1 <- c(var_name_list1, list(var_name))
           var_name_list1 <- c(var_name_list1, list(var_name))  # Repeat it because there are two new truncated basis function in the set.
         } else {
-          B_temp <- cbind(B, b1_new) # Additive model with one truncated basis function (i.e., the positive part).
+          B_temp <- cbind(B, b1_new)  # Additive model with one truncated basis function (i.e., the positive part).
           B_new <- b1_new
           B_names <- B_name1
           var_name_list1 <- c(var_name_list1, list(var_name))
@@ -849,7 +849,7 @@ marge2 <- function(X_pred = NULL,
       } else if (glm.backend == "speedglm") {
         final_mod <- speedglm::speedglm(model_formula,
                                         data = model_df,
-                                        family = MASS::negative.binomial(1, link = "log"),
+                                        family = MASS::negative.binomial(50, link = log),
                                         trace = FALSE,
                                         model = FALSE,
                                         y = FALSE,

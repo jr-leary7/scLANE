@@ -27,7 +27,7 @@ getResultsDE <- function(test.dyn.res = NULL,
                          fdr.cutoff = 0.01,
                          n.cores = 2L) {
   # check inputs
-  if (is.null(test.dyn.res)) { stop("Please provide a result list.") }
+  if (is.null(test.dyn.res)) { stop("Please provide a result list from testDynamic().") }
   if (!p.adj.method %in% stats::p.adjust.methods) { stop("Please choose a valid p-value adjustment method.") }
   # set up parallel processing
   if (n.cores > 1L) {
@@ -40,7 +40,7 @@ getResultsDE <- function(test.dyn.res = NULL,
                                      function(x) {
                                        purrr::map_dfr(x,
                                                       function(y) {
-                                                        as.data.frame(rbind(y[seq(13)])) %>%
+                                                        as.data.frame(rbind(y[seq(14)])) %>%
                                                           dplyr::mutate(dplyr::across(tidyselect::everything(), \(z) unname(unlist(z))))
                                                       })
                                      }) %>%

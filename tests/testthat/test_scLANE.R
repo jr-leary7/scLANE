@@ -127,14 +127,19 @@ withr::with_output_sink(tempfile(), {
                                  return.GCV = TRUE,
                                  return.WIC = TRUE)
   # fit null GEE model
-  null_mod_GEE <- geeM::geem(Y ~ 1 + offset(log(cell_offset)),
-                             family = MASS::negative.binomial(1),
+  null_mod_GEE <- geeM::geem(Y ~ 1 + offset(log(1 / cell_offset)),
+                             family = MASS::negative.binomial(50, link = log),
                              data = data.frame(Y = counts_test[, 3]),
                              corstr = "ar1",
                              scale.fix = FALSE,
                              sandwich = FALSE)
   # run GEE Wald test
   wald_test <- waldTestGEE(marge_mod_GEE_offset, mod.0 = null_mod_GEE)
+  # run GEE Score test
+  score_test <- scoreTestGEE(marge_mod_GEE_offset, 
+                             mod.0 = null_mod_GEE, 
+                             alt.df = as.data.frame(marge_mod_GEE_offset$basis_mtx), 
+                             null.df = data.frame(Y = counts_test[, 3]))
   # run GLMM model -- no offset
   glmm_mod <- fitGLMM(pt_test,
                       Y = counts_test[, 4],
@@ -386,6 +391,10 @@ test_that("Statistical testing output", {
   expect_length(wald_test, 4)
   expect_type(wald_test$P_Val, "double")
   expect_true(is.na(wald_test$Notes))
+  expect_type(score_test, "list")
+  expect_length(score_test, 4)
+  expect_type(score_test$P_Val, "double")
+  expect_true(is.na(score_test$Notes))
   expect_type(glm_lrt, "list")
   expect_length(glm_lrt, 7)
   expect_type(glm_lrt$P_Val, "double")

@@ -15,7 +15,7 @@ marge2(
   cor.structure = "ar1",
   sandwich.var = FALSE,
   approx.knot = TRUE,
-  n.knot.max = 50,
+  n.knot.max = 25,
   glm.backend = "MASS",
   tols_score = 1e-05,
   minspan = NULL,
@@ -45,7 +45,7 @@ marge2(
 
 \item{approx.knot}{(Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.}
 
-\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.}
+\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 25.}
 
 \item{glm.backend}{(Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".}
 

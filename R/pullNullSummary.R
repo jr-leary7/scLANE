@@ -20,7 +20,7 @@ pullNullSummary <- function(null.model = NULL,
                             sandwich.var = FALSE,
                             is.glmm = FALSE) {
   # check inputs
-  if (is.null(null.model)) { stop("A null model must be provided to pullNullSummary") }
+  if (is.null(null.model)) { stop("A null model must be provided to pullNullSummary().") }
   # handle the degenerate case
   if (inherits(null.model, "try-error")) {
     res <- list(null_sumy_df = NULL,
@@ -73,7 +73,8 @@ pullNullSummary <- function(null.model = NULL,
     res <- list(null_sumy_df = null_sumy_df,
                 null_pred_df = null_pred_df,
                 null_ll = ifelse(is.gee, NA_real_, as.numeric(stats::logLik(null.model))),
-                null_dev = ifelse(is.gee, NA_real_, stats::deviance(null.model)))
+                null_dev = ifelse(is.gee, NA_real_, stats::deviance(null.model)), 
+                null_fit_notes = NA_character_)
   }
   return(res)
 }

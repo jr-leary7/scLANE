@@ -24,7 +24,7 @@
 #' @param cor.structure If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".
 #' @param sandwich.var (Optional) Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.
 #' @param approx.knot (Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.
-#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 50.
+#' @param n.knot.max (Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 25.
 #' @param glm.backend (Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".
 #' @param tols_score (Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.
 #' @param minspan (Optional) A set minimum span value. Defaults to NULL.
@@ -63,7 +63,7 @@ marge2 <- function(X_pred = NULL,
                    cor.structure = "ar1",
                    sandwich.var = FALSE,
                    approx.knot = TRUE,
-                   n.knot.max = 50,
+                   n.knot.max = 25,
                    glm.backend = "MASS",
                    tols_score = 1e-5,
                    minspan = NULL,
@@ -84,12 +84,6 @@ marge2 <- function(X_pred = NULL,
   }
   q <- ncol(X_pred)  # Number of predictor variables
   B <- as.matrix(rep(1, NN))  # Start with the intercept model.
-  # estimate "known" theta for GEE models
-  if (is.gee || !is.glmm) {
-    theta_hat <- MASS::theta.mm(y = Y,
-                                mu = mean(Y),
-                                dfr = NN - 1)
-  }
 
   pen <- 2  # penalty for GCV criterion -- could also switch to log(N) later
   colnames(B) <- "Intercept"
@@ -110,6 +104,7 @@ marge2 <- function(X_pred = NULL,
   breakFlag <- FALSE
   ok <- TRUE
   int.count <- 0
+  theta_hat <- 1
 
   while (ok) {  # this is such egregiously bad code lol
     if (breakFlag) {
@@ -167,6 +162,7 @@ marge2 <- function(X_pred = NULL,
           X_red <- seq(min(X_red),
                        max(X_red),
                        length.out = n.knot.max)
+          X_red <- round(X_red, 4)
         }
       } else {
         # original candidate knot selection from 2017 Stoklosa & Warton paper
@@ -638,13 +634,13 @@ marge2 <- function(X_pred = NULL,
       } else {
         var_name_list1 <- vector("list")
         if (trunc.type == 2) {
-          B_temp <- cbind(B, b1_new, b2_new) # Additive model with both truncated basis functions.
+          B_temp <- cbind(B, b1_new, b2_new)  # Additive model with both truncated basis functions.
           B_new <- cbind(b1_new, b2_new)
           B_names <- c(B_name1, B_name2)
           var_name_list1 <- c(var_name_list1, list(var_name))
           var_name_list1 <- c(var_name_list1, list(var_name))  # Repeat it because there are two new truncated basis function in the set.
         } else {
-          B_temp <- cbind(B, b1_new) # Additive model with one truncated basis function (i.e., the positive part).
+          B_temp <- cbind(B, b1_new)  # Additive model with one truncated basis function (i.e., the positive part).
           B_new <- b1_new
           B_names <- B_name1
           var_name_list1 <- c(var_name_list1, list(var_name))
@@ -777,7 +773,7 @@ marge2 <- function(X_pred = NULL,
   colnames(wic_mat_2)[(ncol_B  + 1)] <- "Forward pass model"
 
   wic_mat_2[1, (ncol_B + 1)] <- full.wic
-  wic1_2 <- backward_sel_WIC(Y = Y, B_new = B_new)
+  wic1_2 <- backward_sel_WIC(Y, B_new = B_new)
   wic_mat_2[2, 2:(length(wic1_2) + 1)] <- wic1_2
   WIC_2 <- sum(apply(wic_mat_2[seq(2), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new)
   WIC_vec_2 <- c(WIC_vec_2, WIC_2)
@@ -787,8 +783,7 @@ marge2 <- function(X_pred = NULL,
   B_new_2 <- as.matrix(B_new[, -(variable.lowest_2 + 1)])
   cnames_2 <- c(cnames_2, list(colnames(B_new_2)))
   for (i in 2:(ncol_B - 1)) {
-    wic1_2 <- backward_sel_WIC(Y = Y,
-                               B_new = B_new_2)
+    wic1_2 <- backward_sel_WIC(Y, B_new = B_new_2)
     if (i != (ncol_B - 1)) {
       wic_mat_2[(i + 1), colnames(B_new_2)[-1]] <- wic1_2
       WIC_2 <- sum(apply(wic_mat_2[seq(i + 1), ], 1, min, na.rm = TRUE)) + 2 * ncol(B_new_2)
@@ -837,9 +832,9 @@ marge2 <- function(X_pred = NULL,
       final_mod <- geeM::geem(model_formula,
                               data = model_df,
                               id = id.vec,
-                              family = MASS::negative.binomial(theta_hat, link = log),
+                              family = MASS::negative.binomial(50, link = log),
                               corstr = cor.structure,
-                              scale.fix = TRUE,
+                              scale.fix = FALSE,
                               sandwich = sandwich.var)
     } else {
       if (glm.backend == "MASS") {
@@ -847,14 +842,14 @@ marge2 <- function(X_pred = NULL,
                                   data = model_df,
                                   method = "glm.fit2",
                                   link = log,
-                                  init.theta = theta_hat,
+                                  init.theta = 1,
                                   y = FALSE,
                                   model = FALSE)
         final_mod <- stripGLM(glm.obj = final_mod)
       } else if (glm.backend == "speedglm") {
         final_mod <- speedglm::speedglm(model_formula,
                                         data = model_df,
-                                        family = MASS::negative.binomial(theta_hat, link = "log"),
+                                        family = MASS::negative.binomial(50, link = log),
                                         trace = FALSE,
                                         model = FALSE,
                                         y = FALSE,

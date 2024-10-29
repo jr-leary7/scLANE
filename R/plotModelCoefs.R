@@ -24,7 +24,7 @@
 #' cell_offset <- createCellOffset(sim_counts)
 #' scLANE_de_res <- getResultsDE(scLANE_models)
 #' plotModelCoefs(scLANE_models,
-#'                gene = scLANE_de_res$Gene[1],
+#'                gene = "ACLY",
 #'                pt = sim_pseudotime,
 #'                expr.mat = sim_counts,
 #'                size.factor.offset = cell_offset)

@@ -25,10 +25,18 @@ null_stat_gee <- stat_out_score_gee_null(Y = Y_exp,
                                          theta.hat = 1)
 tp1_res <- tp1(x = rnorm(30), t = 0)
 tp2_res <- tp2(x = rnorm(30), t = 0)
+# generate PD matrix for use in testing C++ matrix functions 
+n <- 25
+A <- matrix(rnorm(n^2), nrow = n, ncol = n)
+A <- t(A) %*% A
 
 # generate scLANE results w/ all three modes
 withr::with_output_sink(tempfile(), {
-  # choose candidate genes
+  # C++ matrix operations 
+  B <- eigenMapMatMult(A, A)
+  C <- eigenMapMatrixInvert(A)
+  D <- eigenMapPseudoInverse(A)
+  # candidate gene selection
   candidate_genes <- chooseCandidateGenes(sim_data_seu,
                                           group.by.subject = TRUE,
                                           id.vec = sim_data_seu$subject,
@@ -113,6 +121,7 @@ withr::with_output_sink(tempfile(), {
                           is.gee = TRUE,
                           id.vec = sim_data$subject,
                           cor.structure = "ar1",
+                          sandwich.var = TRUE, 
                           return.basis = TRUE,
                           return.GCV = TRUE,
                           return.WIC = TRUE)
@@ -142,6 +151,10 @@ withr::with_output_sink(tempfile(), {
                              alt.df = as.data.frame(marge_mod_GEE_offset$basis_mtx), 
                              null.df = data.frame(Y = counts_test[, 3]), 
                              id.vec = sim_data$subject)
+  # bias-correct GEE sandwich variance-covariance matrix 
+  V_kc <- biasCorrectGEE(marge_mod_GEE$final_mod, 
+                         correction.method = "kc", 
+                         id.vec = sim_data$subject)
   # run GLMM model -- no offset
   glmm_mod <- fitGLMM(pt_test,
                       Y = counts_test[, 4],
@@ -282,6 +295,18 @@ withr::with_output_sink(tempfile(), {
 })
 
 # run tests
+test_that("internal C++ functions", {
+  expect_type(B, "double")
+  expect_equal(ncol(B), 25)
+  expect_equal(nrow(B), 25)
+  expect_type(C, "double")
+  expect_equal(ncol(C), 25)
+  expect_equal(nrow(C), 25)
+  expect_type(D, "double")
+  expect_equal(ncol(D), 25)
+  expect_equal(nrow(D), 25)
+})
+
 test_that("internal marge functions", {
   expect_type(min_span_res, "double")
   expect_type(max_span_res, "double")
@@ -386,6 +411,7 @@ test_that("marge2() output -- GEE backend", {
   expect_equal(marge_mod_GEE_offset$model_type, "GEE")
   expect_true(marge_mod_GEE$final_mod$converged)
   expect_true(marge_mod_GEE_offset$final_mod$converged)
+  expect_type(V_kc, "double")
 })
 
 test_that("Statistical testing output", {

@@ -9,7 +9,8 @@ scoreTestGEE(
   mod.0 = NULL,
   alt.df = NULL,
   null.df = NULL,
-  sandwich.var = FALSE
+  id.vec = NULL,
+  cor.structure = "ar1"
 )
 }
 \arguments{
@@ -21,7 +22,9 @@ scoreTestGEE(
 
 \item{null.df}{The dataframe used to fit the null model. Defaults to NULL.}
 
-\item{sandwich.var}{Boolean specifying whether the sandwich variance-covariance matrix should be used. Defaults to FALSE.}
+\item{id.vec}{A vector of subject IDs to use as input to \code{\link{marge2}}. Defaults to NULL.}
+
+\item{cor.structure}{A string specifying the working correlation structure used to fit each model. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".}
 }
 \value{
 A list containing the Score test statistic, a \emph{p}-value, and the degrees of freedom used in the test.

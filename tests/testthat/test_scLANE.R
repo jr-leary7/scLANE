@@ -47,6 +47,7 @@ withr::with_output_sink(tempfile(), {
                                 size.factor.offset = cell_offset,
                                 is.gee = TRUE,
                                 cor.structure = "ar1",
+                                gee.test = "score", 
                                 id.vec = sim_data$subject,
                                 n.cores = 2L)
   glmm_gene_stats <- testDynamic(sim_data,
@@ -139,7 +140,8 @@ withr::with_output_sink(tempfile(), {
   score_test <- scoreTestGEE(marge_mod_GEE_offset, 
                              mod.0 = null_mod_GEE, 
                              alt.df = as.data.frame(marge_mod_GEE_offset$basis_mtx), 
-                             null.df = data.frame(Y = counts_test[, 3]))
+                             null.df = data.frame(Y = counts_test[, 3]), 
+                             id.vec = sim_data$subject)
   # run GLMM model -- no offset
   glmm_mod <- fitGLMM(pt_test,
                       Y = counts_test[, 4],

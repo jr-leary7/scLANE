@@ -353,7 +353,8 @@ testDynamic <- function(expr.mat = NULL,
                                   mod.0 = null_mod, 
                                   alt.df = as.data.frame(marge_mod$basis_mtx), 
                                   null.df = null_mod_df, 
-                                  sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
+                                  id.vec = id.vec[lineage_cells], 
+                                  cor.structure = cor.structure)
        }
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,

@@ -324,6 +324,7 @@ testDynamic <- function(expr.mat = NULL,
                                                        ifelse(gee.test == "wald", "Wald", "Score"), 
                                                        "LRT"),
                                Test_Stat_Note = NA_character_,
+                               Degrees_Freedom = NA_real_, 
                                P_Val = NA_real_,
                                LogLik_MARGE = marge_sumy$ll_marge,
                                LogLik_Null = null_sumy$null_ll,
@@ -353,7 +354,8 @@ testDynamic <- function(expr.mat = NULL,
                                   mod.0 = null_mod, 
                                   alt.df = as.data.frame(marge_mod$basis_mtx), 
                                   null.df = null_mod_df, 
-                                  sandwich.var = ifelse(is.null(gee.bias.correction.method), FALSE, TRUE))
+                                  id.vec = id.vec[lineage_cells], 
+                                  cor.structure = cor.structure)
        }
      } else {
        test_res <- modelLRT(mod.1 = marge_mod,
@@ -365,6 +367,7 @@ testDynamic <- function(expr.mat = NULL,
                                            ifelse(gee.test == "wald", test_res$Wald_Stat, test_res$Score_Stat), 
                                            test_res$LRT_Stat)
      lineage_list[[j]]$Test_Stat_Note <- test_res$Notes
+     lineage_list[[j]]$Degrees_Freedom <- test_res$DF 
      lineage_list[[j]]$P_Val <- test_res$P_Val
     }
     names(lineage_list) <- paste0("Lineage_", LETTERS[seq(n_lineages)])
@@ -392,6 +395,7 @@ testDynamic <- function(expr.mat = NULL,
                                      ifelse(gee.test == "wald", "Wald", "Score"), 
                                      "LRT"),
              Test_Stat_Note = NA_character_,
+             Degrees_Freedom = NA_real_, 
              P_Val = NA_real_,
              LogLik_MARGE = NA_real_,
              LogLik_Null = NA_real_,

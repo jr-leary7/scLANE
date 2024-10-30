@@ -1,9 +1,11 @@
 # Changes in v0.8.7 
 
-+ Switched GEE fitting back to use `scale.fix = FALSE` and a fixed value for the Negative-binomial overdispersion parameter as it improves model fits. 
++ Switched GEE fitting back to use `scale.fix = FALSE` and substituted a fixed value for the Negative-binomial overdispersion parameter (instead of estimating via method-of-moments) as it improves model fits. 
 + Added option to use a Lagrange Multiplier (Score) test for GEE mode instead of the default Wald test. The relevant argument is `gee.test` in `testDynamic()`.
 + Updated documentation and some tests. 
 + Added column called `Null_Fit_Notes` to output from `getResultsDE()` to describe when and how null models fail. This doesn't happen frequently, but it's good info to have when it does. 
++ Expanded test suite to include C++ functions. 
++ Fixed incorrectly-implemented Lagrange Multiplier test after initial code was seen to be incorrect. 
 
 # Changes in v0.8.6
 

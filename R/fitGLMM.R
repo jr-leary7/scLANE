@@ -14,9 +14,9 @@
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
 #' @param adaptive Should basis functions be chosen adaptively? Defaults to TRUE.
 #' @param approx.knot Should knot approximation be used in the calls to \code{\link{marge2}}? This speeds up computation somewhat. Defaults to TRUE.
-#' @param M.glm The number of possible basis functions to use in the calls to \code{\link{marge2}} when choosing basis functions adaptively.
+#' @param M.glm The number of possible basis functions to use in the calls to \code{\link{marge2}} when choosing basis functions adaptively. Defaults to 3. 
 #' @param reg.penalty (Optional) String specifying the penalty type to be used when fitting a regularized negative-binomial model to select optimal basis functions. Defaults to "snet". 
-#' @param return.basis (Optional) Whether the basis model matrix (denoted \code{B_final}) should be returned as part of the \code{marge} model object. Defaults to FALSE.
+#' @param return.basis (Optional) Whether the basis model matrix (denoted \code{basis_mtx}) should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param return.GCV (Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.
 #' @param verbose (Optional) Should intermediate output be printed to the console? Defaults to FALSE.
 #' @return An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).

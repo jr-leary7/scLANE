@@ -25,7 +25,7 @@
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
 #' @param gee.bias.correction.method (Optional) Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.
-#' @param gee.test A string specifying the type of test used to estimate the significance of the full model. Must be one of "wald" or "score". Defaults to "wald".
+#' @param gee.test A string specifying the type of test used to estimate the significance of the full model. Must be one of "wald" or "score". Defaults to "score".
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.
@@ -64,7 +64,7 @@ testDynamic <- function(expr.mat = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
                         gee.bias.correction.method = NULL,
-                        gee.test = "wald", 
+                        gee.test = "score",
                         is.glmm = FALSE,
                         glmm.adaptive = TRUE,
                         id.vec = NULL,
@@ -111,10 +111,10 @@ testDynamic <- function(expr.mat = NULL,
   colnames(pt) <- paste0("Lineage_", LETTERS[seq(n_lineages)])
 
   # ensure subject ID vector meets criteria for GEE / GLMM fitting
-  if ((is.gee || is.glmm) && is.null(id.vec)) { stop("You must provide a vector of IDs if you're using GEE / GLMM backends.") }
-  if ((is.gee || is.glmm) && is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running testDynamic() with the GEE / GLMM backends.") }
+  if ((is.gee || is.glmm) && is.null(id.vec)) { stop("You must provide a vector of IDs if you're using GEE / GLMM modes.") }
+  if ((is.gee || is.glmm) && is.unsorted(id.vec)) { stop("Your data must be ordered by subject, please do so before running testDynamic() with the GEE / GLMM modes.") }
   cor.structure <- tolower(cor.structure)
-  if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a specified correlation structure.") }
+  if (is.gee && !(cor.structure %in% c("ar1", "independence", "exchangeable"))) { stop("GEE models require a valid correlation structure.") }
   # check GEE testing method
   gee.test <- tolower(gee.test)
   if (is.gee & !gee.test %in% c("wald", "score")) { stop("GEE testing method must be one of score or wald.") }
@@ -147,7 +147,7 @@ testDynamic <- function(expr.mat = NULL,
                                 is_read_only = TRUE)
 
   # build list of objects to prevent from being sent to parallel workers
-  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correction.method", "gee.test", 
+  necessary_vars <- c("expr.mat", "genes", "pt", "n.potential.basis.fns", "approx.knot", "is.glmm", "gee.bias.correction.method", "gee.test",
                       "verbose", "n_lineages", "id.vec", "cor.structure", "is.gee", "gee.scale.fix", "glmm.adaptive", "size.factor.offset")
   if (any(ls(envir = .GlobalEnv) %in% necessary_vars)) {
     no_export <- c(ls(envir = .GlobalEnv)[-which(ls(envir = .GlobalEnv) %in% necessary_vars)],
@@ -320,11 +320,11 @@ testDynamic <- function(expr.mat = NULL,
      lineage_list[[j]] <- list(Gene = genes[i],
                                Lineage = LETTERS[j],
                                Test_Stat = NA_real_,
-                               Test_Stat_Type = ifelse(is.gee, 
-                                                       ifelse(gee.test == "wald", "Wald", "Score"), 
+                               Test_Stat_Type = ifelse(is.gee,
+                                                       ifelse(gee.test == "wald", "Wald", "Score"),
                                                        "LRT"),
                                Test_Stat_Note = NA_character_,
-                               Degrees_Freedom = NA_real_, 
+                               Degrees_Freedom = NA_real_,
                                P_Val = NA_real_,
                                LogLik_MARGE = marge_sumy$ll_marge,
                                LogLik_Null = null_sumy$null_ll,
@@ -332,7 +332,7 @@ testDynamic <- function(expr.mat = NULL,
                                Dev_Null = null_sumy$null_dev,
                                Model_Status = mod_status,
                                MARGE_Fit_Notes = marge_sumy$marge_fit_notes,
-                               Null_Fit_Notes = null_sumy$null_fit_notes, 
+                               Null_Fit_Notes = null_sumy$null_fit_notes,
                                Gene_Time = gene_time_end_numeric,
                                MARGE_Summary = marge_sumy$marge_sumy_df,
                                Null_Summary = null_sumy$null_sumy_df,
@@ -350,11 +350,11 @@ testDynamic <- function(expr.mat = NULL,
                                  id.vec = id.vec[lineage_cells],
                                  verbose = verbose)
        } else if (gee.test == "score") {
-         test_res <- scoreTestGEE(mod.1 = marge_mod, 
-                                  mod.0 = null_mod, 
-                                  alt.df = as.data.frame(marge_mod$basis_mtx), 
-                                  null.df = null_mod_df, 
-                                  id.vec = id.vec[lineage_cells], 
+         test_res <- scoreTestGEE(mod.1 = marge_mod,
+                                  mod.0 = null_mod,
+                                  alt.df = as.data.frame(marge_mod$basis_mtx),
+                                  null.df = null_mod_df,
+                                  id.vec = id.vec[lineage_cells],
                                   cor.structure = cor.structure)
        }
      } else {
@@ -363,11 +363,11 @@ testDynamic <- function(expr.mat = NULL,
                             is.glmm = is.glmm)
      }
      # add test stats to result list
-     lineage_list[[j]]$Test_Stat <- ifelse(is.gee, 
-                                           ifelse(gee.test == "wald", test_res$Wald_Stat, test_res$Score_Stat), 
+     lineage_list[[j]]$Test_Stat <- ifelse(is.gee,
+                                           ifelse(gee.test == "wald", test_res$Wald_Stat, test_res$Score_Stat),
                                            test_res$LRT_Stat)
      lineage_list[[j]]$Test_Stat_Note <- test_res$Notes
-     lineage_list[[j]]$Degrees_Freedom <- test_res$DF 
+     lineage_list[[j]]$Degrees_Freedom <- test_res$DF
      lineage_list[[j]]$P_Val <- test_res$P_Val
     }
     names(lineage_list) <- paste0("Lineage_", LETTERS[seq(n_lineages)])
@@ -391,11 +391,11 @@ testDynamic <- function(expr.mat = NULL,
         list(Gene = y,
              Lineage = LETTERS[z],
              Test_Stat = NA_real_,
-             Test_Stat_Type = ifelse(is.gee, 
-                                     ifelse(gee.test == "wald", "Wald", "Score"), 
+             Test_Stat_Type = ifelse(is.gee,
+                                     ifelse(gee.test == "wald", "Wald", "Score"),
                                      "LRT"),
              Test_Stat_Note = NA_character_,
-             Degrees_Freedom = NA_real_, 
+             Degrees_Freedom = NA_real_,
              P_Val = NA_real_,
              LogLik_MARGE = NA_real_,
              LogLik_Null = NA_real_,
@@ -404,7 +404,7 @@ testDynamic <- function(expr.mat = NULL,
              Model_Status = x[1],
              Gene_Time = NA_real_,
              MARGE_Fit_Notes = NA_character_,
-             Null_Fit_Notes = NA_character_, 
+             Null_Fit_Notes = NA_character_,
              MARGE_Summary = NULL,
              Null_Summary = NULL,
              MARGE_Preds = NULL,

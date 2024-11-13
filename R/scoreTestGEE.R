@@ -7,8 +7,8 @@
 #' @importFrom Matrix bdiag
 #' @param mod.1 The model under the alternative hypothesis. Must be of class \code{geem}. Defaults to NULL.
 #' @param mod.0 The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.
-#' @param alt.df The dataframe used to fit the alternative model. Defaults to NULL. 
-#' @param null.df The dataframe used to fit the null model. Defaults to NULL. 
+#' @param alt.df The dataframe used to fit the alternative model. Defaults to NULL.
+#' @param null.df The dataframe used to fit the null model. Defaults to NULL.
 #' @param id.vec A vector of subject IDs to use as input to \code{\link{marge2}}. Defaults to NULL.
 #' @param cor.structure A string specifying the working correlation structure used to fit each model. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
 #' @return A list containing the Score test statistic, a \emph{p}-value, and the degrees of freedom used in the test.
@@ -22,13 +22,13 @@
 #' @seealso \code{\link{waldTestGEE}}
 #' @seealso \code{\link{modelLRT}}
 
-scoreTestGEE <- function(mod.1 = NULL, 
-                         mod.0 = NULL, 
-                         alt.df = NULL, 
-                         null.df = NULL, 
-                         id.vec = NULL, 
+scoreTestGEE <- function(mod.1 = NULL,
+                         mod.0 = NULL,
+                         alt.df = NULL,
+                         null.df = NULL,
+                         id.vec = NULL,
                          cor.structure = "ar1") {
-  # check inputs 
+  # check inputs
   if (is.null(mod.1) || is.null(mod.0) || is.null(alt.df) || is.null(null.df) || is.null(id.vec)) { stop("Please provide all inputs to scoreTestGEE().") }
   if (inherits(mod.1, "try-error") || inherits(mod.0, "try-error")) {
     res <- list(Score_Stat = NA_real_,
@@ -52,10 +52,9 @@ scoreTestGEE <- function(mod.1 = NULL,
     theta <- as.numeric(gsub("\\)", "", gsub(".*\\(", "", mod.1$FunList$family)))
     X_null <- stats::model.matrix(mod.0, data = null.df)
     X_alt <- stats::model.matrix(mod.1, data = alt.df)
-    r_null <- null.df$Y - stats::predict(mod.0)
+    r_null <- null.df$Y - exp(stats::predict(mod.0))
     p_alt <- ncol(X_alt)
     groups <- unique(id.vec)
-    i <- 1
     W <- K <- vector("list", length = length(groups))
     for (i in seq(groups)) {
       group_idx <- which(id.vec == groups[i])
@@ -70,7 +69,7 @@ scoreTestGEE <- function(mod.1 = NULL,
         R_i <- matrix(rho^abs(outer(seq(n_i), seq(n_i), "-")), nrow = n_i, ncol = n_i)
       }
       # create working covariance matrix V_i
-      mu_i <- stats::predict(mod.0)[group_idx]
+      mu_i <- exp(stats::predict(mod.0)[group_idx])
       V_mu_i <- mu_i * (1 + mu_i / theta)
       A_i <- diag(V_mu_i)
       A_i_sqrt <- sqrt(A_i)  # same as taking the 1/2 power of A_i since A_i is diagonal
@@ -91,15 +90,15 @@ scoreTestGEE <- function(mod.1 = NULL,
     if (inherits(K_inv, "try-error")) {
       K_inv <- eigenMapPseudoInverse(K)
     }
-    # generate score vector 
+    # generate score vector
     U <- phi^(-1) * t(X_alt) %*% W %*% K_inv %*% r_null
-    # generate variance of score vector and invert it   
+    # generate variance of score vector and invert it
     V_U <- phi^(-2) * t(X_alt) %*% W %*% X_alt
     V_U_inv <- try({ eigenMapMatrixInvert(V_U) }, silent = TRUE)
     if (inherits(V_U_inv, "try-error")) {
       V_U_inv <- eigenMapPseudoInverse(V_U)
     }
-    # estimate test statistic and accompanying p-value 
+    # estimate test statistic and accompanying p-value
     S <- t(U) %*% V_U_inv %*% U
     S_df <- ncol(X_alt) - ncol(X_null)
     p_value <- 1 - stats::pchisq(S, df = S_df)

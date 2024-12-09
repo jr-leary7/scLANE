@@ -107,7 +107,7 @@ scoreTestGEE <- function(mod.1 = NULL,
     # entire middle part of test stat:
     mid <- Lpmat %*% VarM_hat %*% Lmat
     mid_inv <- try({ scLANE:::eigenMapMatrixInvert(mid) }, silent = TRUE)
-    full.mid <- VarM_hat %*% Lmat %*% mid_inv %*% Lpmat %*% VarM
+    full.mid <- VarM_hat %*% Lmat %*% mid_inv %*% Lpmat %*% VarM_hat
     
     # estimate test statistic and accompanying p-value
     S <- t(U) %*% full.mid %*% U

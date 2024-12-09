@@ -92,14 +92,25 @@ scoreTestGEE <- function(mod.1 = NULL,
     }
     # generate score vector
     U <- phi^(-1) * t(X_alt) %*% W %*% K_inv %*% r_null
-    # generate variance of score vector and invert it
-    V_U <- phi^(-2) * t(X_alt) %*% W %*% X_alt
-    V_U_inv <- try({ eigenMapMatrixInvert(V_U) }, silent = TRUE)
+    # Generate variance of score vector under beta_hat
+    V_U <- t(X_alt) %*% W %*% X_alt
+    V_U_inv <- try({ scLANE:::eigenMapMatrixInvert(V_U) }, silent = TRUE)
     if (inherits(V_U_inv, "try-error")) {
-      V_U_inv <- eigenMapPseudoInverse(V_U)
+      V_U_inv <- scLANE:::eigenMapPseudoInverse(V_U)
     }
+    VarM_hat <- phi * V_U_inv
+    
+    # contrast matrix
+    Lpmat <- matrix(c(1,rep(0,p_alt-1)), 1, p_alt)
+    Lmat <- t(Lpmat)
+    
+    # entire middle part of test stat:
+    mid <- Lpmat %*% VarM_hat %*% Lmat
+    mid_inv <- try({ scLANE:::eigenMapMatrixInvert(mid) }, silent = TRUE)
+    full.mid <- VarM_hat %*% Lmat %*% mid_inv %*% Lpmat %*% VarM
+    
     # estimate test statistic and accompanying p-value
-    S <- t(U) %*% V_U_inv %*% U
+    S <- t(U) %*% full.mid %*% U
     S_df <- ncol(X_alt) - ncol(X_null)
     p_value <- 1 - stats::pchisq(S, df = S_df)
     res <- list(Score_Stat = S,

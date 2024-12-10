@@ -52,7 +52,7 @@ scoreTestGEE <- function(mod.1 = NULL,
     theta <- as.numeric(gsub("\\)", "", gsub(".*\\(", "", mod.1$FunList$family)))
     X_null <- stats::model.matrix(mod.0, data = null.df)
     X_alt <- stats::model.matrix(mod.1, data = alt.df)
-    r_null <- null.df$Y - exp(stats::predict(mod.0))
+    r_null <- null.df$Y - fitted(mod.0)
     p_alt <- ncol(X_alt)
     groups <- unique(id.vec)
     W <- K <- vector("list", length = length(groups))

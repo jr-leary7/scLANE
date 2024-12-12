@@ -117,13 +117,11 @@ scoreTestGEE <- function(mod.1 = NULL,
 
     # estimate test statistic and accompanying p-value
     S <- t(U) %*% full.mid %*% U
-    # S
     ##
-    S_df <- ncol(X_alt) - ncol(X_null)
-    p_value <- 1 - stats::pchisq(S, df = S_df)
+    p_value <- 1 - stats::pchisq(S, df = 1) #r from L matrix
     # p_value
     res <- list(Score_Stat = S,
-                DF = S_df,
+                DF = 1,
                 P_Val = p_value,
                 Notes = NA_character_)
   }

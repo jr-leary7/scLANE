@@ -108,7 +108,7 @@ scoreTestGEE <- function(mod.1 = NULL,
     VarM_hat <- phi * V_U_inv
 
 
-    Lpmat <- matrix(c(1,rep(0,p_alt-1)), 1, p_alt)
+    Lpmat <- matrix(c(0,rep(1,p_alt-1)), 1, p_alt)
     Lmat <- t(Lpmat)
 
     mid <- Lpmat %*% VarM_hat %*% Lmat

@@ -52,11 +52,12 @@ scoreTestGEE <- function(mod.1 = NULL,
     theta <- as.numeric(gsub("\\)", "", gsub(".*\\(", "", mod.1$FunList$family)))
     X_null <- stats::model.matrix(mod.0, data = null.df)
     X_alt <- stats::model.matrix(mod.1, data = alt.df)
-    r_null <- null.df$Y - fitted(mod.0)
+    r_null <- null.df$Y - (fitted(mod.0))
     p_alt <- ncol(X_alt)
     groups <- unique(id.vec)
-    W <- K <- vector("list", length = length(groups))
+    W <- K_INV <- vector("list", length = length(groups))
     for (i in seq(groups)) {
+      # print(i)
       group_idx <- which(id.vec == groups[i])
       n_i <- length(group_idx)
       # create working correlation matrix R_i
@@ -69,50 +70,58 @@ scoreTestGEE <- function(mod.1 = NULL,
         R_i <- matrix(rho^abs(outer(seq(n_i), seq(n_i), "-")), nrow = n_i, ncol = n_i)
       }
       # create working covariance matrix V_i
-      mu_i <- exp(stats::predict(mod.0)[group_idx])
-      V_mu_i <- mu_i * (1 + mu_i / theta)
+      mu_i <- mod.0$FunList$linkinv(mod.0$eta)[group_idx] 
+      V_mu_i <- mod.0$FunList$variance(mu_i)
+ 
       A_i <- diag(V_mu_i)
       A_i_sqrt <- sqrt(A_i)  # same as taking the 1/2 power of A_i since A_i is diagonal
+  
       V_i <- A_i_sqrt %*% R_i %*% A_i_sqrt
-      # create matrices W_i and K_i
-      K_i <- diag(mu_i)
-      V_i_inv <- try({ eigenMapMatrixInvert(V_i) }, silent = TRUE)
+      V_i_inv <- try({ scLANE:::eigenMapMatrixInvert(V_i) }, silent = TRUE)
       if (inherits(V_i_inv, "try-error")) {
-        V_i_inv <- eigenMapPseudoInverse(V_i)
+        V_i_inv <- scLANE:::eigenMapPseudoInverse(V_i)
       }
+      # create matrices W_i and K_i
+      K_i <- diag(MASS::negative.binomial(theta = 1, link="log")$mu.eta(mod.0$eta)[group_idx])
       W_i <- K_i %*% V_i_inv %*% K_i
       W[[i]] <- W_i
-      K[[i]] <- K_i
+  
+      K_inv <- try({ scLANE:::eigenMapMatrixInvert(K_i) }, silent = TRUE)
+      if (inherits(K_inv, "try-error")) {
+       K_inv <- scLANE:::eigenMapPseudoInverse(K_i)
+      }
+  
+      K_INV[[i]] <- K_inv
     }
     W <- as.matrix(Matrix::bdiag(W))
-    K <- as.matrix(Matrix::bdiag(K))
-    K_inv <- try({ eigenMapMatrixInvert(K) }, silent = TRUE)
-    if (inherits(K_inv, "try-error")) {
-      K_inv <- eigenMapPseudoInverse(K)
-    }
-    # generate score vector
-    U <- phi^(-1) * t(X_alt) %*% W %*% K_inv %*% r_null
-    # Generate variance of score vector under beta_hat
+    K_INV <- as.matrix(Matrix::bdiag(K_INV))
+
+    # score under the null
+    U <- phi^(-1) * t(X_alt) %*% W %*% K_INV %*% r_null
+
+    # Generate variance of score vector under the null
     V_U <- t(X_alt) %*% W %*% X_alt
     V_U_inv <- try({ scLANE:::eigenMapMatrixInvert(V_U) }, silent = TRUE)
     if (inherits(V_U_inv, "try-error")) {
       V_U_inv <- scLANE:::eigenMapPseudoInverse(V_U)
     }
     VarM_hat <- phi * V_U_inv
-    
-    # contrast matrix
+
+
     Lpmat <- matrix(c(1,rep(0,p_alt-1)), 1, p_alt)
     Lmat <- t(Lpmat)
-    
-    # entire middle part of test stat:
+
     mid <- Lpmat %*% VarM_hat %*% Lmat
     mid_inv <- try({ scLANE:::eigenMapMatrixInvert(mid) }, silent = TRUE)
     full.mid <- VarM_hat %*% Lmat %*% mid_inv %*% Lpmat %*% VarM_hat
-    
+
     # estimate test statistic and accompanying p-value
     S <- t(U) %*% full.mid %*% U
+    # S
+    ##
     S_df <- ncol(X_alt) - ncol(X_null)
     p_value <- 1 - stats::pchisq(S, df = S_df)
+    # p_value
     res <- list(Score_Stat = S,
                 DF = S_df,
                 P_Val = p_value,

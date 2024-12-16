@@ -108,7 +108,8 @@ scoreTestGEE <- function(mod.1 = NULL,
     VarM_hat <- phi * V_U_inv
 
 
-    Lpmat <- matrix(c(0,rep(1,p_alt-1)), 1, p_alt)
+    Lpmat <-  diag(1, nrow = p_alt, ncol = p_alt)
+    Lpmat <- Lpmat[-1,,drop=FALSE]
     Lmat <- t(Lpmat)
 
     mid <- Lpmat %*% VarM_hat %*% Lmat
@@ -118,10 +119,11 @@ scoreTestGEE <- function(mod.1 = NULL,
     # estimate test statistic and accompanying p-value
     S <- t(U) %*% full.mid %*% U
     ##
-    p_value <- 1 - stats::pchisq(S, df = 1) #r from L matrix
+    S_df = p_alt - 1
+    p_value <- 1 - stats::pchisq(S, df = S_df) #r from L matrix
     # p_value
     res <- list(Score_Stat = S,
-                DF = 1,
+                DF = S_df,
                 P_Val = p_value,
                 Notes = NA_character_)
   }

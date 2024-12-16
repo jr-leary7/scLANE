@@ -69,7 +69,7 @@ waldTestGEE <- function(mod.1 = NULL,
    
     p_alt <- length(coef(mod.1))
     Lpmat <-  diag(1, nrow = p_alt, ncol = p_alt)
-    Lpmat <- Lpmat[-1,]
+    Lpmat <- Lpmat[-1,,drop=FALSE]
     Lmat <- t(Lpmat)
     
     middle <- Lpmat %*% vcov_mat %*% Lmat

@@ -54,14 +54,8 @@ waldTestGEE <- function(mod.1 = NULL,
                 Notes = NA_character_)
   } else {
     # compute test statistic & asymptotic p-value
-    coef_alt_mod <- names(coef(mod.1))
-    coef_null_mod <- names(coef(mod.0))
-    coef_diff <- setdiff(coef_alt_mod, coef_null_mod)
-    coef_idx <- rep(0, length(coef_diff))
-    for (i in seq_len(length(coef_diff))) {
-      coef_idx[i] <- which(coef_diff[i] == coef_alt_mod)
-    }
-    coef_vals <- as.matrix(coef(mod.1)[coef_idx])
+
+    coef_vals <- as.matrix(coef(mod.1))
     if (!is.null(correction.method)) {
       vcov_mat <- as.matrix(mod.1$var)
       vcov_mat <- biasCorrectGEE(mod.1,
@@ -72,24 +66,35 @@ waldTestGEE <- function(mod.1 = NULL,
     } else {
       vcov_mat <- as.matrix(mod.1$naiv.var)
     }
-    vcov_mat <- vcov_mat[coef_idx, coef_idx]
-    wald_test_stat <- try({
-      vcov_mat_inv <- eigenMapMatrixInvert(vcov_mat, n_cores = 1L)
-      if (inherits(vcov_mat_inv, "try-error")) {
-        vcov_mat_inv <- eigenMapPseudoInverse(vcov_mat, n_cores = 1L)
-      }
-      as.numeric(crossprod(coef_vals, vcov_mat_inv) %*% coef_vals)
-    }, silent = TRUE)
+   
+    p_alt <- length(coef(mod.1))
+    Lpmat <-  diag(1, nrow = p_alt, ncol = p_alt)
+    Lpmat <- Lpmat[-1,]
+    Lmat <- t(Lpmat)
+    
+    middle <- Lpmat %*% vcov_mat %*% Lmat
+    
+    middle_inv <- try({ scLANE:::eigenMapMatrixInvert(middle) }, silent = TRUE)
+    if (inherits(middle_inv, "try-error")) {
+      middle_inv <- scLANE:::eigenMapPseudoInverse(middle)
+    }
+  
+    sides <- Lpmat %*% coef(mod.1)
+
+    
+    wald_test_stat <- t(sides) %*% middle_inv %*% sides
+    
+
     if (inherits(wald_test_stat, "try-error")) {
       wald_note <- wald_test_stat[1]  # this is the error message
       wald_test_stat <- 0
       p_value <- 1
     } else {
-      p_value <- as.numeric(1 - stats::pchisq(wald_test_stat, df = length(coef_diff)))
+      p_value <- as.numeric(1 - stats::pchisq(wald_test_stat, df = p_alt - 1))
       wald_note <- NA_character_
     }
     res <- list(Wald_Stat = wald_test_stat,
-                DF = length(coef_diff),
+                DF = p_alt - 1,
                 P_Val = p_value,
                 Notes = wald_note)
   }

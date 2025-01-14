@@ -9,9 +9,9 @@
 \arguments{
 \item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
 
-\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "fdr".}
 
-\item{(Optional)}{The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "fdr".}
+\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
 }
 \value{
 A summary list with aggregated statistics concerning the trajectory DE tests from \code{scLANE}.

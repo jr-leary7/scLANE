@@ -25,7 +25,7 @@
 #' @param is.gee Should a GEE framework be used instead of the default GLM? Defaults to FALSE.
 #' @param cor.structure If the GEE framework is used, specifies the desired working correlation structure. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".
 #' @param gee.bias.correction.method (Optional) Specify which small-sample bias correction to be used on the sandwich variance-covariance matrix prior to test statistic estimation. Options are "kc" and "df". Defaults to NULL, indicating the use of the model-based variance.
-#' @param gee.test A string specifying the type of test used to estimate the significance of the full model. Must be one of "wald" or "score". Defaults to "score".
+#' @param gee.test A string specifying the type of test used to estimate the significance of the full model. Must be one of "wald" or "score". Defaults to "wald".
 #' @param is.glmm Should a GLMM framework be used instead of the default GLM? Defaults to FALSE.
 #' @param id.vec If a GEE or GLMM framework is being used, a vector of subject IDs to use as input to \code{\link[geeM]{geem}} or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
 #' @param glmm.adaptive (Optional) Should the basis functions for the GLMM be chosen adaptively? If not, uses 4 evenly spaced knots. Defaults to TRUE.
@@ -64,7 +64,7 @@ testDynamic <- function(expr.mat = NULL,
                         is.gee = FALSE,
                         cor.structure = "ar1",
                         gee.bias.correction.method = NULL,
-                        gee.test = "score",
+                        gee.test = "wald",
                         is.glmm = FALSE,
                         glmm.adaptive = TRUE,
                         id.vec = NULL,

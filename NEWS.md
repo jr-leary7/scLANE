@@ -1,6 +1,7 @@
 # Changes in v0.99.0
 
 + Preparing for BioConductor submission.
++ Slightly adjusted `waldTestGEE()` and `scoreTestGEE()` to be more efficient. 
 
 # Changes in v0.8.7 
 

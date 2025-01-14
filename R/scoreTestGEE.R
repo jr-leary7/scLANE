@@ -4,6 +4,7 @@
 #' @author Jack R. Leary
 #' @description Performs a basic Lagrange multiplier test to determine whether an alternate model is significantly better than a nested null model. This is the GEE equivalent (kind of) of \code{\link{modelLRT}}. Be careful with small sample sizes.
 #' @importFrom stats model.matrix predict pchisq
+#' @importFrom MASS negative.binomial
 #' @importFrom Matrix bdiag
 #' @param mod.1 The model under the alternative hypothesis. Must be of class \code{geem}. Defaults to NULL.
 #' @param mod.0 The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.
@@ -52,10 +53,10 @@ scoreTestGEE <- function(mod.1 = NULL,
     theta <- as.numeric(gsub("\\)", "", gsub(".*\\(", "", mod.1$FunList$family)))
     X_null <- stats::model.matrix(mod.0, data = null.df)
     X_alt <- stats::model.matrix(mod.1, data = alt.df)
-    r_null <- null.df$Y - exp(stats::predict(mod.0))
+    r_null <- null.df$Y - fitted(mod.0)
     p_alt <- ncol(X_alt)
     groups <- unique(id.vec)
-    W <- K <- vector("list", length = length(groups))
+    W_list <- K_inv_list <- vector("list", length = length(groups))
     for (i in seq(groups)) {
       group_idx <- which(id.vec == groups[i])
       n_i <- length(group_idx)
@@ -69,39 +70,50 @@ scoreTestGEE <- function(mod.1 = NULL,
         R_i <- matrix(rho^abs(outer(seq(n_i), seq(n_i), "-")), nrow = n_i, ncol = n_i)
       }
       # create working covariance matrix V_i
-      mu_i <- exp(stats::predict(mod.0)[group_idx])
-      V_mu_i <- mu_i * (1 + mu_i / theta)
+      mu_i <- mod.0$FunList$linkinv(mod.0$eta)[group_idx]
+      V_mu_i <- mod.0$FunList$variance(mu_i)
       A_i <- diag(V_mu_i)
       A_i_sqrt <- sqrt(A_i)  # same as taking the 1/2 power of A_i since A_i is diagonal
       V_i <- A_i_sqrt %*% R_i %*% A_i_sqrt
-      # create matrices W_i and K_i
-      K_i <- diag(mu_i)
       V_i_inv <- try({ eigenMapMatrixInvert(V_i) }, silent = TRUE)
       if (inherits(V_i_inv, "try-error")) {
         V_i_inv <- eigenMapPseudoInverse(V_i)
       }
+      # create matrices W_i and K_i
+      K_i <- diag(MASS::negative.binomial(theta = 1, link = "log")$mu.eta(mod.0$eta)[group_idx])
       W_i <- K_i %*% V_i_inv %*% K_i
-      W[[i]] <- W_i
-      K[[i]] <- K_i
+      W_list[[i]] <- W_i
+      K_inv <- try({ eigenMapMatrixInvert(K_i) }, silent = TRUE)
+      if (inherits(K_inv, "try-error")) {
+        K_inv <- eigenMapPseudoInverse(K_i)
+      }
+      K_inv_list[[i]] <- K_inv
     }
-    W <- as.matrix(Matrix::bdiag(W))
-    K <- as.matrix(Matrix::bdiag(K))
-    K_inv <- try({ eigenMapMatrixInvert(K) }, silent = TRUE)
-    if (inherits(K_inv, "try-error")) {
-      K_inv <- eigenMapPseudoInverse(K)
-    }
-    # generate score vector
+    W <- as.matrix(Matrix::bdiag(W_list))
+    K_inv <- as.matrix(Matrix::bdiag(K_inv_list))
+    # score under the null
     U <- phi^(-1) * t(X_alt) %*% W %*% K_inv %*% r_null
-    # generate variance of score vector and invert it
-    V_U <- phi^(-2) * t(X_alt) %*% W %*% X_alt
+    # Generate variance of score vector under the null
+    V_U <- t(X_alt) %*% W %*% X_alt
     V_U_inv <- try({ eigenMapMatrixInvert(V_U) }, silent = TRUE)
     if (inherits(V_U_inv, "try-error")) {
       V_U_inv <- eigenMapPseudoInverse(V_U)
     }
+    VarM_hat <- phi * V_U_inv
+    Lpmat <-  diag(1, nrow = p_alt, ncol = p_alt)
+    Lpmat <- Lpmat[-1,,drop=FALSE]
+    Lmat <- t(Lpmat)
+    mid <- Lpmat %*% VarM_hat %*% Lmat
+    mid_inv <- try({ eigenMapMatrixInvert(mid) }, silent = TRUE)
+    if (inherits(mid_inv, "try-error")) {
+      mid_inv <- eigenMapPseudoInverse(mid)
+    }
+    full_mid <- VarM_hat %*% Lmat %*% mid_inv %*% Lpmat %*% VarM_hat
     # estimate test statistic and accompanying p-value
-    S <- t(U) %*% V_U_inv %*% U
-    S_df <- ncol(X_alt) - ncol(X_null)
-    p_value <- 1 - stats::pchisq(S, df = S_df)
+    S <- t(U) %*% full_mid %*% U
+    S_df = p_alt - 1
+    p_value <- 1 - stats::pchisq(S, df = S_df)  # r from L matrix
+    # format results
     res <- list(Score_Stat = S,
                 DF = S_df,
                 P_Val = p_value,

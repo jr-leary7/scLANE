@@ -1,3 +1,7 @@
+# Changes in v0.99.0
+
++ Preparing for BioConductor submission.
+
 # Changes in v0.8.7 
 
 + Switched GEE fitting back to use `scale.fix = FALSE` and substituted a fixed value for the Negative-binomial overdispersion parameter (instead of estimating via method-of-moments) as it improves model fits. 

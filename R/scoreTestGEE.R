@@ -16,7 +16,7 @@
 #' @details
 #' \itemize{
 #' \item Calculating the test statistic involves taking the inverse of the variance of the score vector. Ideally this would be done using the true inverse, but in practice this can cause issues when the matrix is near-singular. With this in mind, we use the Moore-Penrose pseudoinverse if the original matrix inversion fails.
-#' \item The \emph{p}-value is calculated using an asymptotic \eqn{\Chi^2} distribution, with the degrees of freedom equal to the number of non-intercept coefficients in the alternative model.
+#' \item The \emph{p}-value is calculated using an asymptotic Chi-squared distribution, with the degrees of freedom equal to the number of non-intercept coefficients in the alternative model.
 #' }
 #' @seealso \code{\link[geeM]{geem}}
 #' @seealso \code{\link[glmtoolbox]{anova2}}

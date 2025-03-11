@@ -4,12 +4,7 @@
 \alias{getResultsDE}
 \title{Tidy the results of \code{\link{testDynamic}}.}
 \usage{
-getResultsDE(
-  test.dyn.res = NULL,
-  p.adj.method = "fdr",
-  fdr.cutoff = 0.01,
-  n.cores = 2L
-)
+getResultsDE(test.dyn.res = NULL, p.adj.method = "fdr", fdr.cutoff = 0.01)
 }
 \arguments{
 \item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
@@ -17,8 +12,6 @@ getResultsDE(
 \item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "fdr".}
 
 \item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
-
-\item{n.cores}{(Optional) If running in parallel, how many cores should be used? Defaults to 2L.}
 }
 \value{
 A data.frame containing differential expression results & test statistics for each gene.

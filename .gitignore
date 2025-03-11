@@ -3,7 +3,6 @@ scLANE.Rproj
 .Rhistory
 .RData
 .Ruserdata
-.Rbuildignore
 inst/doc
 inst/.DS_Store
 inst/rmarkdown/.DS_Store

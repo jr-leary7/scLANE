@@ -25,14 +25,14 @@ null_stat_gee <- stat_out_score_gee_null(Y = Y_exp,
                                          theta.hat = 1)
 tp1_res <- tp1(x = rnorm(30), t = 0)
 tp2_res <- tp2(x = rnorm(30), t = 0)
-# generate PD matrix for use in testing C++ matrix functions 
+# generate PD matrix for use in testing C++ matrix functions
 n <- 25
 A <- matrix(rnorm(n^2), nrow = n, ncol = n)
 A <- t(A) %*% A
 
 # generate scLANE results w/ all three modes
 withr::with_output_sink(tempfile(), {
-  # C++ matrix operations 
+  # C++ matrix operations
   B <- eigenMapMatMult(A, A)
   C <- eigenMapMatrixInvert(A)
   D <- eigenMapPseudoInverse(A)
@@ -55,7 +55,7 @@ withr::with_output_sink(tempfile(), {
                                 size.factor.offset = cell_offset,
                                 is.gee = TRUE,
                                 cor.structure = "ar1",
-                                gee.test = "score", 
+                                gee.test = "score",
                                 id.vec = sim_data$subject,
                                 n.cores = 2L)
   glmm_gene_stats <- testDynamic(sim_data,
@@ -71,7 +71,7 @@ withr::with_output_sink(tempfile(), {
   # S3 summary method
   scLANE_summary <- summary(glm_gene_stats)
   # get results tables overall
-  glm_test_results <- getResultsDE(glm_gene_stats, n.cores = 1L)
+  glm_test_results <- getResultsDE(glm_gene_stats)
   gee_test_results <- getResultsDE(gee_gene_stats)
   glmm_test_results <- getResultsDE(glmm_gene_stats)
   # get results tables by interval
@@ -121,7 +121,7 @@ withr::with_output_sink(tempfile(), {
                           is.gee = TRUE,
                           id.vec = sim_data$subject,
                           cor.structure = "ar1",
-                          sandwich.var = TRUE, 
+                          sandwich.var = TRUE,
                           return.basis = TRUE,
                           return.GCV = TRUE,
                           return.WIC = TRUE)
@@ -146,14 +146,14 @@ withr::with_output_sink(tempfile(), {
   # run GEE Wald test
   wald_test <- waldTestGEE(marge_mod_GEE_offset, mod.0 = null_mod_GEE)
   # run GEE Score test
-  score_test <- scoreTestGEE(marge_mod_GEE_offset, 
-                             mod.0 = null_mod_GEE, 
-                             alt.df = as.data.frame(marge_mod_GEE_offset$basis_mtx), 
-                             null.df = data.frame(Y = counts_test[, 3]), 
+  score_test <- scoreTestGEE(marge_mod_GEE_offset,
+                             mod.0 = null_mod_GEE,
+                             alt.df = as.data.frame(marge_mod_GEE_offset$basis_mtx),
+                             null.df = data.frame(Y = counts_test[, 3]),
                              id.vec = sim_data$subject)
-  # bias-correct GEE sandwich variance-covariance matrix 
-  V_kc <- biasCorrectGEE(marge_mod_GEE$final_mod, 
-                         correction.method = "kc", 
+  # bias-correct GEE sandwich variance-covariance matrix
+  V_kc <- biasCorrectGEE(marge_mod_GEE$final_mod,
+                         correction.method = "kc",
                          id.vec = sim_data$subject)
   # run GLMM model -- no offset
   glmm_mod <- fitGLMM(pt_test,

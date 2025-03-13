@@ -30,4 +30,6 @@ scLANE_de_res <- getResultsDE(scLANE_models)
 }
 \author{
 Jack R. Leary
+
+Rhonda Bacher
 }

@@ -1,3 +1,7 @@
+# Changes in v0.99.2
+
++ Minor error fixes for BioConductor submission.
+
 # Changes in v0.99.1
 
 + Sped up `getResultsDE()`. 

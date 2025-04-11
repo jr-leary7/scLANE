@@ -42,7 +42,11 @@ score_fun_glm <- function(Y = NULL,
     temp_prod <- eigenMapMatMult(A = temp_prod, B = B_list_i)
     inv.XVX_22 <- D_list_i - temp_prod
     B.est <- eigenMapMatMult(A = t(mu.est * VS.est_i), B = XA)
-    XVX_22 <- try({ eigenMapMatrixInvert(inv.XVX_22) }, silent = TRUE)
+    if (chk_is_nearly_singular(inv.XVX_22)) {
+      XVX_22 <- eigenMapPseudoInverse(inv.XVX_22)
+     } else {
+      XVX_22 <- try({ eigenMapMatrixInvert(inv.XVX_22) }, silent = TRUE)
+    }
     if (inherits(XVX_22, "try-error")) {
       XVX_22 <- eigenMapPseudoInverse(inv.XVX_22)
     }

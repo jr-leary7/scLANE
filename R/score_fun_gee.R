@@ -73,8 +73,12 @@ score_fun_gee <- function(Y = NULL,
     temp_prod_3 <- eigenMapMatMult(A = J21, B = JSigma11)
     temp_prod_3 <- eigenMapMatMult(A = temp_prod_3, B = J21_transpose)
     Sigma <- Sigma22 - temp_prod_1 - temp_prod_2 + temp_prod_3
-    Sigma_inv <- try({ eigenMapMatrixInvert(Sigma) }, silent = TRUE)
-    if (inherits(Sigma_inv, "try-error")) {
+    if (chk_is_nearly_singular(Sigma)) {
+      Sigma_inv <- eigenMapPseudoInverse(Sigma)
+    } else {
+       Sigma_inv <- try({ eigenMapMatrixInvert(Sigma) }, silent = TRUE)
+     }
+    if (inherits(Sigma_inv, "try-error") ) {
       Sigma_inv <- eigenMapPseudoInverse(Sigma)
     }
     temp_prod <- eigenMapMatMult(A = t(B.est), B = Sigma_inv)
@@ -82,4 +86,13 @@ score_fun_gee <- function(Y = NULL,
   }
   res <- list(score = score)
   return(res)
+}
+
+
+
+
+chk_is_nearly_singular <- function(matrix, tol = 1e12) {
+  singular_values <- svd(matrix)$d
+  condition_number <- max(singular_values) / min(singular_values)
+  return(condition_number > tol)
 }

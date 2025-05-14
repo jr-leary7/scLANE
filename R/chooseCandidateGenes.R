@@ -40,7 +40,7 @@ chooseCandidateGenes <- function(obj = NULL,
     counts_matrix <- Matrix::Matrix(counts_matrix, sparse = TRUE)
   }
   if (n.desired.genes < 500) {
-    stop("Please set 'n.desired.genes' to at least 500.")
+    warning("'n.desired.genes' is too small. Use at least 500 to ensure proper function.")
   }
   # compute gene summary statistics
   if (group.by.subject) {

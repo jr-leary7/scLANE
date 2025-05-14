@@ -39,6 +39,9 @@ chooseCandidateGenes <- function(obj = NULL,
   if (!inherits(counts_matrix, "dgCMatrix")) {
     counts_matrix <- Matrix::Matrix(counts_matrix, sparse = TRUE)
   }
+  if (n.desired.genes < 500) {
+    stop("Please set 'n.desired.genes' to at least 500.")
+  }
   # compute gene summary statistics
   if (group.by.subject) {
     grouped_stats <- purrr::map(seq(unique(id.vec)), \(i) {

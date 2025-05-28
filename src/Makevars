@@ -1,11 +1,11 @@
-# src/Makevars
+
 # Flags for both GCC and Clang
-PKG_CXXFLAGS = -std=c++14 -Oz -s -g0 -fwrapv -fomit-frame-pointer -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG -Wno-unused-but-set-variable -Wno-unused-variable -ffast-math -funroll-loops
+PKG_CXXFLAGS = -std=c++14 -O0 -s -g0
 
 
 # Conditional section based on the compiler
 ifdef GCC
-  PKG_LIBS += -Wl,--gc-sections -Bsymbolic -Wl,--exclude-libs,ALL -fwhole-program -s -Wl,--build-id=none -Wl,--strip-all
+  PKG_LIBS += -Wl,--gc-sections
 else
   # For Clang, you might need `-dead_strip`
   PKG_LIBS += -Wl,-dead_strip 

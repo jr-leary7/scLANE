@@ -2,7 +2,8 @@
 % Please edit documentation in R/stat_out.R
 \name{stat_out}
 \alias{stat_out}
-\title{Fits a linear regression model and calculates RSS/GCV measures (used for MARS linear models).}
+\title{Fits a linear regression model and calculates RSS/GCV measures (used for 
+MARS linear models).}
 \usage{
 stat_out(Y = NULL, B1 = NULL, TSS = NULL, GCV.null = NULL, pen = 2)
 }
@@ -18,19 +19,28 @@ stat_out(Y = NULL, B1 = NULL, TSS = NULL, GCV.null = NULL, pen = 2)
 \item{pen}{The set/fixed penalty used for the GCV. Defaults to 2.}
 }
 \value{
-A list consisting of the RSS, RSSq1, GCV1 and GCVq1 values for the fitted model.
+A list consisting of the RSS, RSSq1, GCV1 and GCVq1 values for the 
+fitted model.
 }
 \description{
 Calculate the final RSS / GCV for a fitted model.
 }
 \references{
-Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
+Friedman, J. (1991). Multivariate adaptive regression splines. 
+\emph{The Annals of Statistics}, \strong{19}, 1--67.
 
-Milborrow, S. (2017a). Notes on the \code{\link[earth]{earth}} package. Package vignette. Available at: \url{http://www.milbo.org/doc/earth-notes.pdf}.
+Milborrow, S. (2017a). Notes on the \code{\link[earth]{earth}} 
+package. Package vignette. Available at: 
+\url{http://www.milbo.org/doc/earth-notes.pdf}.
 
-Milborrow, S. (2017b). \code{\link[earth]{earth}}: Multivariate Adaptive Regression Splines. R package version 4.4.7. Available at \url{https://cran.r-project.org/package=earth.}
+Milborrow, S. (2017b). \code{\link[earth]{earth}}: Multivariate 
+Adaptive Regression Splines. R package version 4.4.7. Available at 
+\url{https://cran.r-project.org/package=earth.}
 
-Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+Stoklosa, J. and Warton, D.I. (2018). A generalized estimating 
+equation approach to multivariate adaptive regression splines. 
+\emph{Journal of Computational and Graphical Statistics}, 
+\strong{27}, 245--253.
 }
 \seealso{
 \code{\link{stat_out_score_glm_null}}

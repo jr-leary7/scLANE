@@ -12,19 +12,25 @@ pullMARGESummary(
 )
 }
 \arguments{
-\item{marge.model}{The \code{MARGE} model from \code{\link{marge2}}. Defaults to NULL.}
+\item{marge.model}{The \code{MARGE} model from \code{\link{marge2}}.
+Defaults to NULL.}
 
-\item{is.gee}{Boolean specifying whether GEE mode was used in fitting the null model. Defaults to FALSE.}
+\item{is.gee}{Boolean specifying whether GEE mode was used in fitting the 
+null model. Defaults to FALSE.}
 
-\item{sandwich.var}{Boolean specifying whether the robust sandwich variance-covariance matrix should be used. Defaults to FALSE.}
+\item{sandwich.var}{Boolean specifying whether the robust sandwich
+variance-covariance matrix should be used. Defaults to FALSE.}
 
-\item{is.glmm}{Boolean specifying whether the GLMM mode was used in fitting the model. Defaults to FALSE.}
+\item{is.glmm}{Boolean specifying whether the GLMM mode was used in fitting 
+the model. Defaults to FALSE.}
 }
 \value{
-A list containing a coefficient summary, fitted values and their standard errors, and the log-likelihood and deviance of the model.
+A list containing a coefficient summary, fitted values and their 
+standard errors, and the log-likelihood and deviance of the model.
 }
 \description{
-This function takes in the \code{MARGE} model fitted during the running of \code{\link{marge2}} and summarizes it.
+This function takes in the \code{MARGE} model fitted during the 
+running of \code{\link{marge2}} and summarizes it.
 }
 \seealso{
 \code{\link{marge2}}

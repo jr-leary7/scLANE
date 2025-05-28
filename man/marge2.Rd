@@ -29,45 +29,72 @@ marge2(
 
 \item{Y}{The response variable. Defaults to NULL.}
 
-\item{Y.offset}{(Optional) An vector of per-cell size factors to be included in the final model fit as an offset. Defaults to NULL.}
+\item{Y.offset}{(Optional) An vector of per-cell size factors to be 
+included in the final model fit as an offset. Defaults to NULL.}
 
-\item{M}{A set threshold for the maximum number of basis functions to be chosen. Defaults to 5.}
+\item{M}{A set threshold for the maximum number of basis functions to be 
+chosen. Defaults to 5.}
 
-\item{is.gee}{Should the \code{geeM} package be used to fit a negative binomial GEE? Defaults to FALSE.}
+\item{is.gee}{Should the \code{geeM} package be used to fit a negative 
+binomial GEE? Defaults to FALSE.}
 
 \item{is.glmm}{Is the overall model to be fit a GLMM? Defaults to FALSE.}
 
-\item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for the observations. Data must be sorted such that the subjects are in order! Defaults to NULL.}
+\item{id.vec}{If \code{is.gee = TRUE}, must be a vector of ID values for 
+the observations. Data must be sorted such that the subjects are in order! 
+Defaults to NULL.}
 
-\item{cor.structure}{If \code{is.gee = TRUE}, a string specifying the desired correlation structure for the NB GEE. Defaults to "ar1".}
+\item{cor.structure}{If \code{is.gee = TRUE}, a string specifying the 
+desired correlation structure for the NB GEE. Defaults to "ar1".}
 
-\item{sandwich.var}{(Optional) Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.}
+\item{sandwich.var}{(Optional) Should the sandwich variance estimator be 
+used instead of the model-based estimator? Default to FALSE.}
 
-\item{approx.knot}{(Optional) Should the set of candidate knots be subsampled in order to speed up computation? This has little effect on the final fit, but can improve computation time somewhat. Defaults to TRUE.}
+\item{approx.knot}{(Optional) Should the set of candidate knots be 
+subsampled in order to speed up computation? This has little effect on the 
+final fit, but can improve computation time somewhat. Defaults to TRUE.}
 
-\item{n.knot.max}{(Optional) The maximum number of candidate knots to consider. Uses uniform sampling to select this number of unique values from the reduced set of all candidate knots. Defaults to 25.}
+\item{n.knot.max}{(Optional) The maximum number of candidate knots to 
+consider. Uses uniform sampling to select this number of unique values from 
+the reduced set of all candidate knots. Defaults to 25.}
 
-\item{glm.backend}{(Optional) Character specifying which GLM-fitting backend should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".}
+\item{glm.backend}{(Optional) Character specifying which GLM-fitting backend 
+should be used. Must be one of "MASS" or "speedglm". Defaults to "MASS".}
 
-\item{tols_score}{(Optional) The set tolerance for monitoring the convergence for the difference in score statistics between the parent and candidate model (this is the lack-of-fit criterion used for MARGE). Defaults to 0.00001.}
+\item{tols_score}{(Optional) The set tolerance for monitoring the 
+convergence for the difference in score statistics between the parent and 
+candidate model (this is the lack-of-fit criterion used for MARGE). 
+Defaults to 0.00001.}
 
 \item{minspan}{(Optional) A set minimum span value. Defaults to NULL.}
 
-\item{return.basis}{(Optional) Whether the basis model matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.}
+\item{return.basis}{(Optional) Whether the basis model matrix should be 
+returned as part of the \code{marge} model object. Defaults to FALSE.}
 
-\item{return.WIC}{(Optional) Whether the WIC matrix should be returned as part of the \code{marge} model object. Defaults to FALSE.}
+\item{return.WIC}{(Optional) Whether the WIC matrix should be returned as 
+part of the \code{marge} model object. Defaults to FALSE.}
 
-\item{return.GCV}{(Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
+\item{return.GCV}{(Optional) Whether the final GCV value should be returned 
+as part of the \code{marge} model object. Defaults to FALSE.}
 }
 \value{
-An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
+An object of class \code{marge} containing the fitted model & other 
+optional quantities of interest (basis function matrix, GCV, etc.).
 }
 \description{
-MARS fitting function for negative binomial generalized linear models (GLMs) & generalized estimating equations (GEEs).
+MARS fitting function for negative binomial generalized linear 
+models (GLMs) & generalized estimating equations (GEEs).
 }
 \details{
 \itemize{
-\item If models are being fit using an offset (as is recommended), it is assumed that the offset represents a library size factor (or similar quantity) generated using e.g., \code{\link{createCellOffset}} or \code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents a scaling factor divided by sequencing depth, the offset is formulated as \code{offset(log(1 / cell_offset))}. The inversion is necessary because the rate term, i.e. the sequencing depth, is the denominator of the estimated size factors.
+\item If models are being fit using an offset (as is recommended), it is 
+assumed that the offset represents a library size factor (or similar 
+quantity) generated using e.g., \code{\link{createCellOffset}} or 
+\code{\link[scuttle]{computeLibraryFactors}}. Since this quantity represents 
+a scaling factor divided by sequencing depth, the offset is formulated 
+as \code{offset(log(1 / cell_offset))}. The inversion is necessary because 
+the rate term, i.e. the sequencing depth, is the denominator of the 
+estimated size factors.
 }
 }
 \examples{
@@ -75,15 +102,22 @@ data(sim_counts)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 marge_model <- marge2(sim_pseudotime,
-                      Y = BiocGenerics::counts(sim_counts)[4, ],
-                      Y.offset = cell_offset)
+    Y = BiocGenerics::counts(sim_counts)[4, ],
+    Y.offset = cell_offset
+)
 }
 \references{
-Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
+Friedman, J. (1991). Multivariate adaptive regression splines. 
+\emph{The Annals of Statistics}, \strong{19}, 1--67.
 
-Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward selection for generalized estimating equations with a large number of predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
+Stoklosa, J., Gibb, H. and Warton, D.I. (2014). Fast forward 
+selection for generalized estimating equations with a large number of 
+predictor variables. \emph{Biometrics}, \strong{70}, 110--120.
 
-Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+Stoklosa, J. and Warton, D.I. (2018). A generalized estimating 
+equation approach to multivariate adaptive regression splines. 
+\emph{Journal of Computational and Graphical Statistics}, \strong{27}, 
+245--253.
 }
 \seealso{
 \code{\link{backward_sel_WIC}}

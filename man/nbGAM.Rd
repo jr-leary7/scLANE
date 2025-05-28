@@ -18,29 +18,38 @@ nbGAM(
 
 \item{pt}{A dataframe or vector of pseudotime values. Defaults to NULL.}
 
-\item{Y.offset}{(Optional) An offset to be included in the final model fit. Defaults to NULL.}
+\item{Y.offset}{(Optional) An offset to be included in the final model fit. 
+Defaults to NULL.}
 
-\item{id.vec}{(Optional) A vector of subject IDs to be used in creating random intercepts in the GAM. Useful for comparing GAMs to GLMMs. Defaults to NULL.}
+\item{id.vec}{(Optional) A vector of subject IDs to be used in creating 
+random intercepts in the GAM. Useful for comparing GAMs to GLMMs. Defaults 
+to NULL.}
 
-\item{penalize.spline}{(Optional) Should a P-spline be used to fit the GAM? Otherwise the default cubic basis spline is used instead. Defaults to FALSE.}
+\item{penalize.spline}{(Optional) Should a P-spline be used to fit the GAM? 
+Otherwise the default cubic basis spline is used instead. Defaults to FALSE.}
 
-\item{spline.df}{(Optional) Degrees of freedom of the cubic basis spline. Unused if a P-spline is being fit, since it's estimated internally. Defaults to 5.}
+\item{spline.df}{(Optional) Degrees of freedom of the cubic basis spline. 
+Unused if a P-spline is being fit, since it's estimated internally. 
+Defaults to 5.}
 }
 \value{
 An object of class \code{gamlss}
 }
 \description{
-Fits a negative-binomial family GAM using a cubic basis spline on pseudotime. If data are multi-subject in nature, a random intercept is included for each subject.
+Fits a negative-binomial family GAM using a cubic basis spline 
+on pseudotime. If data are multi-subject in nature, a random intercept is 
+included for each subject.
 }
 \examples{
 data(sim_counts)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 gam_mod <- nbGAM(BiocGenerics::counts(sim_counts)[4, ],
-                 pt = sim_pseudotime,
-                 Y.offset = cell_offset,
-                 penalize.spline = TRUE,
-                 spline.df = 10)
+    pt = sim_pseudotime,
+    Y.offset = cell_offset,
+    penalize.spline = TRUE,
+    spline.df = 10
+)
 }
 \seealso{
 \code{\link[gamlss]{gamlss}}

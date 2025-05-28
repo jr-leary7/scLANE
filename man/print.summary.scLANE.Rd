@@ -9,6 +9,9 @@
 \arguments{
 \item{x}{An object of class summary.scLANE.}
 }
+\value{
+A printed summary of overall scLANE results
+}
 \description{
 Print method for summary.scLANE objects.
 }

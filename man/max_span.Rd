@@ -2,7 +2,8 @@
 % Please edit documentation in R/max_span.R
 \name{max_span}
 \alias{max_span}
-\title{Truncates the predictor variable value to exclude extreme values in knots selection.}
+\title{Truncates the predictor variable value to exclude extreme values in 
+knots selection.}
 \usage{
 max_span(X_red = NULL, q = NULL, alpha = 0.05)
 }
@@ -14,18 +15,24 @@ max_span(X_red = NULL, q = NULL, alpha = 0.05)
 \item{alpha}{See Friedman (1991) equation (45). Defaults to 0.05.}
 }
 \value{
-\code{max_span} returns a vector of truncated predictor variable values.
+\code{max_span} returns a vector of truncated predictor variable 
+values.
 }
 \description{
-Truncates the predictor variable value to exclude extreme values in knots selection.
+Truncates the predictor variable value to exclude extreme values in 
+knots selection.
 }
 \details{
 Note that this equation comes from Friedman (1991) equation (45).
 }
 \references{
-Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
+Friedman, J. (1991). Multivariate adaptive regression splines. 
+\emph{The Annals of Statistics}, \strong{19}, 1--67.
 
-Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+Stoklosa, J. and Warton, D.I. (2018). A generalized estimating 
+equation approach to multivariate adaptive regression splines. 
+\emph{Journal of Computational and Graphical Statistics}, 
+\strong{27}, 245--253.
 }
 \author{
 Jakub Stoklosa

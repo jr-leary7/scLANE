@@ -19,42 +19,61 @@ fitGLMM(
 )
 }
 \arguments{
-\item{X_pred}{A matrix with one column containing cell ordering values. Defaults to NULL.}
+\item{X_pred}{A matrix with one column containing cell ordering values. 
+Defaults to NULL.}
 
 \item{Y}{A vector of raw single cell counts. Defaults to NULL.}
 
-\item{Y.offset}{(Optional) An offset to be included in the final model fit. Defaults to NULL.}
+\item{Y.offset}{(Optional) An offset to be included in the final model fit. 
+Defaults to NULL.}
 
 \item{id.vec}{A vector of subject IDs. Defaults to NULL.}
 
-\item{adaptive}{Should basis functions be chosen adaptively? Defaults to TRUE.}
+\item{adaptive}{Should basis functions be chosen adaptively? Defaults 
+to TRUE.}
 
-\item{approx.knot}{Should knot approximation be used in the calls to \code{\link{marge2}}? This speeds up computation somewhat. Defaults to TRUE.}
+\item{approx.knot}{Should knot approximation be used in the calls to 
+\code{\link{marge2}}? This speeds up computation somewhat. Defaults to TRUE.}
 
-\item{M.glm}{The number of possible basis functions to use in the calls to \code{\link{marge2}} when choosing basis functions adaptively. Defaults to 3.}
+\item{M.glm}{The number of possible basis functions to use in the calls to 
+\code{\link{marge2}} when choosing basis functions adaptively. Defaults to 3.}
 
-\item{reg.penalty}{(Optional) String specifying the penalty type to be used when fitting a regularized negative-binomial model to select optimal basis functions. Defaults to "snet".}
+\item{reg.penalty}{(Optional) String specifying the penalty type to be used 
+when fitting a regularized negative-binomial model to select optimal basis 
+functions. Defaults to "snet".}
 
-\item{return.basis}{(Optional) Whether the basis model matrix (denoted \code{basis_mtx}) should be returned as part of the \code{marge} model object. Defaults to FALSE.}
+\item{return.basis}{(Optional) Whether the basis model matrix (denoted 
+\code{basis_mtx}) should be returned as part of the \code{marge} model 
+object. Defaults to FALSE.}
 
-\item{return.GCV}{(Optional) Whether the final GCV value should be returned as part of the \code{marge} model object. Defaults to FALSE.}
+\item{return.GCV}{(Optional) Whether the final GCV value should be returned 
+as part of the \code{marge} model object. Defaults to FALSE.}
 
-\item{verbose}{(Optional) Should intermediate output be printed to the console? Defaults to FALSE.}
+\item{verbose}{(Optional) Should intermediate output be printed to the 
+console? Defaults to FALSE.}
 }
 \value{
-An object of class \code{marge} containing the fitted model & other optional quantities of interest (basis function matrix, GCV, etc.).
+An object of class \code{marge} containing the fitted model & other 
+optional quantities of interest (basis function matrix, GCV, etc.).
 }
 \description{
-Fits a negative-binomial generalized linear mixed model using truncated power basis function splines as input. The basis matrix can be created adaptively using subject-specific estimation of optimal knots using \code{\link{marge2}}, or basis functions can be evenly spaced across quantiles. The resulting model can output subject-specific and population-level fitted values.
+Fits a negative-binomial generalized linear mixed model using 
+truncated power basis function splines as input. The basis matrix can be 
+created adaptively using subject-specific estimation of optimal knots using 
+\code{\link{marge2}}, or basis functions can be evenly spaced across 
+quantiles. The resulting model can output subject-specific and 
+population-level fitted values.
 }
 \examples{
 data(sim_counts)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
-glmm_mod <- fitGLMM(X_pred = sim_pseudotime,
-                    Y = BiocGenerics::counts(sim_counts)[4, ],
-                    Y.offset = cell_offset,
-                    id.vec = sim_counts$subject)
+glmm_mod <- fitGLMM(
+    X_pred = sim_pseudotime,
+    Y = BiocGenerics::counts(sim_counts)[4, ],
+    Y.offset = cell_offset,
+    id.vec = sim_counts$subject
+)
 }
 \seealso{
 \code{\link[mpath]{glmregNB}}

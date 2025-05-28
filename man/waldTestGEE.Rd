@@ -13,26 +13,44 @@ waldTestGEE(
 )
 }
 \arguments{
-\item{mod.1}{The model under the alternative hypothesis. Must be of class \code{geem}. Defaults to NULL.}
+\item{mod.1}{The model under the alternative hypothesis. Must be of class 
+\code{geem}. Defaults to NULL.}
 
-\item{mod.0}{The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.}
+\item{mod.0}{The model under the null hypothesis. Must be of class 
+\code{geem}. Defaults to NULL.}
 
-\item{correction.method}{A string specifying the correction method to be used. Currently supported options are "df", "kc", and NULL. Defaults to NULL.}
+\item{correction.method}{A string specifying the correction method to be 
+used. Currently supported options are "df", "kc", and NULL. Defaults to NULL.}
 
-\item{id.vec}{A vector of subject IDs. Required when \code{correction.method} is "kc". Defaults to NULL.}
+\item{id.vec}{A vector of subject IDs. Required when 
+\code{correction.method} is "kc". Defaults to NULL.}
 
-\item{verbose}{(Optional) A Boolean specifying whether or not verbose output should be printed to the console. Occasionally useful for debugging. Defaults to FALSE.}
+\item{verbose}{(Optional) A Boolean specifying whether or not verbose 
+output should be printed to the console. Occasionally useful for debugging. 
+Defaults to FALSE.}
 }
 \value{
-A list containing the Wald test statistic, a \emph{p}-value, and the degrees of freedom used in the test.
+A list containing the Wald test statistic, a \emph{p}-value, and 
+the degrees of freedom used in the test.
 }
 \description{
-Performs a basic Wald test to determine whether an alternate model is significantly better than a nested null model. This is the GEE equivalent (kind of) of \code{\link{modelLRT}}. Be careful with small sample sizes.
+Performs a basic Wald test to determine whether an alternate 
+model is significantly better than a nested null model. This is the GEE 
+equivalent (kind of) of \code{\link{modelLRT}}. Be careful with small 
+sample sizes.
 }
 \details{
 \itemize{
-\item Calculating the test statistic involves taking the inverse of the variance-covariance matrix of the coefficients. Ideally this would be done using the "true" inverse with something like \code{\link{solve}}, \code{\link{qr.solve}}, or \code{\link{chol2inv}}, but in practice this can cause issues when the variance-covariance matrix is near-singular. With this in mind, we use the Moore-Penrose pseudoinverse as implemented in \code{\link[MASS]{ginv}} instead, which leads to more stable results.
-\item The \emph{p}-value is calculated using an asymptotic Chi-squared distribution, with the degrees of freedom equal to the number of non-intercept coefficients in the alternative model.
+\item Calculating the test statistic involves taking the inverse of the 
+variance-covariance matrix of the coefficients. Ideally this would be done 
+using the "true" inverse with something like \code{\link{solve}}, 
+\code{\link{qr.solve}}, or \code{\link{chol2inv}}, but in practice this can 
+cause issues when the variance-covariance matrix is near-singular. With this 
+in mind, we use the Moore-Penrose pseudoinverse as implemented in 
+\code{\link[MASS]{ginv}} instead, which leads to more stable results.
+\item The \emph{p}-value is calculated using an asymptotic Chi-squared 
+distribution, with the degrees of freedom equal to the number of 
+non-intercept coefficients in the alternative model.
 }
 }
 \seealso{

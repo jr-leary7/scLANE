@@ -7,17 +7,22 @@
 enrichDynamicGenes(scLANE.de.res = NULL, lineage = NULL, species = "hsapiens")
 }
 \arguments{
-\item{scLANE.de.res}{The output from \code{\link{getResultsDE}}. Defaults to NULL.}
+\item{scLANE.de.res}{The output from \code{\link{getResultsDE}}. Defaults 
+to NULL.}
 
-\item{lineage}{A character vector specifying lineages to isolate. Defaults to NULL.}
+\item{lineage}{A character vector specifying lineages to isolate. Defaults 
+to NULL.}
 
-\item{species}{The species against which to run enrichment analysis. Defaults to "hsapiens".}
+\item{species}{The species against which to run enrichment analysis. 
+Defaults to "hsapiens".}
 }
 \value{
 The output from \code{\link[gprofiler2]{gost}}.
 }
 \description{
-This function uses the \code{gprofiler2} package to perform pathway analysis on a set of genes from one or more lineages that were determined to be dynamic with \code{\link{testDynamic}}.
+This function uses the \code{gprofiler2} package to perform 
+pathway analysis on a set of genes from one or more lineages that were 
+determined to be dynamic with \code{\link{testDynamic}}.
 }
 \examples{
 data(scLANE_models)

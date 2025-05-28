@@ -3,9 +3,11 @@
 \docType{data}
 \name{sim_counts}
 \alias{sim_counts}
-\title{A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object containing simulated counts.}
+\title{A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object containing 
+simulated counts.}
 \format{
-An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+An object of class 
+\code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 }
 \source{
 https://www.rhondabacher.com/scaffold-vignette.pdf
@@ -13,7 +15,11 @@ https://www.rhondabacher.com/scaffold-vignette.pdf
 \usage{
 data(sim_counts)
 }
+\value{
+Small simulated trajectory dataset.
+}
 \description{
-Data simulated using the \code{scaffold} R package for 50 dynamic and 50 static genes across 1200 cells from 3 subjects.
+Data simulated using the \code{scaffold} R package for 50 dynamic and 50 
+static genes across 1200 cells from 3 subjects.
 }
 \keyword{datasets}

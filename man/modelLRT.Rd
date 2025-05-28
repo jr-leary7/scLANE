@@ -7,17 +7,23 @@
 modelLRT(mod.1 = NULL, mod.0 = NULL, is.glmm = FALSE)
 }
 \arguments{
-\item{mod.1}{The model corresponding to the alternative hypothesis. Defaults to NULL.}
+\item{mod.1}{The model corresponding to the alternative hypothesis. 
+Defaults to NULL.}
 
-\item{mod.0}{The model corresponding to the null hypothesis. Defaults to NULL.}
+\item{mod.0}{The model corresponding to the null hypothesis. 
+Defaults to NULL.}
 
 \item{is.glmm}{Are the models being compared GLMMs? Defaults to FALSE.}
 }
 \value{
-A list containing the LRT test statistic, degrees freedom, and the \emph{p}-value computed using the Chi-squared assumption.
+A list containing the LRT test statistic, degrees freedom, and 
+the \emph{p}-value computed using the Chi-squared assumption.
 }
 \description{
-This function compares two models using a likelihood ratio test (LRT) under the assumption that the test statistic is asymptotically Chi-squared with degrees freedom equal to the difference in the number of parameters between the larger and smaller model.
+This function compares two models using a likelihood ratio 
+test (LRT) under the assumption that the test statistic is asymptotically 
+Chi-squared with degrees freedom equal to the difference in the number of 
+parameters between the larger and smaller model.
 }
 \author{
 Jack R. Leary

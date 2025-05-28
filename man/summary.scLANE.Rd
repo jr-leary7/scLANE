@@ -7,14 +7,18 @@
 \method{summary}{scLANE}(test.dyn.res = NULL, p.adj.method = "fdr", fdr.cutoff = 0.01)
 }
 \arguments{
-\item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
+\item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}. 
+Defaults to NULL.}
 
-\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "fdr".}
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for 
+multiple hypothesis testing. Defaults to "fdr".}
 
-\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
+\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical 
+significance. Defaults to 0.01.}
 }
 \value{
-A summary list with aggregated statistics concerning the trajectory DE tests from \code{scLANE}.
+A summary list with aggregated statistics concerning the trajectory 
+DE tests from \code{scLANE}.
 }
 \description{
 Summary method for scLANE objects.

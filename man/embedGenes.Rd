@@ -19,40 +19,58 @@ embedGenes(
 )
 }
 \arguments{
-\item{smoothed.counts}{The output from \code{\link{smoothedCountsMatrix}}. Defaults to NULL.}
+\item{smoothed.counts}{The output from \code{\link{smoothedCountsMatrix}}. 
+Defaults to NULL.}
 
-\item{genes}{A character vector of genes to embed. If not specified, all genes in \code{smoothed.counts} are used. Defaults to NULL.}
+\item{genes}{A character vector of genes to embed. If not specified, all 
+genes in \code{smoothed.counts} are used. Defaults to NULL.}
 
-\item{pca.init}{A boolean specifying whether or not the embedded PCs should be used as initialization for clustering and UMAP. The default is to cluster / embed the raw dynamics i.e., defaults to FALSE.}
+\item{pca.init}{A boolean specifying whether or not the embedded PCs should 
+be used as initialization for clustering and UMAP. The default is to 
+cluster/embed the raw dynamics i.e., defaults to FALSE.}
 
-\item{pc.embed}{(Optional) How many PCs should be used to cluster the genes and run UMAP? Defaults to 30.}
+\item{pc.embed}{(Optional) How many PCs should be used to cluster the genes 
+and run UMAP? Defaults to 30.}
 
-\item{pc.return}{(Optional) How many principal components should be included in the output? Defaults to 2.}
+\item{pc.return}{(Optional) How many principal components should be included 
+in the output? Defaults to 2.}
 
-\item{cluster.genes}{(Optional) Should genes be clustered in PCA space using the Leiden algorithm? Defaults to TRUE.}
+\item{cluster.genes}{(Optional) Should genes be clustered in PCA space using 
+the Leiden algorithm? Defaults to TRUE.}
 
-\item{gene.meta.data}{(Optional) A data.frame of metadata values for each gene (HVG status, Ensembl ID, gene biotype, etc.) that will be included in the result table. Defaults to NULL.}
+\item{gene.meta.data}{(Optional) A data.frame of metadata values for each 
+gene (HVG status, Ensembl ID, gene biotype, etc.) that will be included in 
+the result table. Defaults to NULL.}
 
-\item{k.param}{(Optional) The value of nearest-neighbors used in creating the SNN graph prior to clustering & in running UMAP. Defaults to 20.}
+\item{k.param}{(Optional) The value of nearest-neighbors used in creating 
+the SNN graph prior to clustering & in running UMAP. Defaults to 20.}
 
-\item{resolution.param}{(Optional) The value of the resolution parameter for the Leiden algorithm. If unspecified, silhouette scoring is used to select an optimal value. Defaults to NULL.}
+\item{resolution.param}{(Optional) The value of the resolution parameter 
+for the Leiden algorithm. If unspecified, silhouette scoring is used to 
+select an optimal value. Defaults to NULL.}
 
-\item{random.seed}{(Optional) The random seed used to control stochasticity in the clustering algorithm. Defaults to 312.}
+\item{random.seed}{(Optional) The random seed used to control stochasticity 
+in the clustering algorithm. Defaults to 312.}
 
-\item{n.cores}{(Optional) Integer specifying the number of threads used by \code{\link[uwot]{umap}} and in \code{\link[bluster]{makeSNNGraph}}. Defaults to 2.}
+\item{n.cores}{(Optional) Integer specifying the number of threads used by 
+\code{\link[uwot]{umap}} and in \code{\link[bluster]{makeSNNGraph}}. 
+Defaults to 2.}
 }
 \value{
-A data.frame containing embedding coordinates, cluster IDs, and metadata for each gene.
+A data.frame containing embedding coordinates, cluster IDs, and 
+metadata for each gene.
 }
 \description{
-Embed genes in dimension-reduced space given a smoothed counts matrix.
+Embed genes in dimension-reduced space given a smoothed counts 
+matrix.
 }
 \examples{
 data(sim_pseudotime)
 data(scLANE_models)
 smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
-                                          pt = sim_pseudotime,
-                                          n.cores = 1L)
+    pt = sim_pseudotime,
+    n.cores = 1L
+)
 gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
 }
 \author{

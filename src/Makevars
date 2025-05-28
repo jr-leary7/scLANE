@@ -1,11 +1,12 @@
-## With Rcpp 0.11.0 and later, we no longer need to set PKG_LIBS as there is
-## no user-facing library. The include path to headers is already set by R.
-#PKG_LIBS = 
+# src/Makevars
+# Flags for both GCC and Clang
+PKG_CXXFLAGS = -std=c++14 -Oz -s -g0 -fwrapv -fomit-frame-pointer -ffunction-sections -fdata-sections -fvisibility=hidden -DNDEBUG -Wno-unused-but-set-variable -Wno-unused-variable -ffast-math -funroll-loops
 
-## With R 3.1.0 or later, you can uncomment the following line to tell R to 
-## enable compilation with C++11 (or even C++14) where available
-CXX_STD = CXX11
 
-## enable CPU speedups
-PKG_CXXFLAGS += -O3 -march=native -mfma
-PKG_CXX11FLAGS += -O3 -march=native -mfma
+# Conditional section based on the compiler
+ifdef GCC
+  PKG_LIBS += -Wl,--gc-sections -Bsymbolic -Wl,--exclude-libs,ALL -fwhole-program -s -Wl,--build-id=none -Wl,--strip-all
+else
+  # For Clang, you might need `-dead_strip`
+  PKG_LIBS += -Wl,-dead_strip 
+endif

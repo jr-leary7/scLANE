@@ -18,13 +18,15 @@ theme_scLANE(
 
 \item{base.family}{The font family to be used throughout. Defaults to "sans".}
 
-\item{umap}{(Optional) If set to TRUE, removes axis text and ticks for a cleaner look. Defaults to FALSE.}
+\item{umap}{(Optional) If set to TRUE, removes axis text and ticks for a 
+cleaner look. Defaults to FALSE.}
 }
 \value{
 A \code{ggplot2} theme.
 }
 \description{
-A publication-ready theme for creating gene dynamics plots, embedding plots, etc.
+A publication-ready theme for creating gene dynamics plots, 
+embedding plots, etc.
 }
 \examples{
 data(sim_counts)
@@ -32,11 +34,12 @@ data(scLANE_models)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 model_plot <- plotModels(scLANE_models,
-                         gene = names(scLANE_models)[1],
-                         pt = sim_pseudotime,
-                         expr.mat = sim_counts,
-                         size.factor.offset = cell_offset) +
-              theme_scLANE()
+    gene = names(scLANE_models)[1],
+    pt = sim_pseudotime,
+    expr.mat = sim_counts,
+    size.factor.offset = cell_offset
+) +
+    theme_scLANE()
 }
 \author{
 Jack R. Leary

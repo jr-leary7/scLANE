@@ -10,7 +10,11 @@ An object of class \code{scLANE}.
 \usage{
 data(scLANE_models)
 }
+\value{
+scLANE results on small simulated trajectory dataset.
+}
 \description{
-Contains the results from running \code{\link{testDynamic}} on \code{\link{sim_counts}}.
+Contains the results from running \code{\link{testDynamic}} 
+on \code{\link{sim_counts}}.
 }
 \keyword{datasets}

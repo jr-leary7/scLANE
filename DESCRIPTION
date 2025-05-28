@@ -13,33 +13,33 @@ RoxygenNote: 7.3.2
 Depends: 
   glm2, 
   magrittr, 
-  R (>= 3.5.0)
+  R (>= 4.4.0)
 Imports: 
     geeM,
     MASS,
-    mpath, 
+    mpath,
     dplyr,
     stats,
-    utils, 
-    withr, 
+    utils,
+    withr,
     purrr,
     tidyr,
-    furrr, 
-    doSNOW, 
+    furrr,
+    doSNOW,
     gamlss,
     scales,
-    future, 
+    future,
     Matrix,
     ggplot2,
-    splines, 
+    splines,
     foreach,
-    glmmTMB, 
+    glmmTMB,
     parallel,
-    RcppEigen, 
+    RcppEigen,
     bigstatsr,
     tidyselect,
-    broom.mixed, 
-    Rcpp (>= 1.0.7)
+    broom.mixed,
+    Rcpp
 URL: https://github.com/jr-leary7/scLANE
 BugReports: https://github.com/jr-leary7/scLANE/issues
 Suggests: 
@@ -73,7 +73,7 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LinkingTo: 
-    Rcpp, 
+    Rcpp,
     RcppEigen
 biocViews:
     RNASeq,

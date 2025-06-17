@@ -13,21 +13,30 @@ biasCorrectGEE(
 )
 }
 \arguments{
-\item{fitted.model}{The fitted model of class \code{geem} returned by \code{\link{marge2}}. Defaults to NULL.}
+\item{fitted.model}{The fitted model of class \code{geem} returned by 
+\code{\link{marge2}}. Defaults to NULL.}
 
-\item{correction.method}{A string specifying the correction method to be used. Currently supported options are "df" and "kc". Defaults to "kc".}
+\item{correction.method}{A string specifying the correction method to be 
+used. Currently supported options are "df" and "kc". Defaults to "kc".}
 
 \item{id.vec}{A vector of subject IDs. Defaults to NULL.}
 
-\item{cor.structure}{A string specifying the correlation structure used in fitting the model. Defaults to "ar1".}
+\item{cor.structure}{A string specifying the correlation structure used in 
+fitting the model. Defaults to "ar1".}
 
-\item{verbose}{(Optional) A Boolean specifying whether or not verbose output should be printed to the console. Occasionally useful for debugging. Defaults to FALSE.}
+\item{verbose}{(Optional) A Boolean specifying whether or not verbose output 
+should be printed to the console. Occasionally useful for debugging. 
+Defaults to FALSE.}
 }
 \value{
-An object of class \code{matrix} containing the bias-corrected variance-covariance estimates.
+An object of class \code{matrix} containing the bias-corrected 
+variance-covariance estimates.
 }
 \description{
-This functions implements several bias-correction methods for the GEE sandwich variance-covariance matrix; they are to be used when the number of subjects is small or the numer of timepoints per-subject is very large.
+This functions implements several bias-correction methods for 
+the GEE sandwich variance-covariance matrix; they are to be used when the 
+number of subjects is small or the numer of timepoints per-subject is very 
+large.
 }
 \seealso{
 \code{\link{waldTestGEE}}

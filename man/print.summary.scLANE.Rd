@@ -4,10 +4,13 @@
 \alias{print.summary.scLANE}
 \title{Print method for summary.scLANE objects.}
 \usage{
-\method{print}{summary.scLANE}(x)
+\method{print}{summary.scLANE}(x, ...)
 }
 \arguments{
 \item{x}{An object of class summary.scLANE.}
+}
+\value{
+A printed summary of overall scLANE results
 }
 \description{
 Print method for summary.scLANE objects.

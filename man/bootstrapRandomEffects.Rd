@@ -20,38 +20,50 @@ bootstrapRandomEffects(
 
 \item{id.vec}{A vector of subject IDs. Defaults to NULL.}
 
-\item{Y.offset}{An offset to be included in the final model fit. Defaults to NULL.}
+\item{Y.offset}{An offset to be included in the final model fit. Defaults 
+to NULL.}
 
-\item{n.boot}{(Optional) The number of bootstrap resamples to generate. Defaults to 500.}
+\item{n.boot}{(Optional) The number of bootstrap resamples to generate. 
+Defaults to 500.}
 
-\item{alpha}{(Optional) The desired confidence level. Defaults to good old 0.05.}
+\item{alpha}{(Optional) The desired confidence level. Defaults to good 
+old 0.05.}
 
-\item{n.cores}{(Optional) The number of threads to use in parallel processing of the bootstrap resampling procedure. Defaults to 4.}
+\item{n.cores}{(Optional) The number of threads to use in parallel 
+processing of the bootstrap resampling procedure. Defaults to 4.}
 
-\item{random.seed}{(Optional) The seed used to control stochasticity during bootstrap resampling. Defaults to 312.}
+\item{random.seed}{(Optional) The seed used to control stochasticity 
+during bootstrap resampling. Defaults to 312.}
 
-\item{verbose}{(Optional) A boolean indicating whether a progress bar should be printed to the console. Defaults to TRUE.}
+\item{verbose}{(Optional) A boolean indicating whether a progress bar 
+should be printed to the console. Defaults to TRUE.}
 }
 \value{
-An object of class \code{data.frame} containing the upper and lower quantiles of the per-subject random effects.
+An object of class \code{data.frame} containing the upper and 
+lower quantiles of the per-subject random effects.
 }
 \description{
-This function leverages the parametric bootstrap to generate empirical confidence intervals for the random effects terms of a fitted model.
+This function leverages the parametric bootstrap to generate 
+empirical confidence intervals for the random effects terms of a 
+fitted model.
 }
 \examples{
 data(sim_counts)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
-glmm_mod <- fitGLMM(X_pred = sim_pseudotime,
-                    Y = BiocGenerics::counts(sim_counts)[4, ],
-                    Y.offset = cell_offset,
-                    id.vec = sim_counts$subject,
-                    return.basis = TRUE)
+glmm_mod <- fitGLMM(
+    X_pred = sim_pseudotime,
+    Y = BiocGenerics::counts(sim_counts)[4, ],
+    Y.offset = cell_offset,
+    id.vec = sim_counts$subject,
+    return.basis = TRUE
+)
 ranef_sumy <- bootstrapRandomEffects(glmm_mod,
-                                     id.vec = sim_counts$subject,
-                                     Y.offset = cell_offset, 
-                                     n.boot = 100L, 
-                                     n.cores = 1L)
+    id.vec = sim_counts$subject,
+    Y.offset = cell_offset,
+    n.boot = 100L,
+    n.cores = 1L
+)
 }
 \seealso{
 \code{\link{fitGLMM}}

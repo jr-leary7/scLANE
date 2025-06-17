@@ -12,23 +12,32 @@ chooseCandidateGenes(
 )
 }
 \arguments{
-\item{obj}{An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}}, \code{\link[Seurat]{Seurat}}, or \code{CellDataSet}, or a gene-by-cell matrix. Defaults to NULL.}
+\item{obj}{An object of class 
+\code{\link[SingleCellExperiment]{SingleCellExperiment}}, 
+\code{\link[Seurat]{Seurat}}, or \code{CellDataSet}, or a gene-by-cell 
+matrix. Defaults to NULL.}
 
-\item{group.by.subject}{Boolean specifying whether or not the summary statistics should be computed per-subject and then mean-aggregated. Defaults to TRUE.}
+\item{group.by.subject}{Boolean specifying whether or not the summary 
+statistics should be computed per-subject and then mean-aggregated. 
+Defaults to TRUE.}
 
 \item{id.vec}{A vector of subject IDs. Defaults to NULL.}
 
-\item{n.desired.genes}{An integer specifying the number of candidate genes to return. Defaults to 2000.}
+\item{n.desired.genes}{An integer specifying the number of candidate 
+genes to return. Defaults to 2000.}
 }
 \value{
 A vector of candidate gene names.
 }
 \description{
-This function identifies good gene candidates for trajectory differential expression modeling by ranking genes based on their mean expression, SD of expression, and sparsity across cells.
+This function identifies good gene candidates for trajectory 
+differential expression modeling by ranking genes based on their mean 
+expression, SD of expression, and sparsity across cells.
 }
 \examples{
 data(sim_counts)
-candidate_genes <- chooseCandidateGenes(sim_counts, id.vec = sim_counts$subject)
+candidate_genes <- chooseCandidateGenes(sim_counts, 
+                            id.vec = sim_counts$subject)
 }
 \author{
 Jack R. Leary

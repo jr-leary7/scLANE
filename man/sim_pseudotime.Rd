@@ -13,6 +13,9 @@ An object of class \code{data.frame} with 1200 rows and one variable:
 \usage{
 data(sim_pseudotime)
 }
+\value{
+Small simulated trajectory pseudotime.
+}
 \description{
 The true ordering of the 1200 cells contained in \code{sim_counts}.
 }

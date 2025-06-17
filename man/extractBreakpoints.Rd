@@ -9,21 +9,29 @@ extractBreakpoints(model = NULL, directions = TRUE)
 \arguments{
 \item{model}{The \code{marge} model to analyze. Defaults to NULL.}
 
-\item{directions}{Should the directions of the hinge functions also be extracted? Defaults to TRUE.}
+\item{directions}{Should the directions of the hinge functions also be 
+extracted? Defaults to TRUE.}
 }
 \value{
 A data.frame of breakpoints & their directions.
 }
 \description{
-Extracts the breakpoints from a fitted \code{marge} model. Note - this function relies on the name of the pseudotime variable not having any numeric characters in it e.g., "pseudotime" or "PT" would be fine but "pseudotime1" would not. If multiple lineages exist, use letters to denote lineages instead of numbers e.g., "Lineage_A" and "Lineage_B". This is currently handled automatically in \code{\link{testDynamic}}, so don't change anything.
+Extracts the breakpoints from a fitted \code{marge} model. 
+Note - this function relies on the name of the pseudotime variable not 
+having any numeric characters in it e.g., "pseudotime" or "PT" would be 
+fine but "pseudotime1" would not. If multiple lineages exist, use letters 
+to denote lineages instead of numbers e.g., "Lineage_A" and "Lineage_B". 
+This is currently handled automatically in \code{\link{testDynamic}}, so 
+don't change anything.
 }
 \examples{
 data(sim_counts)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 marge_model <- marge2(sim_pseudotime,
-                      Y = BiocGenerics::counts(sim_counts)[4, ],
-                      Y.offset = cell_offset)
+    Y = BiocGenerics::counts(sim_counts)[4, ],
+    Y.offset = cell_offset
+)
 breakpoint_df <- extractBreakpoints(model = marge_model)
 }
 \author{

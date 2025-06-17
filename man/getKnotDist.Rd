@@ -7,15 +7,20 @@
 getKnotDist(test.dyn.res = NULL, dyn.genes = NULL)
 }
 \arguments{
-\item{test.dyn.res}{The output from \code{\link{testDynamic}}. Defaults to NULL.}
+\item{test.dyn.res}{The output from \code{\link{testDynamic}}. Defaults to 
+NULL.}
 
-\item{dyn.genes}{The set of genes to pull knots for. If unspecified, pulls knots for all modeled genes. Defaults to NULL.}
+\item{dyn.genes}{The set of genes to pull knots for. If unspecified, pulls 
+knots for all modeled genes. Defaults to NULL.}
 }
 \value{
-A data.frame containing gene name, lineage ID, and knot location in pseudotime.
+A data.frame containing gene name, lineage ID, and knot location in 
+pseudotime.
 }
 \description{
-Pulls knot locations for dynamic genes across each lineage, allowing comparisons of where transcriptional switches occur between lineages.
+Pulls knot locations for dynamic genes across each lineage, 
+allowing comparisons of where transcriptional switches occur 
+between lineages.
 }
 \examples{
 data(scLANE_models)

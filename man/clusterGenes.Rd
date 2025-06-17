@@ -15,29 +15,48 @@ clusterGenes(
 )
 }
 \arguments{
-\item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
+\item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no 
+extra processing required. Defaults to NULL.}
 
-\item{pt}{A data.frame containing the pseudotime or latent time estimates for each cell. Defaults to NULL.}
+\item{pt}{A data.frame containing the pseudotime or latent time estimates 
+for each cell. Defaults to NULL.}
 
-\item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
+\item{size.factor.offset}{(Optional) An offset to be used to rescale the 
+fitted values. Can be generated easily with \code{\link{createCellOffset}}. 
+No need to provide if the GEE backend was used. Defaults to NULL.}
 
-\item{clust.algo}{The clustering method to use. Can be one of "hclust", "kmeans", "leiden". Defaults to "leiden".}
+\item{clust.algo}{The clustering method to use. Can be one of "hclust", 
+"kmeans", "leiden". Defaults to "leiden".}
 
-\item{use.pca}{Should PCA be performed prior to clustering? Defaults to FALSE.}
+\item{use.pca}{Should PCA be performed prior to clustering? Defaults to 
+FALSE.}
 
-\item{n.PC}{The number of principal components to use when performing dimension reduction prior to clustering. Defaults to 15.}
+\item{n.PC}{The number of principal components to use when performing 
+dimension reduction prior to clustering. Defaults to 15.}
 
-\item{lineages}{Should one or more lineages be isolated? If so, specify which one(s). Otherwise, all lineages will be clustered independently. Defaults to NULL.}
+\item{lineages}{Should one or more lineages be isolated? If so, specify 
+which one(s). Otherwise, all lineages will be clustered independently. 
+Defaults to NULL.}
 }
 \value{
-A data.frame of with three columns: \code{Gene}, \code{Lineage}, and \code{Cluster}.
+A data.frame of with three columns: \code{Gene}, \code{Lineage}, 
+and \code{Cluster}.
 }
 \description{
-This function takes as input the output from \code{\link{testDynamic}} and clusters the fitted values from the model for each gene using one of several user-chosen algorithms. An approximately optimal clustering is determined by iterating over reasonable hyperparameter values & choosing the value with the highest mean silhouette score based on the cosine distance.
+This function takes as input the output from 
+\code{\link{testDynamic}} and clusters the fitted values from the model for 
+each gene using one of several user-chosen algorithms. An approximately 
+optimal clustering is determined by iterating over reasonable hyperparameter 
+values & choosing the value with the highest mean silhouette score based on 
+the cosine distance.
 }
 \details{
 \itemize{
-\item Due to some peculiarities of how the fitted values (on the link scale) are generated for \code{geeM} models, it's not necessary to multiply them by the offset as this is done internally. For GLM & GEE models, the opposite is true, and \code{size.factor.offset} must be provided in order to rescale the fitted values correctly.
+\item Due to some peculiarities of how the fitted values (on the link scale) 
+are generated for \code{geeM} models, it's not necessary to multiply them by 
+the offset as this is done internally. For GLM & GEE models, the opposite is 
+true, and \code{size.factor.offset} must be provided in order to rescale the 
+fitted values correctly.
 }
 }
 \examples{
@@ -46,8 +65,9 @@ data(scLANE_models)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 gene_clusters <- clusterGenes(scLANE_models,
-                              pt = sim_pseudotime,
-                              size.factor.offset = cell_offset)
+    pt = sim_pseudotime,
+    size.factor.offset = cell_offset
+)
 }
 \seealso{
 \code{\link{testDynamic}}

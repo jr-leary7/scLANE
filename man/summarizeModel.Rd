@@ -7,26 +7,33 @@
 summarizeModel(marge.model = NULL, pt = NULL, is.glmm = FALSE)
 }
 \arguments{
-\item{marge.model}{The fitted model output from \code{\link{marge2}} (this function is internally called by \code{\link{testDynamic}}). Defaults to NULL.}
+\item{marge.model}{The fitted model output from \code{\link{marge2}} (this 
+function is internally called by \code{\link{testDynamic}}). 
+Defaults to NULL.}
 
 \item{pt}{The predictor matrix of pseudotime. Defaults to NULL.}
 
-\item{is.glmm}{Flag specifying whether or not data were generated using GLMM mode. Defaults to FALSE.}
+\item{is.glmm}{Flag specifying whether or not data were generated using 
+GLMM mode. Defaults to FALSE.}
 }
 \value{
-A data.frame of the model coefficients, cutpoint intervals, and formatted equations.
+A data.frame of the model coefficients, cutpoint intervals, and 
+formatted equations.
 }
 \description{
-This function summarizes the model for each gene and allows for quantitative interpretation of fitted gene dynamics.
+This function summarizes the model for each gene and allows 
+for quantitative interpretation of fitted gene dynamics.
 }
 \examples{
 data(sim_counts)
 data(sim_pseudotime)
 cell_offset <- createCellOffset(sim_counts)
 marge_model <- marge2(sim_pseudotime,
-                      Y = BiocGenerics::counts(sim_counts)[4, ],
-                      Y.offset = cell_offset)
-model_summary <- summarizeModel(marge.model = marge_model, pt = sim_pseudotime)
+    Y = BiocGenerics::counts(sim_counts)[4, ],
+    Y.offset = cell_offset
+)
+model_summary <- summarizeModel(marge.model = marge_model, 
+                            pt = sim_pseudotime)
 }
 \seealso{
 \code{\link{marge2}}

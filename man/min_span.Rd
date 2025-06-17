@@ -11,23 +11,31 @@ min_span(X_red = NULL, q = NULL, minspan = NULL, alpha = 0.05)
 
 \item{q}{The number of predictor variables used. Defaults to NULL.}
 
-\item{minspan}{The set minimum span value. Defaults to \code{round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))}.}
+\item{minspan}{The set minimum span value. Defaults to 
+\code{round((-log2(-(1 / (q * N)) * log(1 - alpha)) / 2.5))}.}
 
 \item{alpha}{See Friedman (1991) equation (43). Defaults to 0.05.}
 }
 \value{
-\code{min_span} returns a vector of truncated predictor variable values.
+\code{min_span} returns a vector of truncated predictor 
+variable values.
 }
 \description{
 A truncation function applied on the predictor variable for knot selection.
 }
 \details{
-This function selects a minimum span between the knots to mitigate runs of correlated noise in the input data and hence avoiding estimation issues, this equation comes from Friedman (1991) equation 43.
+This function selects a minimum span between the knots to mitigate 
+runs of correlated noise in the input data and hence avoiding estimation 
+issues, this equation comes from Friedman (1991) equation 43.
 }
 \references{
-Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
+Friedman, J. (1991). Multivariate adaptive regression 
+splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
 
-Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+Stoklosa, J. and Warton, D.I. (2018). A generalized estimating 
+equation approach to multivariate adaptive regression splines. 
+\emph{Journal of Computational and Graphical Statistics}, 
+\strong{27}, 245--253.
 }
 \author{
 Jakub Stoklosa

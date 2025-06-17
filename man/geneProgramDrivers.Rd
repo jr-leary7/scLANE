@@ -16,45 +16,61 @@ geneProgramDrivers(
 )
 }
 \arguments{
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of normalized counts with genes as rows & cells as columns. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} 
+object from which counts can be extracted, or a matrix of normalized counts 
+with genes as rows & cells as columns. Defaults to NULL.}
 
 \item{genes}{A character vector of genes to test. Defaults to NULL.}
 
-\item{gene.program}{A vector of program scores as returned by \code{\link{geneProgramScoring}}. Defaults to NULL.}
+\item{gene.program}{A vector of program scores as returned by 
+\code{\link{geneProgramScoring}}. Defaults to NULL.}
 
-\item{cor.method}{(Optional) The correlation method to be used. Defaults to "spearman".}
+\item{cor.method}{(Optional) The correlation method to be used. 
+Defaults to "spearman".}
 
-\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
+\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical 
+significance. Defaults to 0.01.}
 
-\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "holm".}
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values 
+for multiple hypothesis testing. Defaults to "holm".}
 
-\item{n.cores}{(Optional) The number of cores used when iterating over genes to perform testing. Defaults to 2.}
+\item{n.cores}{(Optional) The number of cores used when iterating over 
+genes to perform testing. Defaults to 2.}
 
-\item{verbose}{(Optional) Should a progress bar be printed to the console during processing? Defaults to TRUE.}
+\item{verbose}{(Optional) Should a progress bar be printed to the console 
+during processing? Defaults to TRUE.}
 }
 \value{
-Either a \code{Seurat} or \code{SingleCellExperiment} object if \code{expr.mat} is in either form, or a data.frame containing per-cell program scores if \code{expr.mat} is a matrix.
+Either a \code{Seurat} or \code{SingleCellExperiment} object if 
+\code{expr.mat} is in either form, or a data.frame containing per-cell 
+program scores if \code{expr.mat} is a matrix.
 }
 \description{
-This function computes the correlation between smoothed gene expression and gene program scores in order to identify genes are significantly associated with program scores i.e., the "drivers" of the gene program.
+This function computes the correlation between smoothed gene 
+expression and gene program scores in order to identify genes are 
+significantly associated with program scores i.e., the "drivers" of the 
+gene program.
 }
 \examples{
 data(sim_counts)
 data(scLANE_models)
 data(sim_pseudotime)
 smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
-                                          pt = sim_pseudotime,
-                                          n.cores = 1L)
+    pt = sim_pseudotime,
+    n.cores = 1L
+)
 gene_embed <- embedGenes(smoothed_dynamics$Lineage_A, n.cores = 1L)
 sim_counts <- geneProgramScoring(sim_counts,
-                                 genes = gene_embed$gene,
-                                 gene.clusters = gene_embed$leiden,
-                                 n.cores = 1L)
+    genes = gene_embed$gene,
+    gene.clusters = gene_embed$leiden,
+    n.cores = 1L
+)
 program_drivers <- geneProgramDrivers(sim_counts,
-                                      genes = gene_embed$gene,
-                                      gene.program = sim_counts$cluster_0,
-                                      fdr.cutoff = 0.05,
-                                      n.cores = 1L)
+    genes = gene_embed$gene,
+    gene.program = sim_counts$cluster_0,
+    fdr.cutoff = 0.05,
+    n.cores = 1L
+)
 }
 \seealso{
 \code{\link{geneProgramScoring}}

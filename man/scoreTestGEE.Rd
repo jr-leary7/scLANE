@@ -14,28 +14,44 @@ scoreTestGEE(
 )
 }
 \arguments{
-\item{mod.1}{The model under the alternative hypothesis. Must be of class \code{geem}. Defaults to NULL.}
+\item{mod.1}{The model under the alternative hypothesis. Must be of class 
+\code{geem}. Defaults to NULL.}
 
-\item{mod.0}{The model under the null hypothesis. Must be of class \code{geem}. Defaults to NULL.}
+\item{mod.0}{The model under the null hypothesis. Must be of class 
+\code{geem}. Defaults to NULL.}
 
-\item{alt.df}{The dataframe used to fit the alternative model. Defaults to NULL.}
+\item{alt.df}{The dataframe used to fit the alternative model. 
+Defaults to NULL.}
 
 \item{null.df}{The dataframe used to fit the null model. Defaults to NULL.}
 
-\item{id.vec}{A vector of subject IDs to use as input to \code{\link{marge2}}. Defaults to NULL.}
+\item{id.vec}{A vector of subject IDs to use as input to 
+\code{\link{marge2}}. Defaults to NULL.}
 
-\item{cor.structure}{A string specifying the working correlation structure used to fit each model. Must be one of "ar1", "independence", or "exchangeable". Defaults to "ar1".}
+\item{cor.structure}{A string specifying the working correlation structure 
+used to fit each model. Must be one of "ar1", "independence", or 
+"exchangeable". Defaults to "ar1".}
 }
 \value{
-A list containing the Score test statistic, a \emph{p}-value, and the degrees of freedom used in the test.
+A list containing the Score test statistic, a \emph{p}-value, and 
+the degrees of freedom used in the test.
 }
 \description{
-Performs a basic Lagrange multiplier test to determine whether an alternate model is significantly better than a nested null model. This is the GEE equivalent (kind of) of \code{\link{modelLRT}}. Be careful with small sample sizes.
+Performs a basic Lagrange multiplier test to determine whether 
+an alternate model is significantly better than a nested null model. This is 
+the GEE equivalent (kind of) of \code{\link{modelLRT}}. Be careful with 
+small sample sizes.
 }
 \details{
 \itemize{
-\item Calculating the test statistic involves taking the inverse of the variance of the score vector. Ideally this would be done using the true inverse, but in practice this can cause issues when the matrix is near-singular. With this in mind, we use the Moore-Penrose pseudoinverse if the original matrix inversion fails.
-\item The \emph{p}-value is calculated using an asymptotic Chi-squared distribution, with the degrees of freedom equal to the number of non-intercept coefficients in the alternative model.
+\item Calculating the test statistic involves taking the inverse of the 
+variance of the score vector. Ideally this would be done using the true 
+inverse, but in practice this can cause issues when the matrix is 
+near-singular. With this in mind, we use the Moore-Penrose pseudoinverse if 
+the original matrix inversion fails.
+\item The \emph{p}-value is calculated using an asymptotic Chi-squared 
+distribution, with the degrees of freedom equal to the number of 
+non-intercept coefficients in the alternative model.
 }
 }
 \seealso{

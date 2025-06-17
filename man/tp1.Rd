@@ -14,15 +14,20 @@ tp1(x = NULL, t = NULL, p = 1)
 \item{p}{The \eqn{p^{th}} degree of the polynomial considered. Defaults to 1.}
 }
 \value{
-A vector of values that have been transformed using a truncated \eqn{p^{th}} power function (positive part) for a specified knot value.
+A vector of values that have been transformed using a truncated 
+\eqn{p^{th}} power function (positive part) for a specified knot value.
 }
 \description{
 Truncated p-th power function (positive part).
 }
 \references{
-Friedman, J. (1991). Multivariate adaptive regression splines. \emph{The Annals of Statistics}, \strong{19}, 1--67.
+Friedman, J. (1991). Multivariate adaptive regression splines. 
+\emph{The Annals of Statistics}, \strong{19}, 1--67.
 
-Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+Stoklosa, J. and Warton, D.I. (2018). A generalized estimating 
+equation approach to multivariate adaptive regression splines. 
+\emph{Journal of Computational and Graphical Statistics}, 
+\strong{27}, 245--253.
 }
 \seealso{
 \code{\link{tp2}}

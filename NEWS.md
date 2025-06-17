@@ -1,3 +1,12 @@
+# Changes in v0.99.4
+
++ Minor error fixes for BioConductor submission.
++ Updated test suite. 
+
+# Changes in v0.99.3
+
++ Minor error fixes for BioConductor submission.
+
 # Changes in v0.99.2
 
 + Minor error fixes for BioConductor submission.

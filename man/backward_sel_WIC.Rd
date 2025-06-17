@@ -2,7 +2,8 @@
 % Please edit documentation in R/backward_sel_WIC.R
 \name{backward_sel_WIC}
 \alias{backward_sel_WIC}
-\title{Backward selection function for MARGE - uses the Wald information criterion (WIC).}
+\title{Backward selection function for MARGE - uses the Wald information 
+criterion (WIC).}
 \usage{
 backward_sel_WIC(
   Y = NULL,
@@ -21,24 +22,36 @@ backward_sel_WIC(
 
 \item{is.gee}{Is the model a GEE? Defaults to FALSE.}
 
-\item{id.vec}{A vector of observation IDs that is necessary for fitting a GEE model. Defaults to NULL.}
+\item{id.vec}{A vector of observation IDs that is necessary for fitting a 
+GEE model. Defaults to NULL.}
 
-\item{cor.structure}{The specified working correlation structure of the GEE model. Must be one of "independence", "ar1", or "exchangeable". Defaults to NULL.}
+\item{cor.structure}{The specified working correlation structure of the 
+GEE model. Must be one of "independence", "ar1", or "exchangeable". 
+Defaults to NULL.}
 
-\item{theta.hat}{An initial estimate of \eqn{\hat{\theta}} used to fit the negative-binomial model when GEE mode is being used.}
+\item{theta.hat}{An initial estimate of \eqn{\hat{\theta}} used to fit the 
+negative-binomial model when GEE mode is being used.}
 
-\item{sandwich.var}{Should the sandwich variance estimator be used instead of the model-based estimator? Default to FALSE.}
+\item{sandwich.var}{Should the sandwich variance estimator be used instead 
+of the model-based estimator? Default to FALSE.}
 }
 \value{
-\code{backward_sel_WIC} returns the Wald statistic from the fitted model (the penalty is applied later on).
+\code{backward_sel_WIC} returns the Wald statistic from the fitted 
+model (the penalty is applied later on).
 }
 \description{
-Backward selection function for MARGE - uses the Wald information criterion (WIC).
+Backward selection function for MARGE - uses the Wald information 
+criterion (WIC).
 }
 \references{
-Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for Generalized Estimating Equations With a Large Number of Predictor Variables. \emph{Biometrics}, \strong{70}, 110--120.
+Stoklosa, J. Gibb, H. Warton, D.I. Fast forward selection for 
+Generalized Estimating Equations With a Large Number of Predictor Variables. 
+\emph{Biometrics}, \strong{70}, 110--120.
 
-Stoklosa, J. and Warton, D.I. (2018). A generalized estimating equation approach to multivariate adaptive regression splines. \emph{Journal of Computational and Graphical Statistics}, \strong{27}, 245--253.
+Stoklosa, J. and Warton, D.I. (2018). A generalized estimating 
+equation approach to multivariate adaptive regression splines. 
+\emph{Journal of Computational and Graphical Statistics}, 
+\strong{27}, 245--253.
 }
 \author{
 Jakub Stoklosa

@@ -7,15 +7,20 @@
 createCellOffset(expr.mat = NULL, scale.factor = 10000)
 }
 \arguments{
-\item{expr.mat}{Either a (sparse or dense) matrix of raw integer counts (cells as columns), a \code{Seurat} object, or a \code{SingleCellExperiment} object. Defaults to NULL.}
+\item{expr.mat}{Either a (sparse or dense) matrix of raw integer counts 
+(cells as columns), a \code{Seurat} object, or a \code{SingleCellExperiment} 
+object. Defaults to NULL.}
 
-\item{scale.factor}{The scaling factor use to multiply the sequencing depth factor for each cell. The default value is 1e4, which returns counts-per-10k.}
+\item{scale.factor}{The scaling factor use to multiply the sequencing depth 
+factor for each cell. The default value is 1e4, which returns counts-per-10k.}
 }
 \value{
-A named numeric vector containing the computed size factor for each cell.
+A named numeric vector containing the computed size factor for each 
+cell.
 }
 \description{
-Creates a vector of per-cell size factors to be used as input to \code{\link{testDynamic}} as a model offset given a variety of inputs.
+Creates a vector of per-cell size factors to be used as input 
+to \code{\link{testDynamic}} as a model offset given a variety of inputs.
 }
 \examples{
 data(sim_counts)

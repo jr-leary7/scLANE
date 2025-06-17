@@ -1,10 +1,14 @@
-#' A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object containing simulated counts.
+#' A \code{\link[SingleCellExperiment]{SingleCellExperiment}} object containing 
+#' simulated counts.
 #'
-#' Data simulated using the \code{scaffold} R package for 50 dynamic and 50 static genes across 1200 cells from 3 subjects.
+#' Data simulated using the \code{scaffold} R package for 50 dynamic and 50 
+#' static genes across 1200 cells from 3 subjects.
 #'
-#' @format An object of class \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
+#' @format An object of class 
+#' \code{\link[SingleCellExperiment]{SingleCellExperiment}}.
 #' @source https://www.rhondabacher.com/scaffold-vignette.pdf
 #' @usage data(sim_counts)
+#' @return Small simulated trajectory dataset.
 "sim_counts"
 
 #' A data.frame containing ground-truth pseudotime.
@@ -16,12 +20,15 @@
 #'  \item PT: the true pseudotime (0.0025--1)
 #' }
 #' @usage data(sim_pseudotime)
+#' @return Small simulated trajectory pseudotime.
 "sim_pseudotime"
 
 #' An object of class \code{scLANE}.
 #'
-#' Contains the results from running \code{\link{testDynamic}} on \code{\link{sim_counts}}.
+#' Contains the results from running \code{\link{testDynamic}} 
+#' on \code{\link{sim_counts}}.
 #'
 #' @format An object of class \code{scLANE}.
 #' @usage data(scLANE_models)
+#' @return scLANE results on small simulated trajectory dataset.
 "scLANE_models"

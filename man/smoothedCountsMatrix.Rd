@@ -14,30 +14,42 @@ smoothedCountsMatrix(
 )
 }
 \arguments{
-\item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no extra processing required. Defaults to NULL.}
+\item{test.dyn.res}{The list returned by \code{\link{testDynamic}} - no 
+extra processing required. Defaults to NULL.}
 
-\item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
+\item{size.factor.offset}{(Optional) An offset to be used to rescale the 
+fitted values. Can be generated easily with \code{\link{createCellOffset}}. 
+No need to provide if the GEE backend was used. Defaults to NULL.}
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{genes}{(Optional) A character vector of genes with which to subset the results. Defaults to NULL.}
+\item{genes}{(Optional) A character vector of genes with which to subset the 
+results. Defaults to NULL.}
 
-\item{log1p.norm}{A boolean specifying whether the smoothed counts should be log1p-transformed after depth normalization. Defaults to FALSE.}
+\item{log1p.norm}{A boolean specifying whether the smoothed counts should 
+be log1p-transformed after depth normalization. Defaults to FALSE.}
 
-\item{n.cores}{If parallel execution is desired, how many cores should be utilized? Defaults to 2.}
+\item{n.cores}{If parallel execution is desired, how many cores should be 
+utilized? Defaults to 2.}
 }
 \value{
-A list of matrices of smoothed counts, with each element of the list being a single pseudotime lineage.
+A list of matrices of smoothed counts, with each element of the 
+list being a single pseudotime lineage.
 }
 \description{
-This function takes as input the output from \code{\link{testDynamic}} and returns the fitted values from each model in a wide format, with one column per-gene and one row-per cell. This matrix can be use as input to cell or gene clustering and / or visualizations such as heatmaps.
+This function takes as input the output from 
+\code{\link{testDynamic}} and returns the fitted values from each model in 
+a wide format, with one column per-gene and one row-per cell. This matrix 
+can be use as input to cell or gene clustering and / or visualizations 
+such as heatmaps.
 }
 \examples{
 data(sim_pseudotime)
 data(scLANE_models)
 smoothed_dynamics <- smoothedCountsMatrix(scLANE_models,
-                                          pt = sim_pseudotime,
-                                          n.cores = 1L)
+    pt = sim_pseudotime,
+    n.cores = 1L
+)
 }
 \seealso{
 \code{\link{testDynamic}}

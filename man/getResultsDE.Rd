@@ -7,17 +7,22 @@
 getResultsDE(test.dyn.res = NULL, p.adj.method = "fdr", fdr.cutoff = 0.01)
 }
 \arguments{
-\item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}. Defaults to NULL.}
+\item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}. 
+Defaults to NULL.}
 
-\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for multiple hypothesis testing. Defaults to "fdr".}
+\item{p.adj.method}{(Optional) The method used to adjust \emph{p}-values for 
+multiple hypothesis testing. Defaults to "fdr".}
 
-\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical significance. Defaults to 0.01.}
+\item{fdr.cutoff}{(Optional) The FDR threshold for determining statistical 
+significance. Defaults to 0.01.}
 }
 \value{
-A data.frame containing differential expression results & test statistics for each gene.
+A data.frame containing differential expression results & test 
+statistics for each gene.
 }
 \description{
-This function turns the nested list differential expression results of \code{\link{testDynamic}} and turns them into a tidy data.frame.
+This function turns the nested list differential expression 
+results of \code{\link{testDynamic}} and turns them into a tidy data.frame.
 }
 \examples{
 data(scLANE_models)

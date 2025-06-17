@@ -15,25 +15,35 @@ plotModelCoefs(
 )
 }
 \arguments{
-\item{test.dyn.res}{The output from \code{\link{testDynamic}}. Defaults to NULL.}
+\item{test.dyn.res}{The output from \code{\link{testDynamic}}. 
+Defaults to NULL.}
 
-\item{gene}{A character specifying which gene's dynamics should be plotted. Defaults to NULL.}
+\item{gene}{A character specifying which gene's dynamics should be plotted. 
+Defaults to NULL.}
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object from which counts can be extracted, or a matrix of integer-valued counts with genes as rows & cells as columns. Defaults to NULL.}
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object 
+from which counts can be extracted, or a matrix of integer-valued counts 
+with genes as rows & cells as columns. Defaults to NULL.}
 
-\item{size.factor.offset}{(Optional) An offset to be used to rescale the fitted values. Can be generated easily with \code{\link{createCellOffset}}. No need to provide if the GEE backend was used. Defaults to NULL.}
+\item{size.factor.offset}{(Optional) An offset to be used to rescale the 
+fitted values. Can be generated easily with \code{\link{createCellOffset}}. 
+No need to provide if the GEE backend was used. Defaults to NULL.}
 
-\item{lineage}{A character vector specifying which lineage should be plotted. Should be letters, i.e. lineage "A" or "B". Defaults to "A".}
+\item{lineage}{A character vector specifying which lineage should be 
+plotted. Should be letters, i.e. lineage "A" or "B". Defaults to "A".}
 
-\item{log1p.norm}{(Optional) Should log1p-normalized versions of expression & model predictions be returned as well? Defaults to TRUE.}
+\item{log1p.norm}{(Optional) Should log1p-normalized versions of expression 
+& model predictions be returned as well? Defaults to TRUE.}
 }
 \value{
-A \code{ggplot2} object displaying a gene dynamics plot & a table of coefficients across pseudotime intervals.
+A \code{ggplot2} object displaying a gene dynamics plot & a table 
+of coefficients across pseudotime intervals.
 }
 \description{
-Generate a plot of gene dynamics over a single pseudotime lineage, along with a table of coefficients across pseudotime intervals.
+Generate a plot of gene dynamics over a single pseudotime 
+lineage, along with a table of coefficients across pseudotime intervals.
 }
 \examples{
 data(sim_counts)
@@ -42,10 +52,11 @@ data(scLANE_models)
 cell_offset <- createCellOffset(sim_counts)
 scLANE_de_res <- getResultsDE(scLANE_models)
 plotModelCoefs(scLANE_models,
-               gene = "ACLY",
-               pt = sim_pseudotime,
-               expr.mat = sim_counts,
-               size.factor.offset = cell_offset)
+    gene = "ACLY",
+    pt = sim_pseudotime,
+    expr.mat = sim_counts,
+    size.factor.offset = cell_offset
+)
 }
 \author{
 Jack R. Leary

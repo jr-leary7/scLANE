@@ -7,23 +7,31 @@
 sortGenesHeatmap(heatmap.mat = NULL, pt.vec = NULL)
 }
 \arguments{
-\item{heatmap.mat}{A matrix of raw or smoothed expression values with genes as columns and cells as rows. Defaults to NULL.}
+\item{heatmap.mat}{A matrix of raw or smoothed expression values with genes 
+as columns and cells as rows. Defaults to NULL.}
 
-\item{pt.vec}{A numeric vector of pseudotime values for each cell i.e., for each row in the heatmap matrix. Defaults to NULL.}
+\item{pt.vec}{A numeric vector of pseudotime values for each cell i.e., for 
+each row in the heatmap matrix. Defaults to NULL.}
 }
 \value{
-A character vector of genes sorted by their peak expression values over pseudotime.
+A character vector of genes sorted by their peak expression values 
+over pseudotime.
 }
 \description{
-Sort genes such that genes with peak expression occurring earlier in pseudotime are first, and vice versa for genes with late peak expression. Useful for ordering genes in order to create heatmaps of expression cascades.
+Sort genes such that genes with peak expression occurring 
+earlier in pseudotime are first, and vice versa for genes with late peak 
+expression. Useful for ordering genes in order to create heatmaps of 
+expression cascades.
 }
 \examples{
 data(sim_pseudotime)
 data(scLANE_models)
 smoothed_counts <- smoothedCountsMatrix(scLANE_models,
-                                        pt = sim_pseudotime,
-                                        n.cores = 1L)
-sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A, pt.vec = sim_pseudotime$PT)
+    pt = sim_pseudotime,
+    n.cores = 1L
+)
+sorted_genes <- sortGenesHeatmap(smoothed_counts$Lineage_A, 
+                        pt.vec = sim_pseudotime$PT)
 }
 \seealso{
 \code{\link{smoothedCountsMatrix}}

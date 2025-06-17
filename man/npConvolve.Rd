@@ -9,21 +9,26 @@ npConvolve(x = NULL, conv.kernel = NULL)
 \arguments{
 \item{x}{The vector to be convolved. Defaults to NULL.}
 
-\item{conv.kernel}{The kernel to be used in the convolution. If unspecified, defaults to a vector of \eqn{1 / n} where \eqn{n} is the length of the input vector. Defaults to NULL.}
+\item{conv.kernel}{The kernel to be used in the convolution. If unspecified, 
+defaults to a vector of \eqn{1 / n} where \eqn{n} is the length of the input 
+vector. Defaults to NULL.}
 }
 \value{
 A convolution with same length as the input vector.
 }
 \description{
-Convolve a vector with a user-specified kernel. Can be useful for heatmap smoothing, weighted moving means, etc.
+Convolve a vector with a user-specified kernel. Can be useful 
+for heatmap smoothing, weighted moving means, etc.
 }
 \details{
 \itemize{
-\item The convolution here uses \code{\link[stats]{convolve}}, but creates the kernel and padding in such a way that it matches the output from \code{np.convolve} in Python's \code{numpy} matrix algebra package.
+\item The convolution here uses \code{\link[stats]{convolve}}, but creates 
+the kernel and padding in such a way that it matches the output from 
+\code{np.convolve} in Python's \code{numpy} matrix algebra package.
 }
 }
 \examples{
-convolved_vec <- npConvolve(x = rnorm(20), conv.kernel = rep(1/5, 5))
+convolved_vec <- npConvolve(x = rnorm(20), conv.kernel = rep(1 / 5, 5))
 
 }
 \seealso{

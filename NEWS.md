@@ -2,6 +2,7 @@
 
 + Minor error fixes for BioConductor submission.
 + Updated test suite. 
++ Tweaked some compiler flags. 
 
 # Changes in v0.99.3
 

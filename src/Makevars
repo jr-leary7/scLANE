@@ -2,11 +2,9 @@
 # Flags for both GCC and Clang
 PKG_CXXFLAGS = -std=c++14 -O0 -s -g0
 
-
-# Conditional section based on the compiler
-ifdef GCC
-  PKG_LIBS += -Wl,--gc-sections
+# Conditional section based on the OS
+ifeq ($(shell uname -s),Darwin)
+	PKG_LIBS += -Wl, -dead_strip
 else
-  # For Clang, you might need `-dead_strip`
-  PKG_LIBS += -Wl,-dead_strip 
+	PKG_LIBS += -Wl,--gc-sections
 endif

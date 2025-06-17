@@ -31,7 +31,9 @@ summary.scLANE <- function(test.dyn.res = NULL,
   summary_stats$mean_adj_p_value <- mean(adj_p_values, na.rm = TRUE)
   summary_stats$test_type <- ifelse(test.dyn.res[[1]][[1]]$Test_Stat_Type == "LRT",
                                     "Likelihood Ratio Test",
-                                    ifelse(test.dyn.res[[1]][[1]]$Test_Stat_Type == "Wald", "Wald Test", "Score Test"))
+                                    ifelse(test.dyn.res[[1]][[1]]$Test_Stat_Type == "Wald",
+                                           "Wald Test",
+                                           "Score Test"))
   class(summary_stats) <- "summary.scLANE"
   return(summary_stats)
 }

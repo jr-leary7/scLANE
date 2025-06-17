@@ -13,7 +13,7 @@ RoxygenNote: 7.3.2
 Depends: 
   glm2, 
   magrittr, 
-  R (>= 3.5.0)
+  R (>= 4.1.0)
 Imports: 
     geeM,
     MASS,

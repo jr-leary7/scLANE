@@ -1,3 +1,7 @@
+# Changes in v0.99.7 
+
++ Fixed an incredibly minor Boolean condition warning thrown by `BiocCheck`. 
+
 # Changes in v0.99.6 
 
 + Changed some function examples & unit tests related to the GLMM coefficient bootstrapping to be faster so as to avoid the "R CMD CHECK exceeds 10mins warning" in BioConductor. 

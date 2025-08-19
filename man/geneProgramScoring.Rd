@@ -15,38 +15,38 @@ geneProgramScoring(
 )
 }
 \arguments{
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object 
-from which counts can be extracted, or a matrix of integer-valued counts 
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object
+from which counts can be extracted, or a matrix of integer-valued counts
 with genes as rows & cells as columns. Defaults to NULL.}
 
 \item{genes}{A character vector of gene IDs. Defaults to NULL.}
 
-\item{gene.clusters}{A factor containing the cluster assignment of each gene 
+\item{gene.clusters}{A factor containing the cluster assignment of each gene
 in \code{genes}. Defaults to NULL.}
 
-\item{program.labels}{(Optional) A character vector specifying a label for 
+\item{program.labels}{(Optional) A character vector specifying a label for
 each gene cluster. Defaults to NULL.}
 
-\item{minmax.norm}{(Optional) Should each program's score be min-max 
+\item{minmax.norm}{(Optional) Should each program's score be min-max
 normalized to be on (0, 1)? Defaults to TRUE.}
 
-\item{minmax.epsilon}{(Optional) The tolerance used to ensure that program 
+\item{minmax.epsilon}{(Optional) The tolerance used to ensure that program
 scores equal to 0 or 1 do not occur. Defaults to 0.01.}
 
-\item{n.cores}{(Optional) The number of cores used under the hood in 
+\item{n.cores}{(Optional) The number of cores used under the hood in
 \code{\link[UCell]{ScoreSignatures_UCell}}. Defaults to 2.}
 }
 \value{
-Either a \code{Seurat} or \code{SingleCellExperiment} object if 
-\code{expr.mat} is in either form, or a data.frame containing per-cell 
+Either a \code{Seurat} or \code{SingleCellExperiment} object if
+\code{expr.mat} is in either form, or a data.frame containing per-cell
 program scores if \code{expr.mat} is a matrix.
 }
 \description{
-This function uses \code{\link[UCell]{ScoreSignatures_UCell}} 
-to create a per-cell module score for each of the provided gene clusters. 
-If the input matrix is a \code{Seurat} or \code{SingleCellExperiment} 
-object, then the resulting scores will be added to the \code{meta.data} or 
-the \code{colData} slot, respectively. Otherwise, a data.frame of the 
+This function uses \code{\link[UCell]{ScoreSignatures_UCell}}
+to create a per-cell module score for each of the provided gene clusters.
+If the input matrix is a \code{Seurat} or \code{SingleCellExperiment}
+object, then the resulting scores will be added to the \code{meta.data} or
+the \code{colData} slot, respectively. Otherwise, a data.frame of the
 per-program scores is returned.
 }
 \examples{

@@ -49,7 +49,7 @@
 #' ranef_sumy <- bootstrapRandomEffects(glmm_mod,
 #'     id.vec = sim_counts$subject,
 #'     Y.offset = cell_offset,
-#'     n.boot = 100L,
+#'     n.boot = 15,  # in practice use a larger number such as 500
 #'     n.cores = 1L
 #' )
 bootstrapRandomEffects <- function(glmm.mod = NULL,

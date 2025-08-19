@@ -1,3 +1,7 @@
+# Changes in v0.99.6 
+
++ Changed some function examples & unit tests related to the GLMM coefficient bootstrapping to be faster so as to avoid the "R CMD CHECK exceeds 10mins warning" in BioConductor. 
+
 # Changes in v0.99.5 
 
 + Removed `src/Makevars` as it was causing compilation issues. 

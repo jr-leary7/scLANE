@@ -208,7 +208,7 @@ withr::with_output_sink(tempfile(), {
     re_sumy <- bootstrapRandomEffects(glmm_mod_offset,
         id.vec = sim_counts$subject,
         Y.offset = cell_offset,
-        n.boot = 100L,
+        n.boot = 25L,
         n.cores = 2L
     )
     # generate plots

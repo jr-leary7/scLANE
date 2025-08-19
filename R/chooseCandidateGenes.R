@@ -2,29 +2,29 @@
 #'
 #' @name chooseCandidateGenes
 #' @author Jack R. Leary
-#' @description This function identifies good gene candidates for trajectory 
-#' differential expression modeling by ranking genes based on their mean 
+#' @description This function identifies good gene candidates for trajectory
+#' differential expression modeling by ranking genes based on their mean
 #' expression, SD of expression, and sparsity across cells.
 #' @importFrom purrr map reduce
 #' @importFrom Matrix Matrix rowMeans
-#' @importFrom dplyr with_groups summarise arrange desc mutate row_number 
+#' @importFrom dplyr with_groups summarise arrange desc mutate row_number
 #' rowwise c_across ungroup slice_head pull
 #' @importFrom tidyselect starts_with
-#' @param obj An object of class 
-#' \code{\link[SingleCellExperiment]{SingleCellExperiment}}, 
-#' \code{\link[Seurat]{Seurat}}, or \code{CellDataSet}, or a gene-by-cell 
-#' matrix. Defaults to NULL.
-#' @param group.by.subject Boolean specifying whether or not the summary 
-#' statistics should be computed per-subject and then mean-aggregated. 
+#' @param obj An object of class
+#' \code{\link[SingleCellExperiment]{SingleCellExperiment}},
+#' \code{\link[Seurat]{Seurat}}, or \code{cell_data_set} (from \code{monocle3}), or a gene-by-cell
+#' matrix (sparse or dense). Defaults to NULL.
+#' @param group.by.subject Boolean specifying whether or not the summary
+#' statistics should be computed per-subject and then mean-aggregated.
 #' Defaults to TRUE.
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
-#' @param n.desired.genes An integer specifying the number of candidate 
+#' @param n.desired.genes An integer specifying the number of candidate
 #' genes to return. Defaults to 2000.
 #' @return A vector of candidate gene names.
 #' @export
 #' @examples
 #' data(sim_counts)
-#' candidate_genes <- chooseCandidateGenes(sim_counts, 
+#' candidate_genes <- chooseCandidateGenes(sim_counts,
 #'                             id.vec = sim_counts$subject)
 chooseCandidateGenes <- function(obj = NULL,
     group.by.subject = TRUE,
@@ -32,7 +32,9 @@ chooseCandidateGenes <- function(obj = NULL,
     n.desired.genes = 2000L) {
     # check inputs
     if (is.null(obj) || !(inherits(obj, "SingleCellExperiment") ||
-        inherits(obj, "Seurat"))) {
+        inherits(obj, "Seurat") || inherits(obj, "cell_data_set") ||
+        inherits(obj, "dgCMatrix") || inherits(obj, "dgRMatrix") ||
+        inherits(obj, "matrix"))) {
         stop("Please provide a SingleCellExperiment or Seurat object.")
     }
     if (group.by.subject && is.null(id.vec)) {
@@ -47,8 +49,8 @@ chooseCandidateGenes <- function(obj = NULL,
             slot = "counts",
             assay = Seurat::DefaultAssay(obj)
         )
-    } else if (inherits(expr.mat, "cell_data_set")) {
-        counts_matrix <- BiocGenerics::counts(slot)
+    } else if (inherits(obj, "cell_data_set")) {
+        counts_matrix <- BiocGenerics::counts(obj)
     } else if (inherits(obj, "dgCMatrix") || inherits(obj, "dgRMatrix") ||
         inherits(obj, "matrix")) {
         counts_matrix <- obj

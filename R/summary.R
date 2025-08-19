@@ -4,7 +4,8 @@
 #' @author Jack R. Leary
 #' @importFrom purrr map reduce
 #' @importFrom stats p.adjust
-#' @param test.dyn.res The nested list returned by \code{\link{testDynamic}}.
+#' @param object The nested list returned by \code{\link{testDynamic}}.
+#' @param ... Other options passed to \code{\link{summary.scLANE}}.
 #' Defaults to NULL.
 #' @return A summary list with aggregated statistics concerning the trajectory
 #' DE tests from \code{scLANE}.
@@ -44,6 +45,7 @@ summary.scLANE <- function(object, ...) {
 #' @name print.summary.scLANE
 #' @author Jack R. Leary
 #' @param x An object of class summary.scLANE.
+#' @param ... Other options passed to \code{\link{print.summary.scLANE}}.
 #' @return A printed summary of overall scLANE results
 #' @export
 

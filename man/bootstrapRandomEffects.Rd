@@ -20,31 +20,31 @@ bootstrapRandomEffects(
 
 \item{id.vec}{A vector of subject IDs. Defaults to NULL.}
 
-\item{Y.offset}{An offset to be included in the final model fit. Defaults 
+\item{Y.offset}{An offset to be included in the final model fit. Defaults
 to NULL.}
 
-\item{n.boot}{(Optional) The number of bootstrap resamples to generate. 
+\item{n.boot}{(Optional) The number of bootstrap resamples to generate.
 Defaults to 500.}
 
-\item{alpha}{(Optional) The desired confidence level. Defaults to good 
+\item{alpha}{(Optional) The desired confidence level. Defaults to good
 old 0.05.}
 
-\item{n.cores}{(Optional) The number of threads to use in parallel 
+\item{n.cores}{(Optional) The number of threads to use in parallel
 processing of the bootstrap resampling procedure. Defaults to 4.}
 
-\item{random.seed}{(Optional) The seed used to control stochasticity 
+\item{random.seed}{(Optional) The seed used to control stochasticity
 during bootstrap resampling. Defaults to 312.}
 
-\item{verbose}{(Optional) A boolean indicating whether a progress bar 
+\item{verbose}{(Optional) A boolean indicating whether a progress bar
 should be printed to the console. Defaults to TRUE.}
 }
 \value{
-An object of class \code{data.frame} containing the upper and 
+An object of class \code{data.frame} containing the upper and
 lower quantiles of the per-subject random effects.
 }
 \description{
-This function leverages the parametric bootstrap to generate 
-empirical confidence intervals for the random effects terms of a 
+This function leverages the parametric bootstrap to generate
+empirical confidence intervals for the random effects terms of a
 fitted model.
 }
 \examples{

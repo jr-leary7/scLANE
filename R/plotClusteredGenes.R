@@ -38,11 +38,20 @@
 #' @export
 #' @examples
 #' \donttest{
+#' data(sim_counts)
+#' data(scLANE_models)
+#' data(sim_pseudotime)
+#' cell_offset <- createCellOffset(sim_counts)
+#' gene_clusters <- clusterGenes(scLANE_models,
+#'     pt = sim_pseudotime,
+#'     size.factor.offset = cell_offset
+#' )
 #' library(ggplot2)
 #' plotClusteredGenes(
-#'     test.dyn.res = gene_stats,
+#'     test.dyn.res = scLANE_models,
 #'     gene.clusters = gene_clusters,
-#'     pt = pt_df
+#'     pt = sim_pseudotime,
+#'     n.cores = 1L
 #' ) %>%
 #'     ggplot(aes(x = PT, y = FITTED, color = CLUSTER, group = GENE)) +
 #'     facet_wrap(~ LINEAGE + CLUSTER) +

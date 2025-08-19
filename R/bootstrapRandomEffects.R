@@ -2,8 +2,8 @@
 #'
 #' @name bootstrapRandomEffects
 #' @author Jack R. Leary
-#' @description This function leverages the parametric bootstrap to generate 
-#' empirical confidence intervals for the random effects terms of a 
+#' @description This function leverages the parametric bootstrap to generate
+#' empirical confidence intervals for the random effects terms of a
 #' fitted model.
 #' @importFrom stats simulate update quantile
 #' @importFrom dplyr mutate with_groups summarise if_else
@@ -15,21 +15,22 @@
 #' @importFrom withr with_output_sink
 #' @importFrom tidyr pivot_longer
 #' @importFrom purrr reduce
+#' @importFrom stats na.omit
 #' @param glmm.mod The output from \code{\link{fitGLMM}}. Defaults to NULL.
 #' @param id.vec A vector of subject IDs. Defaults to NULL.
-#' @param Y.offset An offset to be included in the final model fit. Defaults 
+#' @param Y.offset An offset to be included in the final model fit. Defaults
 #' to NULL.
-#' @param n.boot (Optional) The number of bootstrap resamples to generate. 
+#' @param n.boot (Optional) The number of bootstrap resamples to generate.
 #' Defaults to 500.
-#' @param alpha (Optional) The desired confidence level. Defaults to good 
+#' @param alpha (Optional) The desired confidence level. Defaults to good
 #' old 0.05.
-#' @param n.cores (Optional) The number of threads to use in parallel 
+#' @param n.cores (Optional) The number of threads to use in parallel
 #' processing of the bootstrap resampling procedure. Defaults to 4.
-#' @param random.seed (Optional) The seed used to control stochasticity 
+#' @param random.seed (Optional) The seed used to control stochasticity
 #' during bootstrap resampling. Defaults to 312.
-#' @param verbose (Optional) A boolean indicating whether a progress bar 
+#' @param verbose (Optional) A boolean indicating whether a progress bar
 #' should be printed to the console. Defaults to TRUE.
-#' @return An object of class \code{data.frame} containing the upper and 
+#' @return An object of class \code{data.frame} containing the upper and
 #' lower quantiles of the per-subject random effects.
 #' @seealso \code{\link{fitGLMM}}
 #' @seealso \code{\link[glmmTMB]{glmmTMB}}
@@ -160,7 +161,7 @@ bootstrapRandomEffects <- function(glmm.mod = NULL,
     upper_bound <- 1 - alpha / 2
     ranef_sumy <- purrr::reduce(ranef_boot, rbind) %>%
         as.data.frame() %>%
-        na.omit() %>%
+        stats::na.omit() %>%
         dplyr::with_groups(c(subject, term),
             dplyr::summarise,
             QL = stats::quantile(effect, probs = lower_bound),

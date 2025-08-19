@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{x}{An object of class summary.scLANE.}
+
+\item{...}{Other options passed to \code{\link{print.summary.scLANE}}.}
 }
 \value{
 A printed summary of overall scLANE results

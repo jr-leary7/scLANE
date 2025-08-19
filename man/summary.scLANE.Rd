@@ -7,7 +7,9 @@
 \method{summary}{scLANE}(object, ...)
 }
 \arguments{
-\item{test.dyn.res}{The nested list returned by \code{\link{testDynamic}}.
+\item{object}{The nested list returned by \code{\link{testDynamic}}.}
+
+\item{...}{Other options passed to \code{\link{summary.scLANE}}.
 Defaults to NULL.}
 }
 \value{

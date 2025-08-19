@@ -1,3 +1,9 @@
+# Changes in v0.99.5 
+
++ Removed `src/Makevars` as it was causing compilation issues. 
++ Updated some function examples to have correct syntax. 
++ Fixed some input errors and undefined variables in `chooseCandidateGenes()`. 
+
 # Changes in v0.99.4
 
 + Minor error fixes for BioConductor submission.

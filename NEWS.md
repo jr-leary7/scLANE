@@ -1,3 +1,7 @@
+# Changes in v0.99.8
+
++ Updated some minor dependencies, etc. for BioConductor submission. 
+
 # Changes in v0.99.7 
 
 + Fixed an incredibly minor Boolean condition warning thrown by `BiocCheck`. 

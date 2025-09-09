@@ -315,5 +315,5 @@ filter(dyn_gene_enrichment$result, source == "GO:BP") %>%
 # Session info
 
 ```{r}
-sessioninfo::session_info()
+sessionInfo()
 ```

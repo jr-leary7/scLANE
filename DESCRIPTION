@@ -1,19 +1,19 @@
 Package: scLANE
 Type: Package
 Title: Model Gene Expression Dynamics with Spline-Based NB GLMs, GEEs, & GLMMs
-Version: 0.99.8
+Version: 0.99.9
 Authors@R: c(person(given = c("Jack", "R."), family = "Leary", email = "j.leary@ufl.edu", role = c("aut", "cre"), comment = c(ORCID = "0009-0004-8821-3269")), 
              person(given = "Rhonda", family = "Bacher", email = "rbacher@ufl.edu", role = c("ctb", "fnd"), comment = c(ORCID = "0000-0001-5787-476X")))
 Description: Our scLANE model uses truncated power basis spline models to build flexible, interpretable models of single cell gene expression over pseudotime or latent time. 
-             The modeling architectures currently supported are negative-binomial GLMs, GEEs, & GLMMs. 
+             The modeling architectures currently supported are Negative-binomial GLMs, GEEs, & GLMMs. 
              Downstream analysis functionalities include model comparison, dynamic gene clustering, smoothed counts generation, gene set enrichment testing, & visualization. 
-License: MIT + file LICENSE
+License: MIT
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends: 
   glm2, 
   magrittr, 
-  R (>= 4.1.0)
+  R (>= 4.5.0)
 Imports: 
     geeM,
     MASS,
@@ -57,7 +57,6 @@ Suggests:
     scater, 
     gtable, 
     ggpubr, 
-    Seurat, 
     viridis, 
     bluster, 
     cluster, 
@@ -72,6 +71,7 @@ Suggests:
     BiocGenerics, 
     BiocNeighbors, 
     ComplexHeatmap, 
+    Seurat (>= 5.0.0), 
     testthat (>= 3.0.0),
     SingleCellExperiment, 
     SummarizedExperiment
@@ -93,3 +93,4 @@ biocViews:
     Transcriptomics,
     GeneSetEnrichment,
     DifferentialExpression
+Additional_repositories: https://bioconductor.org/packages/release/bioc

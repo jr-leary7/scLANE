@@ -30,14 +30,14 @@
 #' data(sim_counts)
 #' data(sim_pseudotime)
 #' sorted_counts <- sortObservations(sim_counts,
-#'     pt = sim_pseudotime$PT,
+#'     pt.vec = sim_pseudotime$PT,
 #'     id.vec = sim_counts$subject
 #' )
 sortObservations <- function(expr.mat = NULL,
     pt.vec = NULL,
     id.vec = NULL) {
     # check inputs
-    if (is.null(expr.mat) || is.null(pt) || is.null(id.vec)) {
+    if (is.null(expr.mat) || is.null(pt.vec) || is.null(id.vec)) {
         stop("You forgot some inputs to sortObservations().")
     }
     if (any(is.na(id.vec))) {

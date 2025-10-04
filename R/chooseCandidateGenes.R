@@ -46,7 +46,7 @@ chooseCandidateGenes <- function(obj = NULL,
         counts_matrix <- BiocGenerics::counts(obj)
     } else if (inherits(obj, "Seurat")) {
         counts_matrix <- Seurat::GetAssayData(obj,
-            slot = "counts",
+            layer = "counts",
             assay = Seurat::DefaultAssay(obj)
         )
     } else if (inherits(obj, "cell_data_set")) {
@@ -73,7 +73,7 @@ chooseCandidateGenes <- function(obj = NULL,
                 subject = unique(id.vec)[i],
                 gene = rownames(sub_matrix),
                 mu = unname(gene_means),
-                sigma = unname(gene_sds),
+                stan_dev = unname(gene_sds),
                 lambda = unname(gene_sparsity)
             )
             return(res)
@@ -82,7 +82,7 @@ chooseCandidateGenes <- function(obj = NULL,
             dplyr::with_groups(gene,
                 dplyr::summarise,
                 mu = mean(mu),
-                sigma = mean(sigma),
+                stan_dev = mean(stan_dev),
                 lambda = mean(lambda)
             )
     } else {
@@ -92,15 +92,15 @@ chooseCandidateGenes <- function(obj = NULL,
         gene_df <- data.frame(
             gene = rownames(counts_matrix),
             mu = unname(gene_means),
-            sigma = unname(gene_sds),
+            stan_dev = unname(gene_sds),
             lambda = unname(gene_sparsity)
         )
     }
     # rank genes
     gene_df <- dplyr::arrange(gene_df, dplyr::desc(mu)) %>%
         dplyr::mutate(rank_mu = dplyr::row_number()) %>%
-        dplyr::arrange(dplyr::desc(sigma)) %>%
-        dplyr::mutate(rank_sigma = dplyr::row_number()) %>%
+        dplyr::arrange(dplyr::desc(stan_dev)) %>%
+        dplyr::mutate(rank_stan_dev = dplyr::row_number()) %>%
         dplyr::arrange(lambda) %>%
         dplyr::mutate(rank_lambda = dplyr::row_number()) %>%
         dplyr::rowwise() %>%

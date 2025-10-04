@@ -1,3 +1,11 @@
+# Changes in v0.99.9
+
++ Hopefully reduced size of vignette for BioConductor. 
++ Added BioConductor repository to DESCRIPTION file to make installation easier. 
++ Upgraded R version dependency to v4.5.0. 
++ Added dependency on `Seurat` v5.0 to Suggests in DESCRIPTION & started using `layer` argument instead of `slot` when fetching data from a `Seurat` object. 
++ Removed unnecessary references to the `earth` package in Roxygen2 documentation that were causing notes in R CMD CHECK. 
+
 # Changes in v0.99.8
 
 + Updated some minor dependencies, etc. for BioConductor submission. 

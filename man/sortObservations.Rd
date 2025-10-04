@@ -41,7 +41,7 @@ recommended not to overwrite your original \code{Seurat} object.
 data(sim_counts)
 data(sim_pseudotime)
 sorted_counts <- sortObservations(sim_counts,
-    pt = sim_pseudotime$PT,
+    pt.vec = sim_pseudotime$PT,
     id.vec = sim_counts$subject
 )
 }

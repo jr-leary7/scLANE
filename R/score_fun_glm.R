@@ -26,6 +26,7 @@
 #' equation approach to multivariate adaptive regression splines. 
 #' \emph{Journal of Computational and Graphical Statistics}, 
 #' \strong{27}, 245--253.
+#' @seealso \code{\link{score_fun_gee}}
 
 score_fun_glm <- function(Y = NULL,
     VS.est_list = NULL,

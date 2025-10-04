@@ -29,14 +29,6 @@ Calculate the final RSS / GCV for a fitted model.
 Friedman, J. (1991). Multivariate adaptive regression splines. 
 \emph{The Annals of Statistics}, \strong{19}, 1--67.
 
-Milborrow, S. (2017a). Notes on the \code{\link[earth]{earth}} 
-package. Package vignette. Available at: 
-\url{http://www.milbo.org/doc/earth-notes.pdf}.
-
-Milborrow, S. (2017b). \code{\link[earth]{earth}}: Multivariate 
-Adaptive Regression Splines. R package version 4.4.7. Available at 
-\url{https://cran.r-project.org/package=earth.}
-
 Stoklosa, J. and Warton, D.I. (2018). A generalized estimating 
 equation approach to multivariate adaptive regression splines. 
 \emph{Journal of Computational and Graphical Statistics}, 
@@ -44,8 +36,6 @@ equation approach to multivariate adaptive regression splines.
 }
 \seealso{
 \code{\link{stat_out_score_glm_null}}
-
-\code{\link[earth]{earth}}
 }
 \author{
 Jakub Stoklosa

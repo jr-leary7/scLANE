@@ -29,7 +29,7 @@ createCellOffset <- function(expr.mat = NULL, scale.factor = 1e4) {
         expr.mat <- BiocGenerics::counts(expr.mat)
     } else if (inherits(expr.mat, "Seurat")) {
         expr.mat <- Seurat::GetAssayData(expr.mat,
-            slot = "counts",
+            layer = "counts",
             assay = Seurat::DefaultAssay(expr.mat)
         )
     }

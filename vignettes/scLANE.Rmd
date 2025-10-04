@@ -10,8 +10,8 @@ output:
     toc: true
     toc_float: true
     toc_depth: 2
-    fig_width: 9
-    fig_height: 6
+    fig_width: 4.5
+    fig_height: 3
     dev: png
 vignette: >
   %\VignetteIndexEntry{Interpretable Trajectory DE Testing}
@@ -27,7 +27,7 @@ knitr::opts_chunk$set(
     warning = FALSE,
     error = FALSE,
     fig.align = "center",
-    dpi = 320
+    dpi = 200
 )
 ```
 

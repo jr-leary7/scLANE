@@ -131,7 +131,7 @@ testDynamic <- function(expr.mat = NULL,
         expr.mat <- BiocGenerics::counts(expr.mat)[genes, ]
     } else if (inherits(expr.mat, "Seurat")) {
         expr.mat <- Seurat::GetAssayData(expr.mat,
-            slot = "counts",
+            layer = "counts",
             assay = Seurat::DefaultAssay(expr.mat)
         )
         expr.mat <- expr.mat[genes, ]

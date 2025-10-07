@@ -4,7 +4,8 @@
 + Added BioConductor repository to DESCRIPTION file to make installation easier. 
 + Upgraded R version dependency to v4.5.0. 
 + Added dependency on `Seurat` v5.0 to Suggests in DESCRIPTION & started using `layer` argument instead of `slot` when fetching data from a `Seurat` object. 
-+ Removed unnecessary references to the `earth` package in Roxygen2 documentation that were causing notes in R CMD CHECK. 
++ Removed unnecessary references to the `earth` package in Roxygen2 documentation that were causing NOTEs in R CMD CHECK. 
++ Added `zzz.R` that defines all NSE-induced global variables in the package; this resolves a NOTE thrown by R CMD CHECK. 
 
 # Changes in v0.99.8
 

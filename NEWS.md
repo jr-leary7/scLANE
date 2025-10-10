@@ -1,5 +1,9 @@
 # Changes in v0.99.9
 
++ One final minor change to the DESCRIPTION file r.e. the LICENSE for BioConductor.
+
+# Changes in v0.99.9
+
 + Hopefully reduced size of vignette for BioConductor. 
 + Added BioConductor repository to DESCRIPTION file to make installation easier. 
 + Upgraded R version dependency to v4.5.0. 

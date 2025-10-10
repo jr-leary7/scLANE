@@ -1,3 +1,7 @@
+# Changes in v0.99.999
+
++ Removed LICENSE from .Rbuildignore as this was cuasing a WARNING during R CMD check. 
+
 # Changes in v0.99.99
 
 + One final minor change to the DESCRIPTION file r.e. the LICENSE for BioConductor.

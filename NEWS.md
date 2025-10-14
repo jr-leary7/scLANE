@@ -1,6 +1,10 @@
 # Changes in v0.99.999
 
-+ Removed LICENSE from .Rbuildignore as this was cuasing a WARNING during R CMD check. 
++ Re-attempting BioConductor build because of odd dependency error. 
+
+# Changes in v0.99.999
+
++ Removed LICENSE from .Rbuildignore as this was causing a WARNING during R CMD check. 
 
 # Changes in v0.99.99
 

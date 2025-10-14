@@ -1,4 +1,8 @@
-# Changes in v0.99.999
+# Changes in v0.99.99999
+
++ Added `GenomeInfoDb` to Suggests in DESCRIPTION. 
+
+# Changes in v0.99.9999
 
 + Re-attempting BioConductor build because of odd dependency error. 
 

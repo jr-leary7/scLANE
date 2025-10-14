@@ -1,3 +1,7 @@
+# Changes in v0.99.999999
+
++ Reduced time of some Examples. 
+
 # Changes in v0.99.99999
 
 + Added `GenomeInfoDb` to Suggests in DESCRIPTION. 

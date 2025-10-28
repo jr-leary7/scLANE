@@ -1,3 +1,7 @@
+# Changes in v1.0.0
+
++ Added `magick` to Suggests in order to fix BioConductor build error on a specific Linux OS. 
+
 # Changes in v0.99.999999
 
 + Reduced time of some Examples. 
@@ -24,8 +28,8 @@
 + Added BioConductor repository to DESCRIPTION file to make installation easier. 
 + Upgraded R version dependency to v4.5.0. 
 + Added dependency on `Seurat` v5.0 to Suggests in DESCRIPTION & started using `layer` argument instead of `slot` when fetching data from a `Seurat` object. 
-+ Removed unnecessary references to the `earth` package in Roxygen2 documentation that were causing NOTEs in R CMD CHECK. 
-+ Added `zzz.R` that defines all NSE-induced global variables in the package; this resolves a NOTE thrown by R CMD CHECK. 
++ Removed unnecessary references to the `earth` package in Roxygen2 documentation that were causing NOTEs in R CMD check. 
++ Added `zzz.R` that defines all NSE-induced global variables in the package; this resolves a NOTE thrown by R CMD check. 
 
 # Changes in v0.99.8
 
@@ -37,7 +41,7 @@
 
 # Changes in v0.99.6 
 
-+ Changed some function examples & unit tests related to the GLMM coefficient bootstrapping to be faster so as to avoid the "R CMD CHECK exceeds 10mins warning" in BioConductor. 
++ Changed some function examples & unit tests related to the GLMM coefficient bootstrapping to be faster so as to avoid the "R CMD check exceeds 10mins warning" in BioConductor. 
 
 # Changes in v0.99.5 
 

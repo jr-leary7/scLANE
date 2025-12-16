@@ -74,7 +74,7 @@ geneProgramScoring <- function(
         counts_matrix <- BiocGenerics::counts(expr.mat)
     } else if (inherits(expr.mat, "Seurat")) {
         counts_matrix <- Seurat::GetAssayData(expr.mat,
-            slot = "counts",
+            layer = "counts",
             assay = Seurat::DefaultAssay(expr.mat)
         )
     } else if (inherits(expr.mat, "matrix") || inherits(expr.mat, "array")) {

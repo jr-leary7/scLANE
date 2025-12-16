@@ -1,3 +1,7 @@
+# Changes in v1.0.1
+
++ Fixed a deprecation error in `geneProgramScoring()`. 
+
 # Changes in v0.99.99999999
 
 + Retrying `BioConductor` build which failed to to internet connectivity issues. 

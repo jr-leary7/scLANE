@@ -1,4 +1,8 @@
-# Changes in v1.0.1
+# Changes in v1.1.2
+
++ Trying to fix `Seurat` slot vs. layer deprecation error once again. 
+
+# Changes in v1.1.1
 
 + Fixed a deprecation error in `geneProgramScoring()`. 
 

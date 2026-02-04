@@ -1,3 +1,15 @@
+# Changes in v1.1.2
+
++ Trying to fix `Seurat` slot vs. layer deprecation error once again. 
+
+# Changes in v1.1.1
+
++ Fixed a deprecation error in `geneProgramScoring()`. 
+
+# Changes in v0.99.99999999
+
++ Retrying `BioConductor` build which failed to to internet connectivity issues. 
+
 # Changes in v0.99.9999999
 
 + Added `magick` to Suggests in order to fix BioConductor build error on a specific Linux OS. 

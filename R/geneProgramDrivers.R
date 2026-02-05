@@ -11,28 +11,28 @@
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom stats cor.test p.adjust
 #' @importFrom dplyr arrange desc mutate filter
-#' @description This function computes the correlation between smoothed gene 
-#' expression and gene program scores in order to identify genes are 
-#' significantly associated with program scores i.e., the "drivers" of the 
+#' @description This function computes the correlation between smoothed gene
+#' expression and gene program scores in order to identify genes are
+#' significantly associated with program scores i.e., the "drivers" of the
 #' gene program.
-#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} 
-#' object from which counts can be extracted, or a matrix of normalized counts 
+#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat}
+#' object from which counts can be extracted, or a matrix of normalized counts
 #' with genes as rows & cells as columns. Defaults to NULL.
 #' @param genes A character vector of genes to test. Defaults to NULL.
-#' @param gene.program A vector of program scores as returned by 
+#' @param gene.program A vector of program scores as returned by
 #' \code{\link{geneProgramScoring}}. Defaults to NULL.
-#' @param cor.method (Optional) The correlation method to be used. 
+#' @param cor.method (Optional) The correlation method to be used.
 #' Defaults to "spearman".
-#' @param fdr.cutoff (Optional) The FDR threshold for determining statistical 
+#' @param fdr.cutoff (Optional) The FDR threshold for determining statistical
 #' significance. Defaults to 0.01.
-#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values 
+#' @param p.adj.method (Optional) The method used to adjust \emph{p}-values
 #' for multiple hypothesis testing. Defaults to "holm".
-#' @param n.cores (Optional) The number of cores used when iterating over 
+#' @param n.cores (Optional) The number of cores used when iterating over
 #' genes to perform testing. Defaults to 2.
-#' @param verbose (Optional) Should a progress bar be printed to the console 
+#' @param verbose (Optional) Should a progress bar be printed to the console
 #' during processing? Defaults to TRUE.
-#' @return Either a \code{Seurat} or \code{SingleCellExperiment} object if 
-#' \code{expr.mat} is in either form, or a data.frame containing per-cell 
+#' @return Either a \code{Seurat} or \code{SingleCellExperiment} object if
+#' \code{expr.mat} is in either form, or a data.frame containing per-cell
 #' program scores if \code{expr.mat} is a matrix.
 #' @seealso \code{\link{geneProgramScoring}}
 #' @seealso \code{\link[stats]{cor.test}}
@@ -79,7 +79,7 @@ geneProgramDrivers <- function(
         counts_matrix <- SingleCellExperiment::logcounts(expr.mat)
     } else if (inherits(expr.mat, "Seurat")) {
         counts_matrix <- Seurat::GetAssayData(expr.mat,
-            slot = "data",
+            layer = "data",
             assay = Seurat::DefaultAssay(expr.mat)
         )
     } else if (inherits(expr.mat, "dgCMatrix")) {

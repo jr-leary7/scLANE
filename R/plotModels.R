@@ -6,56 +6,56 @@
 #' @import glm2
 #' @importFrom stats qnorm predict as.formula
 #' @importFrom purrr map map2 reduce
-#' @importFrom dplyr relocate mutate select contains case_when filter if_else 
+#' @importFrom dplyr relocate mutate select contains case_when filter if_else
 #' rowwise ungroup
 #' @importFrom geeM geem
 #' @importFrom glmmTMB glmmTMB nbinom2
 #' @importFrom MASS negative.binomial theta.mm
 #' @importFrom tidyr pivot_longer
 #' @importFrom scales label_comma label_number
-#' @importFrom ggplot2 ggplot aes geom_point geom_line geom_ribbon facet_wrap 
+#' @importFrom ggplot2 ggplot aes geom_point geom_line geom_ribbon facet_wrap
 #' scale_y_continuous labs theme element_text guides guide_legend
 #' @description This function visualizes the fitted values of several types of
 #' models over the expression and pseudotime values of each cell.
-#' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to 
+#' @param test.dyn.res The output from \code{\link{testDynamic}}. Defaults to
 #' NULL.
-#' @param gene The name of the gene that's being analyzed. Used as the title of 
+#' @param gene The name of the gene that's being analyzed. Used as the title of
 #' the \code{ggplot} object & to subset the counts matrix. Defaults to NULL.
 #' @param pt A data.frame of pseudotime values for each cell. Defaults to NULL.
-#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object 
-#' from which counts can be extracted, or a matrix of integer-valued counts. 
+#' @param expr.mat Either a \code{SingleCellExperiment} or \code{Seurat} object
+#' from which counts can be extracted, or a matrix of integer-valued counts.
 #' Defaults to NULL.
-#' @param size.factor.offset (Optional) An offset to be included in the final 
-#' model fit. Can be generated easily with \code{\link{createCellOffset}}. 
+#' @param size.factor.offset (Optional) An offset to be included in the final
+#' model fit. Can be generated easily with \code{\link{createCellOffset}}.
 #' Defaults to NULL.
-#' @param log1p.norm (Optional) Should log1p-normalized versions of expression 
+#' @param log1p.norm (Optional) Should log1p-normalized versions of expression
 #' & model predictions be returned instead of raw counts? Defaults to TRUE.
-#' @param is.gee Should a GEE framework be used instead of the default GLM? 
+#' @param is.gee Should a GEE framework be used instead of the default GLM?
 #' Defaults to FALSE.
-#' @param is.glmm Should a GLMM framework be used instead of the default GLM? 
+#' @param is.glmm Should a GLMM framework be used instead of the default GLM?
 #' Defaults to FALSE.
-#' @param id.vec If the GEE or GLMM framework is being used, a vector of 
-#' subject IDs to use as input to \code{\link[geeM]{geem}} 
+#' @param id.vec If the GEE or GLMM framework is being used, a vector of
+#' subject IDs to use as input to \code{\link[geeM]{geem}}
 #' or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.
-#' @param cor.structure If the GEE framework is used, specifies the desired 
-#' working correlation structure. Must be one of "ar1", "independence", or 
+#' @param cor.structure If the GEE framework is used, specifies the desired
+#' working correlation structure. Must be one of "ar1", "independence", or
 #' "exchangeable". Defaults to "ar1".
-#' @param ci.alpha (Optional) The pre-specified Type I Error rate used in 
+#' @param ci.alpha (Optional) The pre-specified Type I Error rate used in
 #' generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.
-#' @param plot.null (Optional) Should the fitted values from the intercept-only 
+#' @param plot.null (Optional) Should the fitted values from the intercept-only
 #' null model be plotted? Defaults to FALSE.
-#' @param plot.glm (Optional) Should the fitted values from an NB GLM be 
-#' plotted? If the data are multi-subject, the "GLM" model can be a GEE or 
-#' GLMM depending on the desired framework. See Examples for more detail. 
+#' @param plot.glm (Optional) Should the fitted values from an NB GLM be
+#' plotted? If the data are multi-subject, the "GLM" model can be a GEE or
+#' GLMM depending on the desired framework. See Examples for more detail.
 #' Defaults to FALSE.
-#' @param plot.gam (Optional) Should the fitted values from an NB GAM be 
+#' @param plot.gam (Optional) Should the fitted values from an NB GAM be
 #' plotted? Defaults to FALSE.
-#' @param plot.scLANE (Optional) Should the fitted values from 
+#' @param plot.scLANE (Optional) Should the fitted values from
 #' the \code{scLANE} model be plotted? Defaults to TRUE.
-#' @param filter.lineage (Optional) A character vector of lineages to 
-#' filter out before generating the final plot. Should be letters, i.e. 
+#' @param filter.lineage (Optional) A character vector of lineages to
+#' filter out before generating the final plot. Should be letters, i.e.
 #' lineage "A" or "B". Defaults to NULL.
-#' @param gg.theme (Optional) A \code{ggplot2} theme to be added to the plot. 
+#' @param gg.theme (Optional) A \code{ggplot2} theme to be added to the plot.
 #' Defaults to \code{\link{theme_scLANE}}.
 #' @return A \code{ggplot} object.
 #' @export
@@ -108,7 +108,7 @@ plotModels <- function(test.dyn.res = NULL,
         expr.mat <- BiocGenerics::counts(expr.mat)
     } else if (inherits(expr.mat, "Seurat")) {
         expr.mat <- Seurat::GetAssayData(expr.mat,
-            slot = "counts",
+            layer = "counts",
             assay = Seurat::DefaultAssay(expr.mat)
         )
     } else if (inherits(expr.mat, "cell_data_set")) {

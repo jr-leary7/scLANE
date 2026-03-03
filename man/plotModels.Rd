@@ -25,61 +25,61 @@ plotModels(
 )
 }
 \arguments{
-\item{test.dyn.res}{The output from \code{\link{testDynamic}}. Defaults to 
+\item{test.dyn.res}{The output from \code{\link{testDynamic}}. Defaults to
 NULL.}
 
-\item{gene}{The name of the gene that's being analyzed. Used as the title of 
+\item{gene}{The name of the gene that's being analyzed. Used as the title of
 the \code{ggplot} object & to subset the counts matrix. Defaults to NULL.}
 
 \item{pt}{A data.frame of pseudotime values for each cell. Defaults to NULL.}
 
-\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object 
-from which counts can be extracted, or a matrix of integer-valued counts. 
+\item{expr.mat}{Either a \code{SingleCellExperiment} or \code{Seurat} object
+from which counts can be extracted, or a matrix of integer-valued counts.
 Defaults to NULL.}
 
-\item{size.factor.offset}{(Optional) An offset to be included in the final 
-model fit. Can be generated easily with \code{\link{createCellOffset}}. 
+\item{size.factor.offset}{(Optional) An offset to be included in the final
+model fit. Can be generated easily with \code{\link{createCellOffset}}.
 Defaults to NULL.}
 
-\item{log1p.norm}{(Optional) Should log1p-normalized versions of expression 
+\item{log1p.norm}{(Optional) Should log1p-normalized versions of expression
 & model predictions be returned instead of raw counts? Defaults to TRUE.}
 
-\item{is.gee}{Should a GEE framework be used instead of the default GLM? 
+\item{is.gee}{Should a GEE framework be used instead of the default GLM?
 Defaults to FALSE.}
 
-\item{is.glmm}{Should a GLMM framework be used instead of the default GLM? 
+\item{is.glmm}{Should a GLMM framework be used instead of the default GLM?
 Defaults to FALSE.}
 
-\item{id.vec}{If the GEE or GLMM framework is being used, a vector of 
-subject IDs to use as input to \code{\link[geeM]{geem}} 
+\item{id.vec}{If the GEE or GLMM framework is being used, a vector of
+subject IDs to use as input to \code{\link[geeM]{geem}}
 or \code{\link[glmmTMB]{glmmTMB}}. Defaults to NULL.}
 
-\item{cor.structure}{If the GEE framework is used, specifies the desired 
-working correlation structure. Must be one of "ar1", "independence", or 
+\item{cor.structure}{If the GEE framework is used, specifies the desired
+working correlation structure. Must be one of "ar1", "independence", or
 "exchangeable". Defaults to "ar1".}
 
-\item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in 
+\item{ci.alpha}{(Optional) The pre-specified Type I Error rate used in
 generating (\eqn{1 - \alpha})\% CIs. Defaults to good old 0.05.}
 
-\item{plot.null}{(Optional) Should the fitted values from the intercept-only 
+\item{plot.null}{(Optional) Should the fitted values from the intercept-only
 null model be plotted? Defaults to FALSE.}
 
-\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be 
-plotted? If the data are multi-subject, the "GLM" model can be a GEE or 
-GLMM depending on the desired framework. See Examples for more detail. 
+\item{plot.glm}{(Optional) Should the fitted values from an NB GLM be
+plotted? If the data are multi-subject, the "GLM" model can be a GEE or
+GLMM depending on the desired framework. See Examples for more detail.
 Defaults to FALSE.}
 
-\item{plot.gam}{(Optional) Should the fitted values from an NB GAM be 
+\item{plot.gam}{(Optional) Should the fitted values from an NB GAM be
 plotted? Defaults to FALSE.}
 
-\item{plot.scLANE}{(Optional) Should the fitted values from 
+\item{plot.scLANE}{(Optional) Should the fitted values from
 the \code{scLANE} model be plotted? Defaults to TRUE.}
 
-\item{filter.lineage}{(Optional) A character vector of lineages to 
-filter out before generating the final plot. Should be letters, i.e. 
+\item{filter.lineage}{(Optional) A character vector of lineages to
+filter out before generating the final plot. Should be letters, i.e.
 lineage "A" or "B". Defaults to NULL.}
 
-\item{gg.theme}{(Optional) A \code{ggplot2} theme to be added to the plot. 
+\item{gg.theme}{(Optional) A \code{ggplot2} theme to be added to the plot.
 Defaults to \code{\link{theme_scLANE}}.}
 }
 \value{
